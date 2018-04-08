@@ -1,6 +1,6 @@
 import { run } from './run';
-
-export function render(root, canvas, options) {
+import { Node } from './node';
+export function render(root: Node, canvas, options) {
     // var app = new pc.Application(canvas, {
     //     mouse: new pc.Mouse(canvas),
     //     keyboard: new pc.Keyboard(window)

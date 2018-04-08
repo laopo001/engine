@@ -1,6 +1,16 @@
-export class Application {
+import { Component } from './component';
+
+interface ApplicationProps {
+    // name: string;
+    // children: any;
+    dev?: string;
+    xxx: number;
+}
+
+export class Application extends Component<ApplicationProps> {
     _pc_inst;
-    constructor(private props, private context, private innerContext) {
+    constructor(props, context, innerContext) {
+        super(props, context, innerContext);
         innerContext.canvas.focus();
         var app = new pc.Application(innerContext.canvas, {
             mouse: innerContext.mouse,

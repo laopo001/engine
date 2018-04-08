@@ -1,4 +1,11 @@
+export interface TransformProps {
+    position?: number[];
+    rotation?: number[];
+    scaling?: number[];
+}
+
 export class Entity {
+    props: Readonly<ClassAttributes<TransformProps>> & Readonly<TransformProps>;
     _pc_inst
     constructor(props, context, innerContext) {
         var entity = new pc.Entity()
