@@ -1,0 +1,37 @@
+{
+    "compileOnSave": true,
+    "compilerOptions": {
+      "target": "es5",
+      "module": "es2015",
+      "moduleResolution": "node",
+      "sourceMap": true,
+      "declaration": true,
+      "emitDecoratorMetadata": true,
+      "experimentalDecorators": true,
+      "skipLibCheck": true,
+      "jsx": "react",
+      "jsxFactory": "PGL.h",
+      "lib": [
+        "es2015",
+        "dom",
+        "es7"
+      ],
+      "noImplicitAny": false,
+      "typeRoots": [
+        "./node_modules/@types"
+      ],
+      "outDir": "lib",
+      "types": [],
+      "allowSyntheticDefaultImports": true
+    },
+    "files": [
+      "./package/index.ts"
+    ],
+    "include": [
+      "package",
+      "typings"
+    ],
+    "exclude": [
+      "node_modules"
+    ]
+  }

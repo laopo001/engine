@@ -1,4 +1,5 @@
 import { Node } from './node';
+
 export function h(type, props) {
     var children = [];
     for (var _i = 2; _i < arguments.length; _i++) {
