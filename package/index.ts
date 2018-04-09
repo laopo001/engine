@@ -11,3 +11,4 @@ export {
     render, h, Application, Entity
 };
 export default hpc;
+export * from './components';

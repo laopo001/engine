@@ -1,6 +1,6 @@
-import { Node } from './node';
+import { Node, HPCNode } from './node';
 
-export function run(node, innerContext, context, parent) {
+export function run(node: HPCNode, innerContext, context, parent) {
     if (node instanceof Node) {
         var Ctor = node.type;
         var props = Object.assign({}, Ctor.defaultProps, node.props);

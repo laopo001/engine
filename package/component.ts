@@ -1,7 +1,8 @@
+import { ClassAttributes, HPCNode } from './node';
 
-export class Component<P= any> {
-    props: Readonly<ClassAttributes<P>> & Readonly<P>;
-    type = 'Component';
+export interface  Component<P= {}>{}
+export class Component<P> {
+    props: Readonly<{ children?: HPCNode }> & Readonly<P>;
     name: string;
     inst: any;
     parent: null | Component;

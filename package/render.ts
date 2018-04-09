@@ -1,6 +1,6 @@
 import { run } from './run';
-import { Node } from './node';
-export function render(root: Node, canvas, options) {
+import { Node, HPCNode } from './node';
+export function render(root: HPCNode, canvas, options) {
     // var app = new pc.Application(canvas, {
     //     mouse: new pc.Mouse(canvas),
     //     keyboard: new pc.Keyboard(window)
