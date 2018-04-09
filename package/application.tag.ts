@@ -1,10 +1,7 @@
 import { Component } from './component';
 
 interface ApplicationProps {
-    // name: string;
-    // children: any;
-    dev?: string;
-    xxx: number;
+
 }
 
 export class Application extends Component<ApplicationProps> {

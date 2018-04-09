@@ -1,13 +1,16 @@
-export interface TransformProps {
+import { Component } from './component';
+
+interface TransformProps {
     position?: number[];
     rotation?: number[];
     scaling?: number[];
 }
 
-export class Entity {
-    props: Readonly<ClassAttributes<TransformProps>> & Readonly<TransformProps>;
-    _pc_inst
+export class Entity extends Component<TransformProps> {
+    // props: Readonly<ClassAttributes<TransformProps>> & Readonly<TransformProps>;
+    _pc_inst;
     constructor(props, context, innerContext) {
+        super(props, context, innerContext);
         var entity = new pc.Entity()
         let children = props.children;
         for (let i = 0; i < children.length; i++) {
