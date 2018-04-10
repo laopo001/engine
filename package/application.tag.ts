@@ -1,11 +1,12 @@
 import { Component } from './component';
 
-interface ApplicationProps {
+export interface ApplicationProps {
 
 }
+let application;
 
 export class Application extends Component<ApplicationProps> {
-    _pc_inst;
+    static basename = 'application'
     constructor(props, context, innerContext) {
         super(props, context, innerContext);
         innerContext.canvas.focus();
@@ -18,12 +19,14 @@ export class Application extends Component<ApplicationProps> {
         app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
         app.start();
         innerContext.app = app;
-        this._pc_inst = app;
+        application = app;
+        this.pc = app;
+        super.setJsxComponent();
     }
     getChildren() {
         return this.props.children;
     }
-    getPC() {
-        return this.props;
-    }
 }
+export default function getApplicationInstance(){
+    return application;
+};

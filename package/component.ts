@@ -1,17 +1,17 @@
 import { ClassAttributes, HPCNode } from './node';
 
-export interface  Component<P= {}>{}
+export interface Component<P= {}> { }
 export class Component<P> {
     props: Readonly<{ children?: HPCNode }> & Readonly<P>;
-    name: string;
-    inst: any;
+    pc: any;
     parent: null | Component;
     children: Component[] = [];
     // parent: BABYLON.TransformNode;
     constructor(props, public context: any, public innerContext) {
-        this.name = props.name;
         this.props = props;
-        this.inst['__component__'] = this;
+    }
+    setJsxComponent() {
+        this.pc['__jsxcomponent__'] = this;
     }
     next(cb: Function) {
 

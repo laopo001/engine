@@ -1,5 +1,6 @@
 <!doctype html>
 <html>
+
 <head>
     <script src="../../../build/output/playcanvas-latest.js"></script>
     <link href="../../style.css" rel="stylesheet" />
@@ -23,7 +24,7 @@
         // Create an Entity with a camera component
         var cameraEntity = new pc.Entity();
         cameraEntity.addComponent("camera", {
-            clearColor: new pc.Color(0,0,0)
+            clearColor: new pc.Color(0, 0, 0)
         });
         cameraEntity.rotateLocal(0, 0, 0);
         cameraEntity.translateLocal(0, 0, 10);
@@ -35,7 +36,7 @@
             color: new pc.Color(1, 1, 1),
             intensity: 1
         });
-        lightDirEntity.setLocalEulerAngles(45,0,0);
+        lightDirEntity.setLocalEulerAngles(45, 0, 0);
 
         // Add Entities into the scene hierarchy
         app.root.addChild(cameraEntity);
@@ -81,10 +82,15 @@
                 scaleGraph: scaleCurve,
                 rotationSpeedGraph: rotCurve,
                 rotationSpeedGraph2: rotCurve2,
-                colorMap: asset.resource
+                // colorMap: asset.resource
             });
+            setTimeout(()=>{
+                entity.particlesystem.colorMap = asset.resource;
+            },2000)
+            
         });
 
     </script>
 </body>
+
 </html>
