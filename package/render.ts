@@ -10,8 +10,9 @@ export function render(root: HPCNode, canvas, options) {
     // app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
     run(root, {
         mouse: new pc.Mouse(canvas),
-        keyboard: new pc.Keyboard(window),
+        keyboard: new pc.Keyboard(window as any),
         canvas: canvas,
         app: null
     }, {}, null)
 };
+

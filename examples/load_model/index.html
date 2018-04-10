@@ -1,5 +1,6 @@
 <!doctype html>
 <html>
+
 <head>
     <script src="../../build/output/playcanvas-latest.js"></script>
     <link href="../style.css" rel="stylesheet" />
@@ -29,8 +30,11 @@
 
         app.assets.loadFromUrl(url, "model", function (err, asset) {
             entity = new pc.Entity();
-            entity.addComponent("model");
+            entity.addComponent("model", {
+                model: asset.resource
+            });
             entity.model.model = asset.resource;
+            // console.log(asset.resource)
             app.root.addChild(entity);
         });
 
@@ -54,9 +58,10 @@
 
         app.on("update", function (dt) {
             if (entity) {
-                entity.rotate(0,10*dt,0);
+                entity.rotate(0, 10 * dt, 0);
             }
         });
     </script>
 </body>
+
 </html>

@@ -1,8 +1,14 @@
 import { Node, HPCNode } from './node';
+import { getAllStringToComponent } from './string_component';
+
+let stringToComponent = getAllStringToComponent();
 
 export function run(node: HPCNode, innerContext, context, parent) {
     if (node instanceof Node) {
         var Ctor = node.type;
+        if (typeof Ctor === 'string') {
+            Ctor = stringToComponent[Ctor];
+        }
         var props = Object.assign({}, Ctor.defaultProps, node.props);
         var c = new Ctor(props, context, innerContext);
         if (props.ref) {

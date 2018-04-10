@@ -1,5 +1,8 @@
 import { Component, ComponentClass } from './component';
-import { CameraProps } from './components';
+import { CameraProps, PcComponentProps, ModelProps, LightProps, ParticleSystemProps } from './components';
+import { ApplicationProps } from './application.tag';
+import { EntityProps, Entity } from './entity.tag';
+
 
 export class Node<P> {
     constructor(public type, public props: P, public children) {
@@ -8,20 +11,31 @@ export class Node<P> {
     }
 }
 
-type ReactText = string | number;
-type NodeChild = Node<any> | ReactText;
+type TextNode = string | number;
+type NodeChild = Node<any> | TextNode;
 type NodeFragment = {} | Array<NodeChild | any[] | boolean>;
 export type HPCNode = NodeFragment | NodeChild | string | number | boolean | null | undefined;
 
 interface Attributes {
-    name?: string;
-    tag?: string;
+    // name?: string;
+    // tag?: string;
 }
 
 export type Ref<T> = { bivarianceHack(instance: T | null): any }['bivarianceHack'];
 
 export interface ClassAttributes<T> extends Attributes {
     ref?: Ref<T>;
+}
+
+interface IElements {
+    camera: CameraProps;
+    model: ModelProps;
+    light: LightProps;
+    particlesystem: ParticleSystemProps;
+}
+
+type pc<T> = {
+    [K in keyof T]: PcComponentProps & T[K] & ClassAttributes<any>;
 }
 
 declare global {
@@ -35,9 +49,9 @@ declare global {
         interface ElementChildrenAttribute { children: {}; }
         interface IntrinsicAttributes extends Attributes { }
         interface IntrinsicClassAttributes<T> extends ClassAttributes<T> { }
-        interface IntrinsicElements {
-            camera: CameraProps;
-            model: { type: string };
+        interface IntrinsicElements extends pc<IElements> {
+            application: ApplicationProps & Readonly<{ children?: HPCNode }>;
+            entity: EntityProps & Readonly<{ children?: HPCNode }>;
         }
     }
 
