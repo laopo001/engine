@@ -1,4 +1,4 @@
-import getApplicationInstance from './application.tag';
+import {getApplicationInstance} from './application.tag';
 
 export function loadAssetsFromUrl<T>(url: string, type: string) {
 
