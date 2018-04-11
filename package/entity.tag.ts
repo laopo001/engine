@@ -12,23 +12,43 @@ export interface EntityProps {
 export class Entity extends Component<EntityProps> {
     static basename = 'entity'
     // props: Readonly<ClassAttributes<TransformProps>> & Readonly<TransformProps>;
-    _pc_inst;
-    constructor(props, context, innerContext) {
+    constructor(props, context, innerContext, parent) {
         super(props, context, innerContext);
         var entity = new pc.Entity()
         let children = props.children;
+
+        let renderChildren = [];
+
         for (let i = 0; i < children.length; i++) {
             let node = children[i];
             if (typeof node.type !== 'string') {
                 node.type = node.type.basename;
             }
+            if (node.type === Entity.basename) {
+                renderChildren.push(node);
+                continue;
+            }
             // entity.addComponent(node.type, node.props);
             stringToComponent[node.type].addComponent(entity, node);
         }
-        innerContext.app.root.addChild(entity);
+
+        if (renderChildren.length > 0) {
+            // parent.addChild(entity);
+            this.render = () => { return renderChildren; }
+        }
         this.props.position && entity.setLocalPosition.apply(entity, this.props.position);
         this.props.eulerAngles && entity.setLocalEulerAngles.apply(entity, this.props.eulerAngles);
         this.props.scale && entity.setLocalScale.apply(entity, this.props.scale);
-        this._pc_inst = entity;
+
+        if (parent) {
+            parent.pc.addChild(entity);
+        } else {
+            innerContext.app.root.addChild(entity);
+        }
+
+
+        this.pc = entity;
+        this.pc['__jsxcomponent__'] = this;
     }
+    render?()
 }

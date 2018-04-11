@@ -11,6 +11,8 @@ export class PcComponent<T> extends Component<T & PcComponentProps> {
         return true;
     }
     static addComponent(entity, node, ...keys) {
+        debugger;
+        keys.push('children');
         let obj = {};
         for (let key in node.props) {
             !keys.includes(key) && (obj[key] = node.props[key]);

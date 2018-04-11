@@ -1,5 +1,5 @@
 import { Component, ComponentClass } from './component';
-import { CameraProps, PcComponentProps, ModelProps, LightProps, ParticleSystemProps } from './components';
+import { CameraProps, PcComponentProps, ModelProps, LightProps, ParticleSystemProps, RigidBodyProps, CollisionProps } from './components';
 import { ApplicationProps } from './application.tag';
 import { EntityProps, Entity } from './entity.tag';
 
@@ -32,10 +32,12 @@ interface IElements {
     model: ModelProps;
     light: LightProps;
     particlesystem: ParticleSystemProps;
+    rigidbody: RigidBodyProps;
+    collision: CollisionProps;
 }
 
 type pc<T> = {
-    [K in keyof T]: PcComponentProps & T[K] & ClassAttributes<any>;
+    [K in keyof T]: PcComponentProps & T[K];
 }
 
 declare global {
@@ -51,7 +53,7 @@ declare global {
         interface IntrinsicClassAttributes<T> extends ClassAttributes<T> { }
         interface IntrinsicElements extends pc<IElements> {
             application: ApplicationProps & Readonly<{ children?: HPCNode }>;
-            entity: EntityProps & Readonly<{ children?: HPCNode }>;
+            entity: EntityProps & Readonly<{ children?: HPCNode }> & ClassAttributes<Entity>;
         }
     }
 
