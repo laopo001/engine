@@ -2,7 +2,13 @@ import { getApplicationInstance } from './application.tag';
 import { Component } from './component';
 import { HPCNode } from './node';
 
-export abstract class ScriptComponent<T=any> extends Component<T>{
+export interface ScriptComponentProps {
+    children: never;
+}
+
+
+
+export abstract class ScriptComponent<T = any> extends Component<T>{
     constructor(props, context, innerContext) {
         super(props, context, innerContext)
     }
@@ -14,5 +20,5 @@ export abstract class ScriptComponent<T=any> extends Component<T>{
     readonly app: pc.Application = getApplicationInstance();
     init() { };
     update(dt) { };
-    abstract render():HPCNode;
+    abstract render(): HPCNode;
 }

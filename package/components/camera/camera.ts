@@ -1,6 +1,6 @@
 import { PcComponent } from '../pc.component';
 
-interface ICameraProps {
+export interface ICameraProps {
     // camera: pc.Camera;
     projection: number;
     nearClip: number;
@@ -27,5 +27,5 @@ interface ICameraProps {
 export type CameraProps=Partial<ICameraProps>
 
 export class Camera extends PcComponent<CameraProps> {
-    static basename = 'camera'
+    
 }

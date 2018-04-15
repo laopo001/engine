@@ -1,6 +1,6 @@
 import { PcComponent } from '../pc.component';
 
-interface ICollisionProps {
+export interface ICollisionProps {
     type: string;
     halfExtents: pc.Vec3;
     radius: number;
@@ -12,5 +12,5 @@ interface ICollisionProps {
 export type CollisionProps = Partial<ICollisionProps>
 
 export class Collision extends PcComponent<CollisionProps> {
-    static basename = 'collision'
+    
 }

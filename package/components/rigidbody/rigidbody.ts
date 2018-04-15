@@ -1,6 +1,6 @@
 import { PcComponent } from '../pc.component';
 
-interface IRigidBodyProps {
+export interface IRigidBodyProps {
     /**
      * Controls the rate at which a body loses angular velocity over time. 
      * @type {number}
@@ -91,5 +91,5 @@ interface IRigidBodyProps {
 export type RigidBodyProps = Partial<IRigidBodyProps>
 
 export class RigidBody extends PcComponent<RigidBodyProps> {
-    static basename = 'rigidbody'
+    
 }

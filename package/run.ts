@@ -14,53 +14,58 @@ export function run(node: HPCNode, innerContext, context, parent, cb?) {
         }
         var props = Object.assign({}, Ctor.defaultProps, node.props);
         var c;
-
         c = new Ctor(props, context, innerContext, parent);
-
-        
         props.ref && props.ref(c);
-        cb && cb(c);
         if (Ctor.isScriptComponent) {
             if (props.ref) {
                 props.ref(c);
             }
-            let res = c.render()
-            if (Array.isArray(res)) { console.error('ScriptComponent must return a entity'); return; }
+            let node = c.render()
+            if (Array.isArray(node)) { console.error('ScriptComponent must return a entity'); return; }
             // res.props = (x) => {
             //     // c.ref.entity = x;
             //     c.entity = x;
             //     c.entity.addComponent('script');
 
             // }
-            run(res, innerContext, context, parent, function (x) {
-                c.entity = x.pc;
-                // console.log(Ctor.name)
-                var script = pc.createScript(Ctor.name.toString() + i);
-
-                (script.prototype as any).initialize = function () {
-                    c.init();
-                };
-                (script.prototype as any).update = function (dt) {
-                    c.update(dt);
-                };
-
-
-                c.entity.addComponent('script');
-                c.entity.script.create(Ctor.name.toString() + i);
-                i++;
-            });
+            let child = run(node, innerContext, context, parent);
+            c.entity = child.pc;
+            addScriptComponent(child.pc, Ctor.name.toString() + i, c.init.bind(c), c.update.bind(c));
+            i++;
+            c.children = [child];
+            child.parent = c;
         } else {
             // c.parent = parent;
-            runChildren(c.render && c.render(), innerContext, context, Ctor.basename === 'entity' ? c : undefined);
+            let children = runChildren(c.render && c.render(), innerContext, context, c);
+            c.children = children;
         }
-
+        return c;
+    } else {
+        console.error('e');
     }
 };
 export function runChildren(nodes, innerContext, context, parent) {
     if (nodes == null) { return };
+    const arr = []
     for (var i = 0; i < nodes.length; i++) {
         var node = nodes[i];
         var c = run(node, innerContext, context, parent);
+        c.parent = parent;
+        arr.push(c);
     }
+    return arr;
 };
 
+export function addScriptComponent(entity, name, init, update) {
+
+    var script = pc.createScript(name);
+
+    (script.prototype as any).initialize = function () {
+        init();
+    };
+    (script.prototype as any).update = function (dt) {
+        update(dt);
+    };
+    entity.addComponent('script');
+    entity.script.create(name);
+}

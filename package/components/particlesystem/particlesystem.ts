@@ -1,6 +1,6 @@
 import { PcComponent } from '../pc.component';
 
-interface IParticleSystemProps {
+export interface IParticleSystemProps {
     autoPlay: boolean;
     loop: boolean;
     preWarm: boolean;
@@ -50,7 +50,7 @@ interface IParticleSystemProps {
 export type ParticleSystemProps = Partial<IParticleSystemProps>
 
 export class ParticleSystem extends PcComponent<ParticleSystemProps> {
-    static basename = 'particlesystem'
+    
     static addComponent(entity, node) {
 
 

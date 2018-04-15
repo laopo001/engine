@@ -5,3 +5,4 @@ export * from './light/light';
 export * from './particlesystem/particlesystem';
 export * from './rigidbody/rigidbody';
 export * from './collision/collision';
+export * from './audio/index';

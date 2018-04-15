@@ -1,7 +1,7 @@
 import { PcComponent } from '../pc.component';
 
 interface ILightProps {
-    type: string;
+    type: 'directional' | 'point' | 'spot';  //default directional
     color: pc.Color;
     intensity: number;
     castShadows: boolean;
@@ -32,8 +32,8 @@ interface ILightProps {
     cookieOffset: pc.Vec2;
     isStatic: boolean;
 }
-export type LightProps=Partial<ILightProps>
+export type LightProps = Partial<ILightProps>
 
 export class Light extends PcComponent<LightProps> {
-    static basename = 'light'
+
 }
