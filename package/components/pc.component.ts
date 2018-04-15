@@ -6,12 +6,11 @@ export interface PcComponentProps {
 }
 
 export class PcComponent<T> extends Component<T & PcComponentProps> {
-    basename: string;
+    pc;
     isPcComponent() {
         return true;
     }
-    static addComponent(entity, node, ...keys) {
-        debugger;
+    static addComponent(entity: pc.Entity, node, ...keys) {
         keys.push('children');
         let obj = {};
         for (let key in node.props) {
@@ -21,12 +20,22 @@ export class PcComponent<T> extends Component<T & PcComponentProps> {
     }
     static asyncAssetsSet(entity, node, ...keys) {
         keys.forEach((key) => {
-            node.props[key] && node.props[key].then((asset) => {
-                entity[node.type][key] = asset.resource;
-            })
+            let res = node.props[key];
+            if (res) {
+                if (res instanceof Promise) {
+                    res.then((asset) => {
+                        entity[node.type][key] = asset.resource;
+                    })
+                } else {
+                    entity[node.type][key] = res.resource;
+                }
+            }
         })
         // props[] && props.colorMap.then((asset) => {
         //     entity.particlesystem.colorMap = asset.resource;
         // })
+    }
+    static get basename() {
+        return this.name.toLowerCase();
     }
 }

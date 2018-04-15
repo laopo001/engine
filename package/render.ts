@@ -8,11 +8,12 @@ export function render(root: HPCNode, canvas, options) {
     // app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
     // app.setCanvasResolution(pc.RESOLUTION_AUTO);
     // app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
-    run(root, {
+    const app = run(root, {
         mouse: new pc.Mouse(canvas),
         keyboard: new pc.Keyboard(window as any),
         canvas: canvas,
         app: null
     }, {}, null)
+    console.log('application init');
 };
 

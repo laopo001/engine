@@ -1,5 +1,9 @@
 import { Component, ComponentClass } from './component';
-import { CameraProps, PcComponentProps, ModelProps, LightProps, ParticleSystemProps, RigidBodyProps, CollisionProps } from './components';
+import {
+    CameraProps, PcComponentProps, ModelProps, LightProps,
+    ParticleSystemProps, RigidBodyProps, CollisionProps,
+    SoundProps, AudioListenProps
+} from './components';
 import { ApplicationProps } from './application.tag';
 import { EntityProps, Entity } from './entity.tag';
 
@@ -34,6 +38,8 @@ interface IElements {
     particlesystem: ParticleSystemProps;
     rigidbody: RigidBodyProps;
     collision: CollisionProps;
+    sound: SoundProps;
+    audiolisten: AudioListenProps;
 }
 
 type pc<T> = {

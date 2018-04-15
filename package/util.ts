@@ -1,4 +1,5 @@
-import {getApplicationInstance} from './application.tag';
+import { getApplicationInstance } from './application.tag';
+import { updateQuene } from './application.tag';
 
 export function loadAssetsFromUrl<T>(url: string, type: string) {
 
@@ -12,3 +13,15 @@ export function loadAssetsFromUrl<T>(url: string, type: string) {
     })
 }
 
+export function createMaterial(colors) {
+    var material = new pc.StandardMaterial();
+    for (var param in colors) {
+        material[param] = colors[param];
+    }
+    material.update();
+    return material;
+}
+
+export function addUpdateListen(cb) {
+    updateQuene.push(cb);
+}

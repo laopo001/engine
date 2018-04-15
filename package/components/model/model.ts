@@ -1,12 +1,12 @@
 import { PcComponent } from '../pc.component';
 
-interface IModelProps {
+export interface IModelProps {
     type: string;
     asset: pc.Asset | number;
     castShadows: boolean;
     receiveShadows: boolean;
     materialAsset: number;
-    model: Promise<pc.Asset>;
+    model: Promise<pc.Asset> | pc.Asset;
     mapping: {};
     castShadowsLightmap: boolean;
     lightmapped: boolean;
@@ -15,17 +15,29 @@ interface IModelProps {
     meshInstances: pc.MeshInstance[];
     batchGroupId: number;
     layers: number[];
+    material: Promise<pc.Material> | pc.Material;
 }
 export type ModelProps = Partial<IModelProps>
 
 export class Model extends PcComponent<ModelProps> {
-    static basename = 'model'
-    static addComponent(entity, node) {
+
+    static addComponent(entity: pc.Entity, node) {
         super.addComponent(entity, node)
-        // props.model && props.model.then((asset) => {
-        //     entity.model.model = asset.resource;
-        // })
-        super.asyncAssetsSet(entity, node, 'model')
-        // console.log(1)
+        super.asyncAssetsSet(entity, node, 'model');
+
+        if (node.props.material) {
+            if (node.props.material instanceof Promise) {
+                node.props.material.then((res) => {
+                    entity.model.model.meshInstances.forEach(function (mesh) {
+                        mesh.material = res;
+                    });
+                })
+            } else {
+                node.props.material && entity.model.model.meshInstances.forEach(function (mesh) {
+                    mesh.material = node.props.material;
+                });
+            }
+        }
     }
 }
+
