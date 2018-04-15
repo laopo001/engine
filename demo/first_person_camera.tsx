@@ -55,8 +55,8 @@ export class FirstCamera extends ScriptComponent<{ speed?: number }> {
         }
     }
     render() {
-        return <entity name='camera' position={[7.5, 5.5, 6.1]} eulerAngles={[-30, 45, 0]} >
-            <camera />
+        return <entity name='camera' position={[5, 5, 5]} rotation={[-30, 45, 0]} >
+            <camera  />
         </entity>
     }
 }
