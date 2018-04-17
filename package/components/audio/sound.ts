@@ -14,7 +14,7 @@ export type SoundProps = Partial<ISoundProps>
 
 export class Sound extends PcComponent<SoundProps> {
     static addComponent(entity: pc.Entity, node) {
-        super.addComponent(entity, node)
+        let component = super.addComponent(entity, node)
         // entity.addComponent('sound');
 
         // add footsteps slot
@@ -37,6 +37,7 @@ export class Sound extends PcComponent<SoundProps> {
                 });
             }
         }
+        return component
 
     }
 

@@ -22,7 +22,7 @@ export type ModelProps = Partial<IModelProps>
 export class Model extends PcComponent<ModelProps> {
 
     static addComponent(entity: pc.Entity, node) {
-        super.addComponent(entity, node)
+        let component = super.addComponent(entity, node)
         super.asyncAssetsSet(entity, node, 'model');
 
         if (node.props.material) {
@@ -38,6 +38,7 @@ export class Model extends PcComponent<ModelProps> {
                 });
             }
         }
+        return component;
     }
 }
 

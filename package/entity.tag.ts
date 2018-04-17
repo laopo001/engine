@@ -31,6 +31,7 @@ export class Entity extends Component<EntityProps> {
         super(props, context, innerContext);
         parent = getPcParent(parent)
         var entity = new pc.Entity()
+        entity.name = props.name;
         let children = props.children;
 
         let renderChildren = [];
