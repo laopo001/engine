@@ -50,15 +50,13 @@ export interface IParticleSystemProps {
 export type ParticleSystemProps = Partial<IParticleSystemProps>
 
 export class ParticleSystem extends PcComponent<ParticleSystemProps> {
-    
+
     static addComponent(entity, node) {
-
-
-        super.addComponent(entity, node, 'colorMap', 'normalMap')
+        let component = super.addComponent(entity, node, 'colorMap', 'normalMap')
         // props.colorMap && props.colorMap.then((asset) => {
         //     entity.particlesystem.colorMap = asset.resource;
         // })
         super.asyncAssetsSet(entity, node, 'colorMap', 'normalMap')
-        // console.log(1)
+        return component;
     }
 }

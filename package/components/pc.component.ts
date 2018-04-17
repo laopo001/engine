@@ -16,7 +16,7 @@ export class PcComponent<T> extends Component<T & PcComponentProps> {
         for (let key in node.props) {
             !keys.includes(key) && (obj[key] = node.props[key]);
         }
-        entity.addComponent(node.type, obj);
+        return entity.addComponent(node.type, obj);
     }
     static asyncAssetsSet(entity, node, ...keys) {
         keys.forEach((key) => {
