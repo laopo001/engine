@@ -1,6 +1,7 @@
 import { getApplicationInstance } from './application.tag';
 import { Component } from './component';
 import { HPCNode } from './node';
+import { runChildren } from './run';
 
 export interface ScriptComponentProps {
     children: never;
@@ -13,12 +14,19 @@ export abstract class ScriptComponent<T = any> extends Component<T>{
         super(props, context, innerContext)
     }
     static isScriptComponent = true;
-    readonly entity: pc.Entity;
     next(cb: Function) {
 
     }
+    append(parent: pc.GraphNode, ...children) {
+        let res = runChildren(children, this.innerContext, this.context, parent)
+        // res.forEach((x) => {
+        //     parent.addChild(x.pc);
+        // })
+    }
+
+    children = [];
     readonly app: pc.Application = getApplicationInstance();
-    init() { };
+    initialize() { };
     update(dt) { };
     abstract render(): HPCNode;
 }

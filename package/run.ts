@@ -1,6 +1,7 @@
 import { Node, HPCNode } from './node';
 import { getAllStringToComponent } from './string_component';
-
+import { updateQuene } from './application.tag';
+import { ScriptComponent } from './script_commponent';
 
 let stringToComponent = getAllStringToComponent();
 
@@ -16,29 +17,25 @@ export function run(node: HPCNode, innerContext, context, parent, cb?) {
         var c;
         c = new Ctor(props, context, innerContext, parent);
         props.ref && props.ref(c);
-        if (Ctor.isScriptComponent) {
+        let children;
+        if (c instanceof ScriptComponent) {
             if (props.ref) {
                 props.ref(c);
             }
-            let node = c.render()
-            if (Array.isArray(node)) { console.error('ScriptComponent must return a entity'); return; }
-            // res.props = (x) => {
-            //     // c.ref.entity = x;
-            //     c.entity = x;
-            //     c.entity.addComponent('script');
-
-            // }
-            let child = run(node, innerContext, context, parent);
-            c.entity = child.pc;
-            addScriptComponent(child.pc, Ctor.name.toString() + i, c.init.bind(c), c.update.bind(c));
-            i++;
-            c.children = [child];
-            child.parent = c;
+            let node = c.render();
+            if (Array.isArray(node)) {
+                children = runChildren(node, innerContext, context, parent);
+            } else {
+                children = runChildren([node], innerContext, context, parent);
+            }
+            c.children = children;
+            c.initialize();
+            updateQuene.push(c.update.bind(c))
         } else {
-            // c.parent = parent;
-            let children = runChildren(c.render && c.render(), innerContext, context, c);
+            children = runChildren(c.render && c.render(), innerContext, context, c);
             c.children = children;
         }
+
         return c;
     } else {
         console.error('e');
