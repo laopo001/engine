@@ -6,8 +6,9 @@ export class FirstCamera extends ScriptComponent<{ speed?: number }> {
     }
     ex;
     ey;
-    init() {
-
+    entity: pc.GraphNode
+    initialize() {
+        this.entity = this.app.root.findByName('camera');
         // Camera euler angle rotation around x and y axes
         var eulers = this.entity.getLocalEulerAngles()
         this.ex = eulers.x;
@@ -21,7 +22,6 @@ export class FirstCamera extends ScriptComponent<{ speed?: number }> {
     }
     update(dt) {
         this.entity.setLocalEulerAngles(this.ex, this.ey, 0);
-
         // Update the camera's position
         var keyboard = this.app.keyboard;
         var forwards = keyboard.isPressed(pc.KEY_UP) || keyboard.isPressed(pc.KEY_W);
@@ -56,7 +56,7 @@ export class FirstCamera extends ScriptComponent<{ speed?: number }> {
     }
     render() {
         return <entity name='camera' position={[5, 5, 5]} rotation={[-30, 45, 0]} >
-            <camera  />
+            <camera />
         </entity>
     }
 }
