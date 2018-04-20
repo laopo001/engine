@@ -2,10 +2,10 @@ import { Component } from './component';
 import { stringToComponent } from './string_component';
 import { getApplicationInstance } from './application.tag';
 export interface EntityProps {
-    position?: [number, number, number];
+    position?: pc.Vec3;
     // rotation?: [number, number, number, number];
-    rotation?: [number, number, number];
-    scale?: [number, number, number];
+    rotation?: pc.Vec3;
+    scale?: pc.Vec3;
     name?: string;
     tag?: string;
     enable?: boolean;
@@ -32,6 +32,13 @@ export class Entity extends Component<EntityProps> {
         parent = getPcParent(parent)
         var entity = new pc.Entity()
         entity.name = props.name;
+        props.tag && props.tag.split(' ').filter(x => x !== '').forEach((x) => {
+            entity.tags.add(x);
+        })
+        this.props.position && entity.setLocalPosition(this.props.position);
+        this.props.rotation && entity.rotateLocal(this.props.rotation);
+        this.props.scale && entity.setLocalScale(this.props.scale);
+
         let children = props.children;
 
         let renderChildren = [];
@@ -55,9 +62,6 @@ export class Entity extends Component<EntityProps> {
             this.render = () => { return renderChildren; }
         }
 
-        this.props.position && entity.setLocalPosition.apply(entity, this.props.position);
-        this.props.rotation && entity.rotateLocal.apply(entity, this.props.rotation);
-        this.props.scale && entity.setLocalScale.apply(entity, this.props.scale);
 
 
 

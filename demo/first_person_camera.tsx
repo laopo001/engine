@@ -7,7 +7,7 @@ export class FirstCamera extends ScriptComponent<{ speed?: number }> {
     ex;
     ey;
     entity: pc.GraphNode
-    initialize() {
+    addChildDid() {
         this.entity = this.app.root.findByName('camera');
         // Camera euler angle rotation around x and y axes
         var eulers = this.entity.getLocalEulerAngles()
@@ -55,7 +55,7 @@ export class FirstCamera extends ScriptComponent<{ speed?: number }> {
         }
     }
     render() {
-        return <entity name='camera' position={[5, 5, 5]} rotation={[-30, 45, 0]} >
+        return <entity name='camera' position={new pc.Vec3(5, 5, 5)} rotation={new pc.Vec3(-30, 45, 0)} >
             <camera />
         </entity>
     }

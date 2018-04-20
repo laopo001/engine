@@ -27,6 +27,7 @@ export abstract class ScriptComponent<T = any> extends Component<T>{
     children = [];
     readonly app: pc.Application = getApplicationInstance();
     initialize() { };
+    addChildDid() { };
     update(dt) { };
     abstract render(): HPCNode;
 }
