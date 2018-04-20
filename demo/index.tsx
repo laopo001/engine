@@ -37,7 +37,7 @@ export class Scene extends ScriptComponent<any> {
         } else {
             this.direction = 'left';
         }
-        let { x, y, z } = this.gamer.getLocalPosition();
+        let { x, z } = this.gamer.getLocalPosition();
         let len = randomRange(2, 8);
         x = x - len;
         z = z + r * len;
