@@ -23,7 +23,7 @@ declare namespace pc {
         * @example
         * tags.add([ 'level-2', 'mob' ]);
         */
-        add(): boolean;
+        add(name: string): boolean;
 
 
         /**
@@ -71,7 +71,7 @@ declare namespace pc {
         * @example
         * tags.has([ 'ui', 'settings' ], [ 'ui', 'levels' ]); // (ui AND settings) OR (ui AND levels)
         */
-        has(): boolean;
+        has(name: string): boolean;
 
 
         /**

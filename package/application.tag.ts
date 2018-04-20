@@ -1,7 +1,7 @@
 import { Component } from './component';
 
 export interface ApplicationProps {
-    gravity?: [number, number, number];
+    gravity?: pc.Vec3;
     ambientLight?: pc.Color;
 }
 let application;
@@ -23,7 +23,7 @@ export class Application extends Component<ApplicationProps> {
         app.start();
         app.on('update', function (dt) { updateQuene.forEach((cb) => { cb(dt); }) })
         innerContext.app = app;
-        this.props.gravity && app.systems.rigidbody.setGravity(this.props.gravity[0], this.props.gravity[1], this.props.gravity[2]);
+        this.props.gravity && app.systems.rigidbody.setGravity(this.props.gravity);
         application = app;
         this.pc = app;
         this.pc['__jsxcomponent__'] = this;

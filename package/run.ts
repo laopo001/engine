@@ -19,6 +19,7 @@ export function run(node: HPCNode, innerContext, context, parent, cb?) {
         props.ref && props.ref(c);
         let children;
         if (c instanceof ScriptComponent) {
+            c.initialize()
             if (props.ref) {
                 props.ref(c);
             }
@@ -29,7 +30,7 @@ export function run(node: HPCNode, innerContext, context, parent, cb?) {
                 children = runChildren([node], innerContext, context, parent);
             }
             c.children = children;
-            c.initialize();
+            c.addChildDid();
             updateQuene.push(c.update.bind(c))
         } else {
             children = runChildren(c.render && c.render(), innerContext, context, c);
