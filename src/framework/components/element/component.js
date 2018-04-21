@@ -81,6 +81,7 @@ pc.extend(pc, function () {
      * @property {Number} spriteAsset The id of the sprite asset to render. Only works for {@link pc.ELEMENTTYPE_IMAGE} types which can render either a texture or a sprite.
      * @property {pc.Sprite} sprite The sprite to render. Only works for {@link pc.ELEMENTTYPE_IMAGE} types which can render either a texture or a sprite.
      * @property {Number} spriteFrame The frame of the sprite to render. Only works for {@link pc.ELEMENTTYPE_IMAGE} types who have a sprite assigned.
+     * @property {Number} pixelsPerUnit The number of pixels that map to one PlayCanvas unit. Only works for {@link pc.ELEMENTTYPE_IMAGE} types who have a sliced sprite assigned.
      * @property {Number} materialAsset The id of the material asset to use when rendering an image. Only works for {@link pc.ELEMENTTYPE_IMAGE} types.
      * @property {pc.Material} material The material to use when rendering an image. Only works for {@link pc.ELEMENTTYPE_IMAGE} types.
      * @property {pc.Vec4} rect Specifies which region of the texture to use in order to render an image. Values range from 0 to 1 and indicate u, v, width, height. Only works for {@link pc.ELEMENTTYPE_IMAGE} types.
@@ -134,10 +135,6 @@ pc.extend(pc, function () {
         this._patch();
 
         this.screen = null;
-
-        // if present a parent element that masks this element
-        this._maskEntity = null;
-        this._maskDepth = 0;
 
         this._type = pc.ELEMENTTYPE_GROUP;
 
@@ -484,10 +481,6 @@ pc.extend(pc, function () {
             if (!ref) ref = 1;
 
             if (mask) {
-                var material;
-
-                this._maskEntity = mask;
-
                 this._setMaskedBy(mask);
 
                 if (this.mask) {
@@ -530,8 +523,6 @@ pc.extend(pc, function () {
                     if (_debugLogging) console.log("masking from: " + this.entity.name + " with " + ref);
                     mask = this.entity;
                 }
-
-                this._maskEntity = null;
 
                 // recurse through all children
                 children = this.entity.getChildren();
@@ -1310,6 +1301,7 @@ pc.extend(pc, function () {
     _define("sprite");
     _define("spriteAsset");
     _define("spriteFrame");
+    _define("pixelsPerUnit");
     _define("opacity");
     _define("rect");
     _define("mask");

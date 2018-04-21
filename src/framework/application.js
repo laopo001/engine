@@ -217,8 +217,7 @@ pc.extend(pc, function () {
                     var gl = self.graphicsDevice.gl;
                     this.srcFbo = gl.getParameter(gl.FRAMEBUFFER_BINDING);
 
-                    if (!this.renderTarget) return;
-                    if (this.renderTarget.width !== self.graphicsDevice.width || this.renderTarget.height !== self.graphicsDevice.height) {
+                    if (! this.renderTarget || (this.renderTarget.width !== self.graphicsDevice.width || this.renderTarget.height !== self.graphicsDevice.height)) {
                         this.onDisable();
                         this.onEnable();
                     }
@@ -318,8 +317,7 @@ pc.extend(pc, function () {
                 },
 
                 onPreRenderOpaque: function(cameraPass) { // resize depth map if needed
-                    if (!this.renderTarget) return;
-                    if (this.renderTarget.width !== self.graphicsDevice.width || this.renderTarget.height !== self.graphicsDevice.height) {
+                    if (!this.renderTarget || (this.renderTarget.width !== self.graphicsDevice.width || this.renderTarget.height !== self.graphicsDevice.height)) {
                         this.onDisable();
                         this.onEnable();
                     }
@@ -332,6 +330,7 @@ pc.extend(pc, function () {
                 },
 
                 onPostRenderOpaque: function(cameraPass) {
+                    if (!this.renderTarget) return;
                     this.cameras[cameraPass].camera._clearOptions = this.oldClear;
                 }
 
@@ -668,7 +667,10 @@ pc.extend(pc, function () {
 
                 // called after scripts are preloaded
                 var _loaded = function () {
+
+                    self.systems.script.preloading = true;
                     var entity = handler.open(url, data);
+                    self.systems.script.preloading = false;
 
                     // clear from cache because this data is modified by entity operations (e.g. destroy)
                     self.loader.clearCache(url, "hierarchy");
@@ -739,7 +741,9 @@ pc.extend(pc, function () {
                 if (!err) {
                     var _loaded = function () {
                         // parse and create scene
+                        self.systems.script.preloading = true;
                         var scene = handler.open(url, data);
+                        self.systems.script.preloading = false;
 
                         // clear scene from cache because we'll destroy it when we load another one
                         // so data will be invalid
@@ -855,7 +859,9 @@ pc.extend(pc, function () {
                 for (var key in props.layers) {
                     var data = props.layers[key];
                     data.id = parseInt(key, 10);
-                    data.enabled = true;
+                    // depth layer should only be enabled when needed
+                    // by incrementing its ref counter
+                    data.enabled = data.id !== pc.LAYERID_DEPTH;
                     layers[key] = new pc.Layer(data);
                 }
 
@@ -1544,6 +1550,12 @@ pc.extend(pc, function () {
                 this.touch.detach();
 
                 this.touch = null;
+            }
+
+            if (this.elementInput) {
+                this.elementInput.detach();
+
+                this.elementInput = null;
             }
 
             if (this.controller) {
