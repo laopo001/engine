@@ -1,6 +1,6 @@
-import hpc, { loadAssetsFromUrl, ScriptComponent } from '../package/index';
+import hpc, { loadAssetsFromUrl, HpcComponent } from '../package/index';
 
-export class FirstCamera extends ScriptComponent<{ speed?: number }> {
+export class FirstCamera extends HpcComponent<{ speed?: number }> {
     static defaultProps = {
         speed: 10
     }

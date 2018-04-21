@@ -1,7 +1,7 @@
 import { Node, HPCNode } from './node';
 import { getAllStringToComponent } from './string_component';
 import { updateQuene } from './application.tag';
-import { ScriptComponent } from './script_commponent';
+import { HpcComponent } from './script_commponent';
 
 let stringToComponent = getAllStringToComponent();
 
@@ -18,7 +18,7 @@ export function run(node: HPCNode, innerContext, context, parent, cb?) {
         c = new Ctor(props, context, innerContext, parent);
         props.ref && props.ref(c);
         let children;
-        if (c instanceof ScriptComponent) {
+        if (c instanceof HpcComponent) {
             c.initialize()
             if (props.ref) {
                 props.ref(c);

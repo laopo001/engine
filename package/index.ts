@@ -1,5 +1,5 @@
 import { Application } from './application.tag';
-import { ScriptComponent } from './script_commponent';
+import { HpcComponent } from './script_commponent';
 import { Entity } from './entity.tag';
 // import { loadAssetsFromUrl, createMaterial, randomRange, randomEnum, once } from './util';
 import { h } from './h';
@@ -9,7 +9,7 @@ const hpc = {
 }
 window['hpc'] = hpc;
 export {
-    render, h, Application, Entity, ScriptComponent
+    render, h, Application, Entity, HpcComponent
 };
 export default hpc;
 export * from './util';
