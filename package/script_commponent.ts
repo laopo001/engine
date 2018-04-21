@@ -4,16 +4,16 @@ import { HPCNode } from './node';
 import { runChildren } from './run';
 
 export interface ScriptComponentProps {
-    children: never;
+    // children: never;
 }
 
 
 
-export abstract class ScriptComponent<T = any> extends Component<T>{
+export abstract class HpcComponent<T = any> extends Component<T>{
     constructor(props, context, innerContext) {
         super(props, context, innerContext)
     }
-    static isScriptComponent = true;
+    // static isScriptComponent = true;
     next(cb: Function) {
 
     }
