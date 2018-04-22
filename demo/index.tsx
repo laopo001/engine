@@ -18,7 +18,7 @@ class App extends HpcComponent {
         return <application gravity={new pc.Vec3(0, -9.8, 0)}  >
             <LoadingScene />
             {/* <Scene /> */}
-
+            {/* <FirstCamera /> */}
             <entity {...{ rotation: new pc.Vec3(0, 0, 10) }}  >
                 <light {...{
                     type: "directional",

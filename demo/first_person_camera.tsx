@@ -7,7 +7,7 @@ export class FirstCamera extends HpcComponent<{ speed?: number }> {
     ex;
     ey;
     entity: pc.GraphNode
-    addChildDid() {
+    componentLoaded() {
         this.entity = this.app.root.findByName('camera');
         // Camera euler angle rotation around x and y axes
         var eulers = this.entity.getLocalEulerAngles()

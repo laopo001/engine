@@ -61,5 +61,7 @@ declare namespace pc {
          * @name pc.path.getDirectory
          */
         function getDirectory(path: string): string;
+
+        function getExtension(path: string): string;
     }
 }

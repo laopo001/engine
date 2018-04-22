@@ -29,8 +29,8 @@ export function run(node: HPCNode, innerContext, context, parent, cb?) {
             } else {
                 children = runChildren([node], innerContext, context, parent);
             }
-            c.children = children;
-            c.addChildDid();
+            c._children = children;
+            c.componentLoaded();
             updateQuene.push(c.update.bind(c))
         } else {
             children = runChildren(c.render && c.render(), innerContext, context, c);
@@ -42,7 +42,7 @@ export function run(node: HPCNode, innerContext, context, parent, cb?) {
         console.error('e');
     }
 };
-export function runChildren(nodes, innerContext, context, parent) {
+export function runChildren(nodes, innerContext, context, parent, isAppend = false) {
     if (nodes == null) { return };
     const arr = []
     for (var i = 0; i < nodes.length; i++) {
@@ -50,6 +50,9 @@ export function runChildren(nodes, innerContext, context, parent) {
         var c = run(node, innerContext, context, parent);
         c.parent = parent;
         arr.push(c);
+        if (isAppend) {
+            parent.children.push(c);
+        }
     }
     return arr;
 };
