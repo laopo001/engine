@@ -19,7 +19,6 @@ declare namespace pc {
     var common: {};
     var apps: {};
     var data: {};
-
     /**
      * @private
      * @function

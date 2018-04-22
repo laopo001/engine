@@ -1,17 +1,17 @@
 import { getApplicationInstance } from './application.tag';
 import { updateQuene } from './application.tag';
-
+import { KEY } from './config';
 
 export function loadAssetsFromUrl<T>(url: string, type: string) {
     return new Promise<T>(function (resolve, reject) {
         setTimeout(() => {
             getApplicationInstance().assets.loadFromUrl(url, type, function (err, asset) {
-                if(err){
+                if (err) {
                     reject(err);
-                }else{
+                } else {
                     resolve(asset);
                 }
-                
+
             });
         });
 
@@ -79,4 +79,30 @@ export function onceTime(time) {
         descriptor.value = newValue;
 
     }
+}
+
+export function getVertexArr(mesh: pc.Mesh) {
+    let buffer = mesh.vertexBuffer;
+    let iterator = new pc.VertexIterator(buffer);
+    let arr = [];
+    // Iterate though all verticles 
+    for (let i = 0; i < buffer.getNumVertices(); i++) {
+        // Current vertex's position
+        var posSem = iterator.element[pc.SEMANTIC_POSITION];
+
+        // Get position
+        var posX = posSem.array[posSem.index];
+        var posY = posSem.array[posSem.index + 1];
+        var posZ = posSem.array[posSem.index + 2];
+        arr.push({ x: posX, y: posY, z: posZ });
+        // Move to the next vertex
+        iterator.next();
+    }
+
+    iterator.end();
+    return arr;
+}
+
+export function getHpc(pc) {
+    return pc[KEY];
 }

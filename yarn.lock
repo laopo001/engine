@@ -2,6 +2,10 @@
 # yarn lockfile v1
 
 
+"@tweenjs/tween.js@^17.2.0":
+  version "17.2.0"
+  resolved "http://registry.npm.taobao.org/@tweenjs/tween.js/download/@tweenjs/tween.js-17.2.0.tgz#21f89b709bafc4b303adae7a83b4f35a0d9e4796"
+
 "@types/node@^9.6.2":
   version "9.6.2"
   resolved "http://registry.npm.taobao.org/@types/node/download/@types/node-9.6.2.tgz#e49ac1adb458835e95ca6487bc20f916b37aff23"
@@ -5795,6 +5799,10 @@ whatwg-encoding@^1.0.1, whatwg-encoding@^1.0.3:
   resolved "http://registry.npm.taobao.org/whatwg-encoding/download/whatwg-encoding-1.0.3.tgz#57c235bc8657e914d24e1a397d3c82daee0a6ba3"
   dependencies:
     iconv-lite "0.4.19"
+
+whatwg-fetch@^2.0.4:
+  version "2.0.4"
+  resolved "http://registry.npm.taobao.org/whatwg-fetch/download/whatwg-fetch-2.0.4.tgz#dde6a5df315f9d39991aa17621853d720b85566f"
 
 whatwg-mimetype@^2.0.0, whatwg-mimetype@^2.1.0:
   version "2.1.0"

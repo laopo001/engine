@@ -21,7 +21,7 @@ export class Scene extends HpcComponent<any> {
     gamer: pc.Entity;
     currBox: pc.Entity;
     state = '';
-    addChildDid() {
+    componentLoaded() {
         console.log(this);
         this.sence = this.app.root.findByName('scene');
         this.gamer = this.app.root.findByName('gamer') as pc.Entity;

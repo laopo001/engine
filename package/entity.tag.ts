@@ -1,6 +1,8 @@
 import { Component } from './component';
 import { stringToComponent } from './string_component';
+import { HpcComponent } from './script_commponent';
 import { getApplicationInstance } from './application.tag';
+import { KEY } from './config';
 export interface EntityProps {
     position?: pc.Vec3;
     // rotation?: [number, number, number, number];
@@ -45,14 +47,17 @@ export class Entity extends Component<EntityProps> {
 
         for (let i = 0; i < children.length; i++) {
             let node = children[i];
+            if (node == null) {
+                continue;
+            }
+            if (node.type === Entity.basename || node.type.isHpcComponent) {
+                renderChildren.push(node);
+                continue;
+            }
             if (typeof node.type !== 'string') {
                 node.type = node.type.basename;
             }
             // if(node.type==='light'){debugger;delete node.props.children}
-            if (node.type === Entity.basename) {
-                renderChildren.push(node);
-                continue;
-            }
             // entity.addComponent(node.type, node.props);
             stringToComponent[node.type].addComponent(entity, node);
         }
@@ -73,7 +78,7 @@ export class Entity extends Component<EntityProps> {
         parent.addChild(entity);
 
         this.pc = entity;
-        this.pc['__jsxcomponent__'] = this;
+        this.pc[KEY] = this;
     }
     render?()
 }

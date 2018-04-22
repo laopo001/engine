@@ -17,7 +17,8 @@ export function h(type, props?, ...children) {
 
 function addChild(newChildren, item) {
     var x;
-    while (x = item.pop()) {
+    while (item.length !== 0) {
+        x = item.pop()
         if (Array.isArray(x)) {
             addChild(newChildren, x);
         }

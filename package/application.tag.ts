@@ -1,5 +1,5 @@
 import { Component } from './component';
-
+import { KEY } from './config';
 export interface ApplicationProps {
     gravity?: pc.Vec3;
     ambientLight?: pc.Color;
@@ -27,7 +27,7 @@ export class Application extends Component<ApplicationProps> {
         this.props.gravity && app.systems.rigidbody.setGravity(this.props.gravity);
      
         this.pc = app;
-        this.pc['__jsxcomponent__'] = this;
+        this.pc[KEY] = this;
         // console.log('application init',this);
     }
     render() {
