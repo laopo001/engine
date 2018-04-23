@@ -63,7 +63,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 13);
+/******/ 	return __webpack_require__(__webpack_require__.s = 15);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -234,8 +234,8 @@ var KEY = '__hpc__';
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__application_tag__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__script_commponent__ = __webpack_require__(9);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__entity_tag__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__h__ = __webpack_require__(23);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__render__ = __webpack_require__(24);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__h__ = __webpack_require__(25);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__render__ = __webpack_require__(26);
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return __WEBPACK_IMPORTED_MODULE_4__render__["a"]; });
 /* unused harmony reexport h */
 /* unused harmony reexport Application */
@@ -268,21 +268,21 @@ window['hpc'] = hpc;
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__camera_camera__ = __webpack_require__(17);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__camera_camera__ = __webpack_require__(19);
 /* harmony namespace reexport (by provided) */ __webpack_require__.d(__webpack_exports__, "Camera", function() { return __WEBPACK_IMPORTED_MODULE_0__camera_camera__["a"]; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__pc_component__ = __webpack_require__(0);
 /* harmony namespace reexport (by provided) */ __webpack_require__.d(__webpack_exports__, "PcComponent", function() { return __WEBPACK_IMPORTED_MODULE_1__pc_component__["a"]; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__model_model__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__model_model__ = __webpack_require__(22);
 /* harmony namespace reexport (by provided) */ __webpack_require__.d(__webpack_exports__, "Model", function() { return __WEBPACK_IMPORTED_MODULE_2__model_model__["a"]; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__light_light__ = __webpack_require__(19);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__light_light__ = __webpack_require__(21);
 /* harmony namespace reexport (by provided) */ __webpack_require__.d(__webpack_exports__, "Light", function() { return __WEBPACK_IMPORTED_MODULE_3__light_light__["a"]; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__particlesystem_particlesystem__ = __webpack_require__(21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__particlesystem_particlesystem__ = __webpack_require__(23);
 /* harmony namespace reexport (by provided) */ __webpack_require__.d(__webpack_exports__, "ParticleSystem", function() { return __WEBPACK_IMPORTED_MODULE_4__particlesystem_particlesystem__["a"]; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__rigidbody_rigidbody__ = __webpack_require__(22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__rigidbody_rigidbody__ = __webpack_require__(24);
 /* harmony namespace reexport (by provided) */ __webpack_require__.d(__webpack_exports__, "RigidBody", function() { return __WEBPACK_IMPORTED_MODULE_5__rigidbody_rigidbody__["a"]; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__collision_collision__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__collision_collision__ = __webpack_require__(20);
 /* harmony namespace reexport (by provided) */ __webpack_require__.d(__webpack_exports__, "Collision", function() { return __WEBPACK_IMPORTED_MODULE_6__collision_collision__["a"]; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__audio_index__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__audio_index__ = __webpack_require__(17);
 /* harmony namespace reexport (by provided) */ __webpack_require__.d(__webpack_exports__, "Sound", function() { return __WEBPACK_IMPORTED_MODULE_7__audio_index__["a"]; });
 /* harmony namespace reexport (by provided) */ __webpack_require__.d(__webpack_exports__, "AudioListen", function() { return __WEBPACK_IMPORTED_MODULE_7__audio_index__["b"]; });
 
@@ -720,9 +720,9 @@ function getHpc(pc) {
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LoadingScene; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__package_index__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_whatwg_fetch__ = __webpack_require__(25);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_whatwg_fetch__ = __webpack_require__(27);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_whatwg_fetch___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_whatwg_fetch__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__tweenjs_tween_js__ = __webpack_require__(26);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__tweenjs_tween_js__ = __webpack_require__(13);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__tweenjs_tween_js___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__tweenjs_tween_js__);
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -799,9 +799,7 @@ function formatThreeJsonVertices(json) {
         vertex.y = vertices[offset++] * scale;
         vertex.z = vertices[offset++] * scale;
         i++;
-        if (i % 2 !== 0) {
-            continue;
-        }
+        // if (i % 2 !== 0) { continue; }
         positions.push(vertex);
     }
     return positions;
@@ -817,7 +815,10 @@ var LoadingScene = /** @class */ (function (_super) {
     __extends(LoadingScene, _super);
     function LoadingScene() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.vertices = [];
+        _this.containerposition = { x: 0, y: 0, z: 0 };
         _this.tweenArr = [];
+        _this.positions = [];
         return _this;
     }
     LoadingScene.prototype.componentLoaded = function () {
@@ -843,33 +844,24 @@ var LoadingScene = /** @class */ (function (_super) {
                         return [4 /*yield*/, fetch('./assets/models/cpmovie4.json').then(function (rssponse) { return rssponse.json(); }).then(function (res) { return formatThreeJsonVertices(res); })];
                     case 5:
                         modelVertices5 = _a.sent();
-                        return [4 /*yield*/, fetch('./assets/models/qr.json').then(function (rssponse) { return rssponse.json(); }).then(function (res) { return formatThreeJsonVertices(res); })
-                            // let maxCount = Math.max(modelVertices.length, modelVertices2.length, modelVertices3.length, modelVertices4.length, modelVertices5.length, modelVertices6.length)
-                            // let a = this.app.root.findByName('A') as pc.Entity;
-                            // let { x, y, z } = a.getLocalPosition();
-                            // let position = { x, y, z };
-                            // // a.setLocalPosition(new pc.Vec3(0, 1, 0));
-                            // new TWEEN.Tween(position)
-                            // .to({ x: 10, y: 10, z: 10 }, 2000)
-                            // .easing(TWEEN.Easing.Exponential.InOut)
-                            // .onUpdate(function () { // Called after tween.js updates 'coords'.
-                            //     // Move 'box' to the position described by 'coords' with a CSS translation.
-                            //     a.setLocalPosition(position.x, position.y, position.z)
-                            // })
-                            // .start();
-                        ];
+                        return [4 /*yield*/, fetch('./assets/models/qr.json').then(function (rssponse) { return rssponse.json(); }).then(function (res) { return formatThreeJsonVertices(res); })];
                     case 6:
                         modelVertices6 = _a.sent();
-                        arr = [modelVertices, modelVertices3, modelVertices6];
+                        arr = [modelVertices4, modelVertices, modelVertices3, modelVertices6];
                         maxCount = Math.max.apply(Math, arr.map(function (x) { return x.length; }));
-                        // console.log(modelVertices);
+                        console.log('maxCount', maxCount);
                         this.generate(maxCount);
+                        this.container = this.app.root.findByName('container');
+                        this.containerTween = new __WEBPACK_IMPORTED_MODULE_2__tweenjs_tween_js__["Tween"](this.containerposition).easing(__WEBPACK_IMPORTED_MODULE_2__tweenjs_tween_js__["Easing"].Exponential.InOut);
                         index = 0;
                         setInterval(function () {
                             console.log(index % 3);
-                            _this.transform(arr[index % 3], 2000);
+                            var duration = 2000;
+                            _this.transform(arr[index % 3], duration);
+                            // let target = new pc.Vec3(randomRange(-10, 10), randomRange(-10, 10), randomRange(-10, 10));
+                            // this.containerTween.to({ x: target.x, y: target.y, z: target.z }, Math.random() * duration + duration).start()
                             index++;
-                        }, 5000);
+                        }, 4000);
                         return [2 /*return*/];
                 }
             });
@@ -879,49 +871,51 @@ var LoadingScene = /** @class */ (function (_super) {
         var temp = [];
         for (var i = 0; i < maxCount; i++) {
             var position = new pc.Vec3(__webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__package_index__["e" /* randomRange */])(-10, 10), __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__package_index__["e" /* randomRange */])(-10, 10), __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__package_index__["e" /* randomRange */])(-10, 10));
+            this.positions.push(position);
             temp.push(__WEBPACK_IMPORTED_MODULE_0__package_index__["a" /* default */].h("entity", { position: position, scale: new pc.Vec3(.1, .1, .1) },
-                __WEBPACK_IMPORTED_MODULE_0__package_index__["a" /* default */].h("model", { type: 'sphere', material: material })));
+                __WEBPACK_IMPORTED_MODULE_0__package_index__["a" /* default */].h("model", { type: 'sphere', material: material, isStatic: true })));
             this.tweenArr.push(new __WEBPACK_IMPORTED_MODULE_2__tweenjs_tween_js__["Tween"](position).easing(__WEBPACK_IMPORTED_MODULE_2__tweenjs_tween_js__["Easing"].Exponential.InOut));
         }
-        var res = this.append(this.loadingScene, __WEBPACK_IMPORTED_MODULE_0__package_index__["a" /* default */].h("entity", { scale: new pc.Vec3(1, 1, 1) }, temp))[0].pc.children;
+        var res = this.append(this.loadingScene, __WEBPACK_IMPORTED_MODULE_0__package_index__["a" /* default */].h("entity", { name: 'container', scale: new pc.Vec3(1, 1, 1) }, temp))[0].pc.children;
         this.vertices = res;
     };
     LoadingScene.prototype.transform = function (targets, duration) {
         __WEBPACK_IMPORTED_MODULE_2__tweenjs_tween_js__["removeAll"]();
         for (var i = 0; i < this.vertices.length; i++) {
             var object = this.vertices[i];
-            object.enabled = true;
             var target = targets[i];
             if (!target) {
                 object.enabled = false;
-                continue;
+                this.move(new pc.Vec3(0, 0, 0), object, duration, i);
+            }
+            else {
+                object.enabled = true;
+                this.move(target, object, duration, i);
             }
             // object.setLocalPosition(target.x, target.y, target.z)
-            this.move(target, object, duration, i);
         }
     };
     LoadingScene.prototype.move = function (target, object, duration, index) {
-        // let { x, y, z } = object.getLocalPosition();
-        // let position = { x, y, z };
         this.tweenArr[index].to({ x: target.x, y: target.y, z: target.z }, Math.random() * duration + duration)
-            .onUpdate(function (position) {
-            // Move 'box' to the position described by 'coords' with a CSS translation.
-            // console.log(arguments)
-            object.setLocalPosition(position.x, position.y, position.z);
-        })
+            // .onUpdate(function (position) { // Called after tween.js updates 'coords'.
+            //     // Move 'box' to the position described by 'coords' with a CSS translation.
+            //     // console.log(arguments)
+            //     object.setLocalPosition(position.x, position.y, position.z)
+            // })
             .start();
-        // let t = new TWEEN.Tween(position)
-        //     .to({ x: target.x, y: target.y, z: target.z }, Math.random() * duration + duration)
-        //     .easing(TWEEN.Easing.Exponential.InOut)
-        //     .onUpdate(function () { // Called after tween.js updates 'coords'.
-        //         // Move 'box' to the position described by 'coords' with a CSS translation.
-        //         object.setLocalPosition(position.x, position.y, position.z)
-        //     })
-        //     .start();0
+    };
+    LoadingScene.prototype.update = function () {
+        for (var i = 0; i < this.vertices.length; i++) {
+            var object = this.vertices[i];
+            var position = this.positions[i];
+            object.setLocalPosition(position.x, position.y, position.z);
+            // object.setLocalPosition(target.x, target.y, target.z)
+        }
+        this.container && this.container.setLocalPosition(this.containerposition.x, this.containerposition.y, this.containerposition.z);
     };
     LoadingScene.prototype.render = function () {
         return __WEBPACK_IMPORTED_MODULE_0__package_index__["a" /* default */].h("entity", { name: 'loadingScene' },
-            __WEBPACK_IMPORTED_MODULE_0__package_index__["a" /* default */].h("entity", { name: 'camera', position: new pc.Vec3(0, 0, 50), rotation: new pc.Vec3(0, 0, 0) },
+            __WEBPACK_IMPORTED_MODULE_0__package_index__["a" /* default */].h("entity", { name: 'camera', position: new pc.Vec3(0, 0, 100), rotation: new pc.Vec3(0, 0, 0) },
                 __WEBPACK_IMPORTED_MODULE_0__package_index__["a" /* default */].h("camera", null)));
     };
     return LoadingScene;
@@ -931,911 +925,6 @@ var LoadingScene = /** @class */ (function (_super) {
 
 /***/ }),
 /* 13 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__package_index__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__loading_scene__ = __webpack_require__(12);
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var __assign = (this && this.__assign) || Object.assign || function(t) {
-    for (var s, i = 1, n = arguments.length; i < n; i++) {
-        s = arguments[i];
-        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-            t[p] = s[p];
-    }
-    return t;
-};
-/**
- * @author dadigua
- */
-
-
-var canvas = document.getElementById("root");
-var App = /** @class */ (function (_super) {
-    __extends(App, _super);
-    function App() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    App.prototype.render = function () {
-        return __WEBPACK_IMPORTED_MODULE_0__package_index__["a" /* default */].h("application", { gravity: new pc.Vec3(0, -9.8, 0) },
-            __WEBPACK_IMPORTED_MODULE_0__package_index__["a" /* default */].h(__WEBPACK_IMPORTED_MODULE_1__loading_scene__["a" /* LoadingScene */], null),
-            __WEBPACK_IMPORTED_MODULE_0__package_index__["a" /* default */].h("entity", __assign({}, { rotation: new pc.Vec3(0, 0, 10) }),
-                __WEBPACK_IMPORTED_MODULE_0__package_index__["a" /* default */].h("light", __assign({}, {
-                    type: "directional",
-                    color: new pc.Color(1, 1, 1),
-                    castShadows: true,
-                    intensity: 1,
-                    shadowBias: 0.2,
-                    normalOffsetBias: 0.2,
-                    shadowResolution: 1024,
-                    shadowDistance: 16,
-                    shadowType: pc.SHADOW_PCF3
-                }))));
-    };
-    return App;
-}(__WEBPACK_IMPORTED_MODULE_0__package_index__["b" /* HpcComponent */]));
-__webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__package_index__["c" /* render */])(__WEBPACK_IMPORTED_MODULE_0__package_index__["a" /* default */].h(App, null), canvas, { debugger: true });
-
-
-/***/ }),
-/* 14 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return AudioListen; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__pc_component__ = __webpack_require__(0);
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-
-var AudioListen = /** @class */ (function (_super) {
-    __extends(AudioListen, _super);
-    function AudioListen() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    return AudioListen;
-}(__WEBPACK_IMPORTED_MODULE_0__pc_component__["a" /* PcComponent */]));
-
-
-
-/***/ }),
-/* 15 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__sound__ = __webpack_require__(16);
-/* harmony namespace reexport (by used) */ __webpack_require__.d(__webpack_exports__, "a", function() { return __WEBPACK_IMPORTED_MODULE_0__sound__["a"]; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__audiolisten__ = __webpack_require__(14);
-/* harmony namespace reexport (by used) */ __webpack_require__.d(__webpack_exports__, "b", function() { return __WEBPACK_IMPORTED_MODULE_1__audiolisten__["a"]; });
-
-
-
-
-/***/ }),
-/* 16 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Sound; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__pc_component__ = __webpack_require__(0);
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-
-var Sound = /** @class */ (function (_super) {
-    __extends(Sound, _super);
-    function Sound() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    Sound.addComponent = function (entity, node) {
-        var component = _super.addComponent.call(this, entity, node);
-        // entity.addComponent('sound');
-        // add footsteps slot
-        if (node.props.asset) {
-            if (node.props.asset instanceof Promise) {
-                node.props.asset.then(function (asset) {
-                    entity.sound.addSlot('footsteps', {
-                        asset: asset.resource,
-                        pitch: 1.7,
-                        loop: true,
-                        autoPlay: true
-                    });
-                });
-            }
-            else {
-                entity.sound.addSlot('footsteps', {
-                    asset: node.props.asset.resource,
-                    pitch: 1.7,
-                    loop: true,
-                    autoPlay: true
-                });
-            }
-        }
-        return component;
-    };
-    return Sound;
-}(__WEBPACK_IMPORTED_MODULE_0__pc_component__["a" /* PcComponent */]));
-
-
-
-/***/ }),
-/* 17 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Camera; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__pc_component__ = __webpack_require__(0);
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-
-var Camera = /** @class */ (function (_super) {
-    __extends(Camera, _super);
-    function Camera() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    return Camera;
-}(__WEBPACK_IMPORTED_MODULE_0__pc_component__["a" /* PcComponent */]));
-
-
-
-/***/ }),
-/* 18 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Collision; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__pc_component__ = __webpack_require__(0);
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-
-var Collision = /** @class */ (function (_super) {
-    __extends(Collision, _super);
-    function Collision() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    Collision.addComponent = function (entity, node) {
-        var component = _super.addComponent.call(this, entity, node);
-        var arr = ['collisionstart', 'collisionend', 'contact', 'triggerenter', 'triggerleave'];
-        arr.forEach(function (key) {
-            node.props[key] && component.on(key, function (arg) {
-                node.props[key](arg, entity);
-            }, entity);
-        });
-        return component;
-    };
-    return Collision;
-}(__WEBPACK_IMPORTED_MODULE_0__pc_component__["a" /* PcComponent */]));
-
-
-
-/***/ }),
-/* 19 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Light; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__pc_component__ = __webpack_require__(0);
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-
-var Light = /** @class */ (function (_super) {
-    __extends(Light, _super);
-    function Light() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    return Light;
-}(__WEBPACK_IMPORTED_MODULE_0__pc_component__["a" /* PcComponent */]));
-
-
-
-/***/ }),
-/* 20 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Model; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__pc_component__ = __webpack_require__(0);
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-
-var Model = /** @class */ (function (_super) {
-    __extends(Model, _super);
-    function Model() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    Model.addComponent = function (entity, node) {
-        var component;
-        if (node.props.type === 'model') {
-            component = _super.addComponent.call(this, entity, node, 'model', 'type');
-        }
-        else {
-            component = _super.addComponent.call(this, entity, node);
-        }
-        _super.asyncAssetsSet.call(this, entity, node, 'model');
-        if (node.props.material) {
-            if (node.props.material instanceof Promise) {
-                node.props.material.then(function (res) {
-                    entity.model.model.meshInstances.forEach(function (mesh) {
-                        mesh.material = res;
-                    });
-                });
-            }
-            else {
-                node.props.material && entity.model.model.meshInstances.forEach(function (mesh) {
-                    mesh.material = node.props.material;
-                });
-            }
-        }
-        return component;
-    };
-    return Model;
-}(__WEBPACK_IMPORTED_MODULE_0__pc_component__["a" /* PcComponent */]));
-
-
-
-/***/ }),
-/* 21 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return ParticleSystem; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__pc_component__ = __webpack_require__(0);
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-
-var ParticleSystem = /** @class */ (function (_super) {
-    __extends(ParticleSystem, _super);
-    function ParticleSystem() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    ParticleSystem.addComponent = function (entity, node) {
-        var component = _super.addComponent.call(this, entity, node, 'colorMap', 'normalMap');
-        // props.colorMap && props.colorMap.then((asset) => {
-        //     entity.particlesystem.colorMap = asset.resource;
-        // })
-        _super.asyncAssetsSet.call(this, entity, node, 'colorMap', 'normalMap');
-        return component;
-    };
-    return ParticleSystem;
-}(__WEBPACK_IMPORTED_MODULE_0__pc_component__["a" /* PcComponent */]));
-
-
-
-/***/ }),
-/* 22 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return RigidBody; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__pc_component__ = __webpack_require__(0);
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-
-var RigidBody = /** @class */ (function (_super) {
-    __extends(RigidBody, _super);
-    function RigidBody() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    return RigidBody;
-}(__WEBPACK_IMPORTED_MODULE_0__pc_component__["a" /* PcComponent */]));
-
-
-
-/***/ }),
-/* 23 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = h;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(7);
-
-function h(type, props) {
-    var children = [];
-    for (var _i = 2; _i < arguments.length; _i++) {
-        children[_i - 2] = arguments[_i];
-    }
-    var newChildren = [];
-    for (var i = 0; i < children.length; i++) {
-        var item = children[i];
-        if (typeof item === 'boolean') {
-            newChildren.push(null);
-        }
-        else if (Array.isArray(item)) {
-            addChild(newChildren, item);
-        }
-        else {
-            newChildren.push(item);
-        }
-    }
-    return new __WEBPACK_IMPORTED_MODULE_0__node__["a" /* Node */](type, props, newChildren);
-}
-function addChild(newChildren, item) {
-    var x;
-    while (item.length !== 0) {
-        x = item.pop();
-        if (Array.isArray(x)) {
-            addChild(newChildren, x);
-        }
-        else {
-            newChildren.push(x);
-        }
-    }
-}
-
-
-/***/ }),
-/* 24 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = render;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__run__ = __webpack_require__(8);
-
-function render(root, canvas, options) {
-    // var app = new pc.Application(canvas, {
-    //     mouse: new pc.Mouse(canvas),
-    //     keyboard: new pc.Keyboard(window)
-    // });
-    // app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
-    // app.setCanvasResolution(pc.RESOLUTION_AUTO);
-    // app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
-    var app = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__run__["b" /* run */])(root, {
-        mouse: new pc.Mouse(canvas),
-        keyboard: new pc.Keyboard(window),
-        canvas: canvas,
-        app: null
-    }, {}, null);
-    console.log('application init');
-}
-;
-
-
-/***/ }),
-/* 25 */
-/***/ (function(module, exports) {
-
-(function(self) {
-  'use strict';
-
-  if (self.fetch) {
-    return
-  }
-
-  var support = {
-    searchParams: 'URLSearchParams' in self,
-    iterable: 'Symbol' in self && 'iterator' in Symbol,
-    blob: 'FileReader' in self && 'Blob' in self && (function() {
-      try {
-        new Blob()
-        return true
-      } catch(e) {
-        return false
-      }
-    })(),
-    formData: 'FormData' in self,
-    arrayBuffer: 'ArrayBuffer' in self
-  }
-
-  if (support.arrayBuffer) {
-    var viewClasses = [
-      '[object Int8Array]',
-      '[object Uint8Array]',
-      '[object Uint8ClampedArray]',
-      '[object Int16Array]',
-      '[object Uint16Array]',
-      '[object Int32Array]',
-      '[object Uint32Array]',
-      '[object Float32Array]',
-      '[object Float64Array]'
-    ]
-
-    var isDataView = function(obj) {
-      return obj && DataView.prototype.isPrototypeOf(obj)
-    }
-
-    var isArrayBufferView = ArrayBuffer.isView || function(obj) {
-      return obj && viewClasses.indexOf(Object.prototype.toString.call(obj)) > -1
-    }
-  }
-
-  function normalizeName(name) {
-    if (typeof name !== 'string') {
-      name = String(name)
-    }
-    if (/[^a-z0-9\-#$%&'*+.\^_`|~]/i.test(name)) {
-      throw new TypeError('Invalid character in header field name')
-    }
-    return name.toLowerCase()
-  }
-
-  function normalizeValue(value) {
-    if (typeof value !== 'string') {
-      value = String(value)
-    }
-    return value
-  }
-
-  // Build a destructive iterator for the value list
-  function iteratorFor(items) {
-    var iterator = {
-      next: function() {
-        var value = items.shift()
-        return {done: value === undefined, value: value}
-      }
-    }
-
-    if (support.iterable) {
-      iterator[Symbol.iterator] = function() {
-        return iterator
-      }
-    }
-
-    return iterator
-  }
-
-  function Headers(headers) {
-    this.map = {}
-
-    if (headers instanceof Headers) {
-      headers.forEach(function(value, name) {
-        this.append(name, value)
-      }, this)
-    } else if (Array.isArray(headers)) {
-      headers.forEach(function(header) {
-        this.append(header[0], header[1])
-      }, this)
-    } else if (headers) {
-      Object.getOwnPropertyNames(headers).forEach(function(name) {
-        this.append(name, headers[name])
-      }, this)
-    }
-  }
-
-  Headers.prototype.append = function(name, value) {
-    name = normalizeName(name)
-    value = normalizeValue(value)
-    var oldValue = this.map[name]
-    this.map[name] = oldValue ? oldValue+','+value : value
-  }
-
-  Headers.prototype['delete'] = function(name) {
-    delete this.map[normalizeName(name)]
-  }
-
-  Headers.prototype.get = function(name) {
-    name = normalizeName(name)
-    return this.has(name) ? this.map[name] : null
-  }
-
-  Headers.prototype.has = function(name) {
-    return this.map.hasOwnProperty(normalizeName(name))
-  }
-
-  Headers.prototype.set = function(name, value) {
-    this.map[normalizeName(name)] = normalizeValue(value)
-  }
-
-  Headers.prototype.forEach = function(callback, thisArg) {
-    for (var name in this.map) {
-      if (this.map.hasOwnProperty(name)) {
-        callback.call(thisArg, this.map[name], name, this)
-      }
-    }
-  }
-
-  Headers.prototype.keys = function() {
-    var items = []
-    this.forEach(function(value, name) { items.push(name) })
-    return iteratorFor(items)
-  }
-
-  Headers.prototype.values = function() {
-    var items = []
-    this.forEach(function(value) { items.push(value) })
-    return iteratorFor(items)
-  }
-
-  Headers.prototype.entries = function() {
-    var items = []
-    this.forEach(function(value, name) { items.push([name, value]) })
-    return iteratorFor(items)
-  }
-
-  if (support.iterable) {
-    Headers.prototype[Symbol.iterator] = Headers.prototype.entries
-  }
-
-  function consumed(body) {
-    if (body.bodyUsed) {
-      return Promise.reject(new TypeError('Already read'))
-    }
-    body.bodyUsed = true
-  }
-
-  function fileReaderReady(reader) {
-    return new Promise(function(resolve, reject) {
-      reader.onload = function() {
-        resolve(reader.result)
-      }
-      reader.onerror = function() {
-        reject(reader.error)
-      }
-    })
-  }
-
-  function readBlobAsArrayBuffer(blob) {
-    var reader = new FileReader()
-    var promise = fileReaderReady(reader)
-    reader.readAsArrayBuffer(blob)
-    return promise
-  }
-
-  function readBlobAsText(blob) {
-    var reader = new FileReader()
-    var promise = fileReaderReady(reader)
-    reader.readAsText(blob)
-    return promise
-  }
-
-  function readArrayBufferAsText(buf) {
-    var view = new Uint8Array(buf)
-    var chars = new Array(view.length)
-
-    for (var i = 0; i < view.length; i++) {
-      chars[i] = String.fromCharCode(view[i])
-    }
-    return chars.join('')
-  }
-
-  function bufferClone(buf) {
-    if (buf.slice) {
-      return buf.slice(0)
-    } else {
-      var view = new Uint8Array(buf.byteLength)
-      view.set(new Uint8Array(buf))
-      return view.buffer
-    }
-  }
-
-  function Body() {
-    this.bodyUsed = false
-
-    this._initBody = function(body) {
-      this._bodyInit = body
-      if (!body) {
-        this._bodyText = ''
-      } else if (typeof body === 'string') {
-        this._bodyText = body
-      } else if (support.blob && Blob.prototype.isPrototypeOf(body)) {
-        this._bodyBlob = body
-      } else if (support.formData && FormData.prototype.isPrototypeOf(body)) {
-        this._bodyFormData = body
-      } else if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body)) {
-        this._bodyText = body.toString()
-      } else if (support.arrayBuffer && support.blob && isDataView(body)) {
-        this._bodyArrayBuffer = bufferClone(body.buffer)
-        // IE 10-11 can't handle a DataView body.
-        this._bodyInit = new Blob([this._bodyArrayBuffer])
-      } else if (support.arrayBuffer && (ArrayBuffer.prototype.isPrototypeOf(body) || isArrayBufferView(body))) {
-        this._bodyArrayBuffer = bufferClone(body)
-      } else {
-        throw new Error('unsupported BodyInit type')
-      }
-
-      if (!this.headers.get('content-type')) {
-        if (typeof body === 'string') {
-          this.headers.set('content-type', 'text/plain;charset=UTF-8')
-        } else if (this._bodyBlob && this._bodyBlob.type) {
-          this.headers.set('content-type', this._bodyBlob.type)
-        } else if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body)) {
-          this.headers.set('content-type', 'application/x-www-form-urlencoded;charset=UTF-8')
-        }
-      }
-    }
-
-    if (support.blob) {
-      this.blob = function() {
-        var rejected = consumed(this)
-        if (rejected) {
-          return rejected
-        }
-
-        if (this._bodyBlob) {
-          return Promise.resolve(this._bodyBlob)
-        } else if (this._bodyArrayBuffer) {
-          return Promise.resolve(new Blob([this._bodyArrayBuffer]))
-        } else if (this._bodyFormData) {
-          throw new Error('could not read FormData body as blob')
-        } else {
-          return Promise.resolve(new Blob([this._bodyText]))
-        }
-      }
-
-      this.arrayBuffer = function() {
-        if (this._bodyArrayBuffer) {
-          return consumed(this) || Promise.resolve(this._bodyArrayBuffer)
-        } else {
-          return this.blob().then(readBlobAsArrayBuffer)
-        }
-      }
-    }
-
-    this.text = function() {
-      var rejected = consumed(this)
-      if (rejected) {
-        return rejected
-      }
-
-      if (this._bodyBlob) {
-        return readBlobAsText(this._bodyBlob)
-      } else if (this._bodyArrayBuffer) {
-        return Promise.resolve(readArrayBufferAsText(this._bodyArrayBuffer))
-      } else if (this._bodyFormData) {
-        throw new Error('could not read FormData body as text')
-      } else {
-        return Promise.resolve(this._bodyText)
-      }
-    }
-
-    if (support.formData) {
-      this.formData = function() {
-        return this.text().then(decode)
-      }
-    }
-
-    this.json = function() {
-      return this.text().then(JSON.parse)
-    }
-
-    return this
-  }
-
-  // HTTP methods whose capitalization should be normalized
-  var methods = ['DELETE', 'GET', 'HEAD', 'OPTIONS', 'POST', 'PUT']
-
-  function normalizeMethod(method) {
-    var upcased = method.toUpperCase()
-    return (methods.indexOf(upcased) > -1) ? upcased : method
-  }
-
-  function Request(input, options) {
-    options = options || {}
-    var body = options.body
-
-    if (input instanceof Request) {
-      if (input.bodyUsed) {
-        throw new TypeError('Already read')
-      }
-      this.url = input.url
-      this.credentials = input.credentials
-      if (!options.headers) {
-        this.headers = new Headers(input.headers)
-      }
-      this.method = input.method
-      this.mode = input.mode
-      if (!body && input._bodyInit != null) {
-        body = input._bodyInit
-        input.bodyUsed = true
-      }
-    } else {
-      this.url = String(input)
-    }
-
-    this.credentials = options.credentials || this.credentials || 'omit'
-    if (options.headers || !this.headers) {
-      this.headers = new Headers(options.headers)
-    }
-    this.method = normalizeMethod(options.method || this.method || 'GET')
-    this.mode = options.mode || this.mode || null
-    this.referrer = null
-
-    if ((this.method === 'GET' || this.method === 'HEAD') && body) {
-      throw new TypeError('Body not allowed for GET or HEAD requests')
-    }
-    this._initBody(body)
-  }
-
-  Request.prototype.clone = function() {
-    return new Request(this, { body: this._bodyInit })
-  }
-
-  function decode(body) {
-    var form = new FormData()
-    body.trim().split('&').forEach(function(bytes) {
-      if (bytes) {
-        var split = bytes.split('=')
-        var name = split.shift().replace(/\+/g, ' ')
-        var value = split.join('=').replace(/\+/g, ' ')
-        form.append(decodeURIComponent(name), decodeURIComponent(value))
-      }
-    })
-    return form
-  }
-
-  function parseHeaders(rawHeaders) {
-    var headers = new Headers()
-    // Replace instances of \r\n and \n followed by at least one space or horizontal tab with a space
-    // https://tools.ietf.org/html/rfc7230#section-3.2
-    var preProcessedHeaders = rawHeaders.replace(/\r?\n[\t ]+/g, ' ')
-    preProcessedHeaders.split(/\r?\n/).forEach(function(line) {
-      var parts = line.split(':')
-      var key = parts.shift().trim()
-      if (key) {
-        var value = parts.join(':').trim()
-        headers.append(key, value)
-      }
-    })
-    return headers
-  }
-
-  Body.call(Request.prototype)
-
-  function Response(bodyInit, options) {
-    if (!options) {
-      options = {}
-    }
-
-    this.type = 'default'
-    this.status = options.status === undefined ? 200 : options.status
-    this.ok = this.status >= 200 && this.status < 300
-    this.statusText = 'statusText' in options ? options.statusText : 'OK'
-    this.headers = new Headers(options.headers)
-    this.url = options.url || ''
-    this._initBody(bodyInit)
-  }
-
-  Body.call(Response.prototype)
-
-  Response.prototype.clone = function() {
-    return new Response(this._bodyInit, {
-      status: this.status,
-      statusText: this.statusText,
-      headers: new Headers(this.headers),
-      url: this.url
-    })
-  }
-
-  Response.error = function() {
-    var response = new Response(null, {status: 0, statusText: ''})
-    response.type = 'error'
-    return response
-  }
-
-  var redirectStatuses = [301, 302, 303, 307, 308]
-
-  Response.redirect = function(url, status) {
-    if (redirectStatuses.indexOf(status) === -1) {
-      throw new RangeError('Invalid status code')
-    }
-
-    return new Response(null, {status: status, headers: {location: url}})
-  }
-
-  self.Headers = Headers
-  self.Request = Request
-  self.Response = Response
-
-  self.fetch = function(input, init) {
-    return new Promise(function(resolve, reject) {
-      var request = new Request(input, init)
-      var xhr = new XMLHttpRequest()
-
-      xhr.onload = function() {
-        var options = {
-          status: xhr.status,
-          statusText: xhr.statusText,
-          headers: parseHeaders(xhr.getAllResponseHeaders() || '')
-        }
-        options.url = 'responseURL' in xhr ? xhr.responseURL : options.headers.get('X-Request-URL')
-        var body = 'response' in xhr ? xhr.response : xhr.responseText
-        resolve(new Response(body, options))
-      }
-
-      xhr.onerror = function() {
-        reject(new TypeError('Network request failed'))
-      }
-
-      xhr.ontimeout = function() {
-        reject(new TypeError('Network request failed'))
-      }
-
-      xhr.open(request.method, request.url, true)
-
-      if (request.credentials === 'include') {
-        xhr.withCredentials = true
-      } else if (request.credentials === 'omit') {
-        xhr.withCredentials = false
-      }
-
-      if ('responseType' in xhr && support.blob) {
-        xhr.responseType = 'blob'
-      }
-
-      request.headers.forEach(function(value, name) {
-        xhr.setRequestHeader(name, value)
-      })
-
-      xhr.send(typeof request._bodyInit === 'undefined' ? null : request._bodyInit)
-    })
-  }
-  self.fetch.polyfill = true
-})(typeof self !== 'undefined' ? self : this);
-
-
-/***/ }),
-/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(process) {var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/**
@@ -2757,10 +1846,10 @@ TWEEN.Interpolation = {
 
 })(this);
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(27)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(14)))
 
 /***/ }),
-/* 27 */
+/* 14 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -2947,6 +2036,911 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 process.umask = function() { return 0; };
+
+
+/***/ }),
+/* 15 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__package_index__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__loading_scene__ = __webpack_require__(12);
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var __assign = (this && this.__assign) || Object.assign || function(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+        s = arguments[i];
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+            t[p] = s[p];
+    }
+    return t;
+};
+/**
+ * @author dadigua
+ */
+
+
+var canvas = document.getElementById("root");
+var App = /** @class */ (function (_super) {
+    __extends(App, _super);
+    function App() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    App.prototype.render = function () {
+        return __WEBPACK_IMPORTED_MODULE_0__package_index__["a" /* default */].h("application", { gravity: new pc.Vec3(0, -9.8, 0) },
+            __WEBPACK_IMPORTED_MODULE_0__package_index__["a" /* default */].h(__WEBPACK_IMPORTED_MODULE_1__loading_scene__["a" /* LoadingScene */], null),
+            __WEBPACK_IMPORTED_MODULE_0__package_index__["a" /* default */].h("entity", __assign({}, { rotation: new pc.Vec3(0, 0, 10) }),
+                __WEBPACK_IMPORTED_MODULE_0__package_index__["a" /* default */].h("light", __assign({}, {
+                    type: "directional",
+                    color: new pc.Color(1, 1, 1),
+                    castShadows: true,
+                    intensity: 1,
+                    shadowBias: 0.2,
+                    normalOffsetBias: 0.2,
+                    shadowResolution: 1024,
+                    shadowDistance: 16,
+                    shadowType: pc.SHADOW_PCF3
+                }))));
+    };
+    return App;
+}(__WEBPACK_IMPORTED_MODULE_0__package_index__["b" /* HpcComponent */]));
+__webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__package_index__["c" /* render */])(__WEBPACK_IMPORTED_MODULE_0__package_index__["a" /* default */].h(App, null), canvas, { debugger: true });
+
+
+/***/ }),
+/* 16 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return AudioListen; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__pc_component__ = __webpack_require__(0);
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+var AudioListen = /** @class */ (function (_super) {
+    __extends(AudioListen, _super);
+    function AudioListen() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return AudioListen;
+}(__WEBPACK_IMPORTED_MODULE_0__pc_component__["a" /* PcComponent */]));
+
+
+
+/***/ }),
+/* 17 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__sound__ = __webpack_require__(18);
+/* harmony namespace reexport (by used) */ __webpack_require__.d(__webpack_exports__, "a", function() { return __WEBPACK_IMPORTED_MODULE_0__sound__["a"]; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__audiolisten__ = __webpack_require__(16);
+/* harmony namespace reexport (by used) */ __webpack_require__.d(__webpack_exports__, "b", function() { return __WEBPACK_IMPORTED_MODULE_1__audiolisten__["a"]; });
+
+
+
+
+/***/ }),
+/* 18 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Sound; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__pc_component__ = __webpack_require__(0);
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+var Sound = /** @class */ (function (_super) {
+    __extends(Sound, _super);
+    function Sound() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    Sound.addComponent = function (entity, node) {
+        var component = _super.addComponent.call(this, entity, node);
+        // entity.addComponent('sound');
+        // add footsteps slot
+        if (node.props.asset) {
+            if (node.props.asset instanceof Promise) {
+                node.props.asset.then(function (asset) {
+                    entity.sound.addSlot('footsteps', {
+                        asset: asset.resource,
+                        pitch: 1.7,
+                        loop: true,
+                        autoPlay: true
+                    });
+                });
+            }
+            else {
+                entity.sound.addSlot('footsteps', {
+                    asset: node.props.asset.resource,
+                    pitch: 1.7,
+                    loop: true,
+                    autoPlay: true
+                });
+            }
+        }
+        return component;
+    };
+    return Sound;
+}(__WEBPACK_IMPORTED_MODULE_0__pc_component__["a" /* PcComponent */]));
+
+
+
+/***/ }),
+/* 19 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Camera; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__pc_component__ = __webpack_require__(0);
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+var Camera = /** @class */ (function (_super) {
+    __extends(Camera, _super);
+    function Camera() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return Camera;
+}(__WEBPACK_IMPORTED_MODULE_0__pc_component__["a" /* PcComponent */]));
+
+
+
+/***/ }),
+/* 20 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Collision; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__pc_component__ = __webpack_require__(0);
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+var Collision = /** @class */ (function (_super) {
+    __extends(Collision, _super);
+    function Collision() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    Collision.addComponent = function (entity, node) {
+        var component = _super.addComponent.call(this, entity, node);
+        var arr = ['collisionstart', 'collisionend', 'contact', 'triggerenter', 'triggerleave'];
+        arr.forEach(function (key) {
+            node.props[key] && component.on(key, function (arg) {
+                node.props[key](arg, entity);
+            }, entity);
+        });
+        return component;
+    };
+    return Collision;
+}(__WEBPACK_IMPORTED_MODULE_0__pc_component__["a" /* PcComponent */]));
+
+
+
+/***/ }),
+/* 21 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Light; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__pc_component__ = __webpack_require__(0);
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+var Light = /** @class */ (function (_super) {
+    __extends(Light, _super);
+    function Light() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return Light;
+}(__WEBPACK_IMPORTED_MODULE_0__pc_component__["a" /* PcComponent */]));
+
+
+
+/***/ }),
+/* 22 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Model; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__pc_component__ = __webpack_require__(0);
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+var Model = /** @class */ (function (_super) {
+    __extends(Model, _super);
+    function Model() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    Model.addComponent = function (entity, node) {
+        var component;
+        if (node.props.type === 'model') {
+            component = _super.addComponent.call(this, entity, node, 'model', 'type');
+        }
+        else {
+            component = _super.addComponent.call(this, entity, node);
+        }
+        _super.asyncAssetsSet.call(this, entity, node, 'model');
+        if (node.props.material) {
+            if (node.props.material instanceof Promise) {
+                node.props.material.then(function (res) {
+                    entity.model.model.meshInstances.forEach(function (mesh) {
+                        mesh.material = res;
+                    });
+                });
+            }
+            else {
+                node.props.material && entity.model.model.meshInstances.forEach(function (mesh) {
+                    mesh.material = node.props.material;
+                });
+            }
+        }
+        return component;
+    };
+    return Model;
+}(__WEBPACK_IMPORTED_MODULE_0__pc_component__["a" /* PcComponent */]));
+
+
+
+/***/ }),
+/* 23 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return ParticleSystem; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__pc_component__ = __webpack_require__(0);
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+var ParticleSystem = /** @class */ (function (_super) {
+    __extends(ParticleSystem, _super);
+    function ParticleSystem() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    ParticleSystem.addComponent = function (entity, node) {
+        var component = _super.addComponent.call(this, entity, node, 'colorMap', 'normalMap');
+        // props.colorMap && props.colorMap.then((asset) => {
+        //     entity.particlesystem.colorMap = asset.resource;
+        // })
+        _super.asyncAssetsSet.call(this, entity, node, 'colorMap', 'normalMap');
+        return component;
+    };
+    return ParticleSystem;
+}(__WEBPACK_IMPORTED_MODULE_0__pc_component__["a" /* PcComponent */]));
+
+
+
+/***/ }),
+/* 24 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return RigidBody; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__pc_component__ = __webpack_require__(0);
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+var RigidBody = /** @class */ (function (_super) {
+    __extends(RigidBody, _super);
+    function RigidBody() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return RigidBody;
+}(__WEBPACK_IMPORTED_MODULE_0__pc_component__["a" /* PcComponent */]));
+
+
+
+/***/ }),
+/* 25 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = h;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(7);
+
+function h(type, props) {
+    var children = [];
+    for (var _i = 2; _i < arguments.length; _i++) {
+        children[_i - 2] = arguments[_i];
+    }
+    var newChildren = [];
+    for (var i = 0; i < children.length; i++) {
+        var item = children[i];
+        if (typeof item === 'boolean') {
+            newChildren.push(null);
+        }
+        else if (Array.isArray(item)) {
+            addChild(newChildren, item);
+        }
+        else {
+            newChildren.push(item);
+        }
+    }
+    return new __WEBPACK_IMPORTED_MODULE_0__node__["a" /* Node */](type, props, newChildren);
+}
+function addChild(newChildren, item) {
+    var x;
+    while (item.length !== 0) {
+        x = item.pop();
+        if (Array.isArray(x)) {
+            addChild(newChildren, x);
+        }
+        else {
+            newChildren.push(x);
+        }
+    }
+}
+
+
+/***/ }),
+/* 26 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = render;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__run__ = __webpack_require__(8);
+
+function render(root, canvas, options) {
+    // var app = new pc.Application(canvas, {
+    //     mouse: new pc.Mouse(canvas),
+    //     keyboard: new pc.Keyboard(window)
+    // });
+    // app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+    // app.setCanvasResolution(pc.RESOLUTION_AUTO);
+    // app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
+    var app = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__run__["b" /* run */])(root, {
+        mouse: new pc.Mouse(canvas),
+        keyboard: new pc.Keyboard(window),
+        canvas: canvas,
+        app: null
+    }, {}, null);
+    console.log('application init');
+}
+;
+
+
+/***/ }),
+/* 27 */
+/***/ (function(module, exports) {
+
+(function(self) {
+  'use strict';
+
+  if (self.fetch) {
+    return
+  }
+
+  var support = {
+    searchParams: 'URLSearchParams' in self,
+    iterable: 'Symbol' in self && 'iterator' in Symbol,
+    blob: 'FileReader' in self && 'Blob' in self && (function() {
+      try {
+        new Blob()
+        return true
+      } catch(e) {
+        return false
+      }
+    })(),
+    formData: 'FormData' in self,
+    arrayBuffer: 'ArrayBuffer' in self
+  }
+
+  if (support.arrayBuffer) {
+    var viewClasses = [
+      '[object Int8Array]',
+      '[object Uint8Array]',
+      '[object Uint8ClampedArray]',
+      '[object Int16Array]',
+      '[object Uint16Array]',
+      '[object Int32Array]',
+      '[object Uint32Array]',
+      '[object Float32Array]',
+      '[object Float64Array]'
+    ]
+
+    var isDataView = function(obj) {
+      return obj && DataView.prototype.isPrototypeOf(obj)
+    }
+
+    var isArrayBufferView = ArrayBuffer.isView || function(obj) {
+      return obj && viewClasses.indexOf(Object.prototype.toString.call(obj)) > -1
+    }
+  }
+
+  function normalizeName(name) {
+    if (typeof name !== 'string') {
+      name = String(name)
+    }
+    if (/[^a-z0-9\-#$%&'*+.\^_`|~]/i.test(name)) {
+      throw new TypeError('Invalid character in header field name')
+    }
+    return name.toLowerCase()
+  }
+
+  function normalizeValue(value) {
+    if (typeof value !== 'string') {
+      value = String(value)
+    }
+    return value
+  }
+
+  // Build a destructive iterator for the value list
+  function iteratorFor(items) {
+    var iterator = {
+      next: function() {
+        var value = items.shift()
+        return {done: value === undefined, value: value}
+      }
+    }
+
+    if (support.iterable) {
+      iterator[Symbol.iterator] = function() {
+        return iterator
+      }
+    }
+
+    return iterator
+  }
+
+  function Headers(headers) {
+    this.map = {}
+
+    if (headers instanceof Headers) {
+      headers.forEach(function(value, name) {
+        this.append(name, value)
+      }, this)
+    } else if (Array.isArray(headers)) {
+      headers.forEach(function(header) {
+        this.append(header[0], header[1])
+      }, this)
+    } else if (headers) {
+      Object.getOwnPropertyNames(headers).forEach(function(name) {
+        this.append(name, headers[name])
+      }, this)
+    }
+  }
+
+  Headers.prototype.append = function(name, value) {
+    name = normalizeName(name)
+    value = normalizeValue(value)
+    var oldValue = this.map[name]
+    this.map[name] = oldValue ? oldValue+','+value : value
+  }
+
+  Headers.prototype['delete'] = function(name) {
+    delete this.map[normalizeName(name)]
+  }
+
+  Headers.prototype.get = function(name) {
+    name = normalizeName(name)
+    return this.has(name) ? this.map[name] : null
+  }
+
+  Headers.prototype.has = function(name) {
+    return this.map.hasOwnProperty(normalizeName(name))
+  }
+
+  Headers.prototype.set = function(name, value) {
+    this.map[normalizeName(name)] = normalizeValue(value)
+  }
+
+  Headers.prototype.forEach = function(callback, thisArg) {
+    for (var name in this.map) {
+      if (this.map.hasOwnProperty(name)) {
+        callback.call(thisArg, this.map[name], name, this)
+      }
+    }
+  }
+
+  Headers.prototype.keys = function() {
+    var items = []
+    this.forEach(function(value, name) { items.push(name) })
+    return iteratorFor(items)
+  }
+
+  Headers.prototype.values = function() {
+    var items = []
+    this.forEach(function(value) { items.push(value) })
+    return iteratorFor(items)
+  }
+
+  Headers.prototype.entries = function() {
+    var items = []
+    this.forEach(function(value, name) { items.push([name, value]) })
+    return iteratorFor(items)
+  }
+
+  if (support.iterable) {
+    Headers.prototype[Symbol.iterator] = Headers.prototype.entries
+  }
+
+  function consumed(body) {
+    if (body.bodyUsed) {
+      return Promise.reject(new TypeError('Already read'))
+    }
+    body.bodyUsed = true
+  }
+
+  function fileReaderReady(reader) {
+    return new Promise(function(resolve, reject) {
+      reader.onload = function() {
+        resolve(reader.result)
+      }
+      reader.onerror = function() {
+        reject(reader.error)
+      }
+    })
+  }
+
+  function readBlobAsArrayBuffer(blob) {
+    var reader = new FileReader()
+    var promise = fileReaderReady(reader)
+    reader.readAsArrayBuffer(blob)
+    return promise
+  }
+
+  function readBlobAsText(blob) {
+    var reader = new FileReader()
+    var promise = fileReaderReady(reader)
+    reader.readAsText(blob)
+    return promise
+  }
+
+  function readArrayBufferAsText(buf) {
+    var view = new Uint8Array(buf)
+    var chars = new Array(view.length)
+
+    for (var i = 0; i < view.length; i++) {
+      chars[i] = String.fromCharCode(view[i])
+    }
+    return chars.join('')
+  }
+
+  function bufferClone(buf) {
+    if (buf.slice) {
+      return buf.slice(0)
+    } else {
+      var view = new Uint8Array(buf.byteLength)
+      view.set(new Uint8Array(buf))
+      return view.buffer
+    }
+  }
+
+  function Body() {
+    this.bodyUsed = false
+
+    this._initBody = function(body) {
+      this._bodyInit = body
+      if (!body) {
+        this._bodyText = ''
+      } else if (typeof body === 'string') {
+        this._bodyText = body
+      } else if (support.blob && Blob.prototype.isPrototypeOf(body)) {
+        this._bodyBlob = body
+      } else if (support.formData && FormData.prototype.isPrototypeOf(body)) {
+        this._bodyFormData = body
+      } else if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body)) {
+        this._bodyText = body.toString()
+      } else if (support.arrayBuffer && support.blob && isDataView(body)) {
+        this._bodyArrayBuffer = bufferClone(body.buffer)
+        // IE 10-11 can't handle a DataView body.
+        this._bodyInit = new Blob([this._bodyArrayBuffer])
+      } else if (support.arrayBuffer && (ArrayBuffer.prototype.isPrototypeOf(body) || isArrayBufferView(body))) {
+        this._bodyArrayBuffer = bufferClone(body)
+      } else {
+        throw new Error('unsupported BodyInit type')
+      }
+
+      if (!this.headers.get('content-type')) {
+        if (typeof body === 'string') {
+          this.headers.set('content-type', 'text/plain;charset=UTF-8')
+        } else if (this._bodyBlob && this._bodyBlob.type) {
+          this.headers.set('content-type', this._bodyBlob.type)
+        } else if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body)) {
+          this.headers.set('content-type', 'application/x-www-form-urlencoded;charset=UTF-8')
+        }
+      }
+    }
+
+    if (support.blob) {
+      this.blob = function() {
+        var rejected = consumed(this)
+        if (rejected) {
+          return rejected
+        }
+
+        if (this._bodyBlob) {
+          return Promise.resolve(this._bodyBlob)
+        } else if (this._bodyArrayBuffer) {
+          return Promise.resolve(new Blob([this._bodyArrayBuffer]))
+        } else if (this._bodyFormData) {
+          throw new Error('could not read FormData body as blob')
+        } else {
+          return Promise.resolve(new Blob([this._bodyText]))
+        }
+      }
+
+      this.arrayBuffer = function() {
+        if (this._bodyArrayBuffer) {
+          return consumed(this) || Promise.resolve(this._bodyArrayBuffer)
+        } else {
+          return this.blob().then(readBlobAsArrayBuffer)
+        }
+      }
+    }
+
+    this.text = function() {
+      var rejected = consumed(this)
+      if (rejected) {
+        return rejected
+      }
+
+      if (this._bodyBlob) {
+        return readBlobAsText(this._bodyBlob)
+      } else if (this._bodyArrayBuffer) {
+        return Promise.resolve(readArrayBufferAsText(this._bodyArrayBuffer))
+      } else if (this._bodyFormData) {
+        throw new Error('could not read FormData body as text')
+      } else {
+        return Promise.resolve(this._bodyText)
+      }
+    }
+
+    if (support.formData) {
+      this.formData = function() {
+        return this.text().then(decode)
+      }
+    }
+
+    this.json = function() {
+      return this.text().then(JSON.parse)
+    }
+
+    return this
+  }
+
+  // HTTP methods whose capitalization should be normalized
+  var methods = ['DELETE', 'GET', 'HEAD', 'OPTIONS', 'POST', 'PUT']
+
+  function normalizeMethod(method) {
+    var upcased = method.toUpperCase()
+    return (methods.indexOf(upcased) > -1) ? upcased : method
+  }
+
+  function Request(input, options) {
+    options = options || {}
+    var body = options.body
+
+    if (input instanceof Request) {
+      if (input.bodyUsed) {
+        throw new TypeError('Already read')
+      }
+      this.url = input.url
+      this.credentials = input.credentials
+      if (!options.headers) {
+        this.headers = new Headers(input.headers)
+      }
+      this.method = input.method
+      this.mode = input.mode
+      if (!body && input._bodyInit != null) {
+        body = input._bodyInit
+        input.bodyUsed = true
+      }
+    } else {
+      this.url = String(input)
+    }
+
+    this.credentials = options.credentials || this.credentials || 'omit'
+    if (options.headers || !this.headers) {
+      this.headers = new Headers(options.headers)
+    }
+    this.method = normalizeMethod(options.method || this.method || 'GET')
+    this.mode = options.mode || this.mode || null
+    this.referrer = null
+
+    if ((this.method === 'GET' || this.method === 'HEAD') && body) {
+      throw new TypeError('Body not allowed for GET or HEAD requests')
+    }
+    this._initBody(body)
+  }
+
+  Request.prototype.clone = function() {
+    return new Request(this, { body: this._bodyInit })
+  }
+
+  function decode(body) {
+    var form = new FormData()
+    body.trim().split('&').forEach(function(bytes) {
+      if (bytes) {
+        var split = bytes.split('=')
+        var name = split.shift().replace(/\+/g, ' ')
+        var value = split.join('=').replace(/\+/g, ' ')
+        form.append(decodeURIComponent(name), decodeURIComponent(value))
+      }
+    })
+    return form
+  }
+
+  function parseHeaders(rawHeaders) {
+    var headers = new Headers()
+    // Replace instances of \r\n and \n followed by at least one space or horizontal tab with a space
+    // https://tools.ietf.org/html/rfc7230#section-3.2
+    var preProcessedHeaders = rawHeaders.replace(/\r?\n[\t ]+/g, ' ')
+    preProcessedHeaders.split(/\r?\n/).forEach(function(line) {
+      var parts = line.split(':')
+      var key = parts.shift().trim()
+      if (key) {
+        var value = parts.join(':').trim()
+        headers.append(key, value)
+      }
+    })
+    return headers
+  }
+
+  Body.call(Request.prototype)
+
+  function Response(bodyInit, options) {
+    if (!options) {
+      options = {}
+    }
+
+    this.type = 'default'
+    this.status = options.status === undefined ? 200 : options.status
+    this.ok = this.status >= 200 && this.status < 300
+    this.statusText = 'statusText' in options ? options.statusText : 'OK'
+    this.headers = new Headers(options.headers)
+    this.url = options.url || ''
+    this._initBody(bodyInit)
+  }
+
+  Body.call(Response.prototype)
+
+  Response.prototype.clone = function() {
+    return new Response(this._bodyInit, {
+      status: this.status,
+      statusText: this.statusText,
+      headers: new Headers(this.headers),
+      url: this.url
+    })
+  }
+
+  Response.error = function() {
+    var response = new Response(null, {status: 0, statusText: ''})
+    response.type = 'error'
+    return response
+  }
+
+  var redirectStatuses = [301, 302, 303, 307, 308]
+
+  Response.redirect = function(url, status) {
+    if (redirectStatuses.indexOf(status) === -1) {
+      throw new RangeError('Invalid status code')
+    }
+
+    return new Response(null, {status: status, headers: {location: url}})
+  }
+
+  self.Headers = Headers
+  self.Request = Request
+  self.Response = Response
+
+  self.fetch = function(input, init) {
+    return new Promise(function(resolve, reject) {
+      var request = new Request(input, init)
+      var xhr = new XMLHttpRequest()
+
+      xhr.onload = function() {
+        var options = {
+          status: xhr.status,
+          statusText: xhr.statusText,
+          headers: parseHeaders(xhr.getAllResponseHeaders() || '')
+        }
+        options.url = 'responseURL' in xhr ? xhr.responseURL : options.headers.get('X-Request-URL')
+        var body = 'response' in xhr ? xhr.response : xhr.responseText
+        resolve(new Response(body, options))
+      }
+
+      xhr.onerror = function() {
+        reject(new TypeError('Network request failed'))
+      }
+
+      xhr.ontimeout = function() {
+        reject(new TypeError('Network request failed'))
+      }
+
+      xhr.open(request.method, request.url, true)
+
+      if (request.credentials === 'include') {
+        xhr.withCredentials = true
+      } else if (request.credentials === 'omit') {
+        xhr.withCredentials = false
+      }
+
+      if ('responseType' in xhr && support.blob) {
+        xhr.responseType = 'blob'
+      }
+
+      request.headers.forEach(function(value, name) {
+        xhr.setRequestHeader(name, value)
+      })
+
+      xhr.send(typeof request._bodyInit === 'undefined' ? null : request._bodyInit)
+    })
+  }
+  self.fetch.polyfill = true
+})(typeof self !== 'undefined' ? self : this);
 
 
 /***/ })
