@@ -19,11 +19,11 @@
   navigator = _navigator || navigator;
 
   /*
- PlayCanvas Engine v1.1.0-dev revision 1e6aa964
+ PlayCanvas Engine v1.1.0-dev revision f849b9e3
  http://playcanvas.com
  Copyright 2011-2017 PlayCanvas Ltd. All rights reserved.
 */
-var pc = {version:"1.1.0-dev", revision:"1e6aa964", config:{}, common:{}, apps:{}, data:{}, unpack:function() {
+var pc = {version:"1.1.0-dev", revision:"f849b9e3", config:{}, common:{}, apps:{}, data:{}, unpack:function() {
   console.warn("pc.unpack has been deprecated and will be removed shortly. Please update your code.");
 }, makeArray:function(arr) {
   var i, ret = [], length = arr.length;
