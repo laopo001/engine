@@ -1,6 +1,6 @@
 import { PcComponent } from '../pc.component';
 
-interface ILightProps {
+export interface ILightProps {
     type: 'directional' | 'point' | 'spot';  //default directional
     color: pc.Color;
     intensity: number;

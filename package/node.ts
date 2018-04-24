@@ -15,12 +15,12 @@ export class Node<P> {
     }
 }
 
-type TextNode = string | number;
-type NodeChild = Node<any> | TextNode;
-type NodeFragment = {} | Array<NodeChild | any[] | boolean>;
+export type TextNode = string | number;
+export type NodeChild = Node<any> | TextNode;
+export type NodeFragment = {} | Array<NodeChild | any[] | boolean>;
 export type HPCNode = NodeFragment | NodeChild | string | number | boolean | null | undefined;
 
-interface Attributes {
+export interface Attributes {
     // name?: string;
     // tag?: string;
 }
@@ -31,7 +31,7 @@ export interface ClassAttributes<T> extends Attributes {
     ref?: Ref<T>;
 }
 
-interface IElements {
+export interface IElements {
     camera: CameraProps;
     model: ModelProps;
     light: LightProps;
@@ -42,7 +42,7 @@ interface IElements {
     audiolisten: AudioListenProps;
 }
 
-type pc<T> = {
+export type pc<T> = {
     [K in keyof T]: PcComponentProps & T[K];
 }
 

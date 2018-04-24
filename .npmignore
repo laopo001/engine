@@ -1,2 +1,4 @@
-/examples
-/tests
+examples/
+tests/
+src/
+demo/

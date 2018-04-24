@@ -1,5 +1,6 @@
 import { Component } from './component';
 import { KEY } from './config';
+import { Node } from './node';
 export interface ApplicationProps {
     gravity?: pc.Vec3;
     ambientLight?: pc.Color;

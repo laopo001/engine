@@ -2,6 +2,12 @@
 # yarn lockfile v1
 
 
+"@scarletsky/playcanvas@^0.226.1":
+  version "0.226.1"
+  resolved "http://registry.npm.taobao.org/@scarletsky/playcanvas/download/@scarletsky/playcanvas-0.226.1.tgz#7e69e6dbdac1ee01690cf3acb35409448e52d47d"
+  optionalDependencies:
+    jsdom "^11.5.1"
+
 "@tweenjs/tween.js@^17.2.0":
   version "17.2.0"
   resolved "http://registry.npm.taobao.org/@tweenjs/tween.js/download/@tweenjs/tween.js-17.2.0.tgz#21f89b709bafc4b303adae7a83b4f35a0d9e4796"
