@@ -1,6 +1,6 @@
 {
   "name": "hypergl",
-  "version": "0.0.1-beta.10",
+  "version": "0.0.1-beta.11",
   "author": "ldh",
   "homepage": "https://playcanvas.com",
   "description": "A WebGL framework based on PlayCanvas engine",
