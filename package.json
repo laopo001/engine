@@ -1,9 +1,9 @@
 {
-  "name": "playcanvas",
-  "version": "0.223.0",
-  "author": "PlayCanvas <support@playcanvas.com>",
+  "name": "hypergl",
+  "version": "0.0.1-beta.10",
+  "author": "ldh",
   "homepage": "https://playcanvas.com",
-  "description": "PlayCanvas WebGL game engine",
+  "description": "A WebGL framework based on PlayCanvas engine",
   "keywords": [
     "playcanvas",
     "game engine",
@@ -12,16 +12,11 @@
     "3d"
   ],
   "license": "MIT",
-  "main": "build/output/playcanvas-latest.js",
-  "bugs": {
-    "url": "https://github.com/playcanvas/engine/issues"
-  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/playcanvas/engine.git"
-  },
-  "optionalDependencies": {
-    "jsdom": "^11.5.1"
   },
   "devDependencies": {
     "@types/node": "^9.6.2",
@@ -44,10 +39,7 @@
   "scripts": {
     "demo": "webpack --display-error-details --progress --colors --watch",
     "build": "cd build && node build.js",
-    "prepublishOnly": "rm -rf lib&&tsc -p ./tsconfig.compiler.json",
-    "closure": "java -jar node_modules/google-closure-compiler/compiler.jar --compilation_level=SIMPLE --warning_level=VERBOSE --jscomp_off=checkTypes --externs build/externs.js --language_in=ECMASCRIPT5_STRICT --js build/output/playcanvas-latest.js --js_output_file build/output/playcanvas.min.js",
-    "uglify": "uglifyjs build/output/playcanvas-latest.js --compress --mangle --output build/output/playcanvas.min.js",
-    "lint": "eslint src"
+    "prepublishOnly": "rm -rf lib&&tsc -p ./tsconfig.compiler.json && cp -r package/playcanvas/ lib/playcanvas/" 
   },
   "engines": {
     "node": ">= 0.6.12"
