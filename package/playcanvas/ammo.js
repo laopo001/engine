@@ -40,8 +40,5 @@ var Ammo = (function() {
   
   this["Ammo"]=Module
   window["Ammo"]=Module
-  
-
-  
-    return this;
+  return this;
   }).call({});
