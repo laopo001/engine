@@ -6,7 +6,7 @@ import hpc, {
     createMaterial, render, randomRange, randomEnum,
     onceTime, once
 } from '../package/index';
-// import '../package/playcanvas/ammo.js';
+import '../package/playcanvas/ammo.js';
 import { FirstCamera } from './first_person_camera';
 import { Scene } from './sence';
 import { LoadingScene } from './loading_scene';
@@ -17,8 +17,8 @@ var canvas = document.getElementById("root");
 class App extends HpcComponent {
     render() {
         return <application gravity={new pc.Vec3(0, -9.8, 0)}  >
-            <LoadingScene />
-            {/* <Scene /> */}
+            {/* <LoadingScene /> */}
+            <Scene />
             {/* <FirstCamera /> */}
             <entity {...{ rotation: new pc.Vec3(0, 0, 10) }}  >
                 <light {...{
