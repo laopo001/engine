@@ -6,6 +6,7 @@ import hpc, {
     createMaterial, render, randomRange, randomEnum,
     onceTime, once
 } from '../package/index';
+// import '../package/playcanvas/ammo.js';
 import { FirstCamera } from './first_person_camera';
 import { Scene } from './sence';
 import { LoadingScene } from './loading_scene';
