@@ -1,5 +1,5 @@
-pc.extend(pc, (() => {
-    const log = {
+namespace pc {
+    export const log = {
         /**
          * @private
          * @function
@@ -93,16 +93,13 @@ pc.extend(pc, (() => {
         }
     };
 
-    return {
-        log
-    };
-})());
 
-// Shortcuts to logging functions
-const logINFO = pc.log.info;
-const logDEBUG = pc.log.debug;
-const logWARNING = pc.log.warning;
-const logERROR = pc.log.error;
 
-const logALERT = pc.log.alert;
-const logASSERT = pc.log.assert;
+    // Shortcuts to logging functions
+    export const logINFO = log.info;
+    export const logDEBUG = log.debug;
+    export const logWARNING = log.warning;
+    export const logERROR = log.error;
+    export const logALERT = log.alert;
+    export const logASSERT = log.assert;
+}

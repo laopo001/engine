@@ -1,15 +1,16 @@
-/**
-* @name pc.debug
-* @private
-* @namespace
-*/
-pc.debug = ((() => {
+namespace pc {
+    /**
+    * @name pc.debug
+    * @private
+    * @namespace
+    */
     let table = null;
     let row = null;
     let title = null;
     let field = null;
 
-    return {
+
+    export const debug = {
         /**
          * @private
          * @function
@@ -51,4 +52,5 @@ pc.debug = ((() => {
             }
         }
     };
-})());
+
+}

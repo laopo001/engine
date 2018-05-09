@@ -1,4 +1,4 @@
-pc.extend(pc, (() => {
+namespace pc {
     /**
      * @name pc.platform
      * @namespace
@@ -8,7 +8,7 @@ pc.extend(pc, (() => {
      *     // touch is supported
      * }
      */
-    const platform = {
+    export const platform = {
         /**
          * @name pc.platform.desktop
          * @description is it a desktop or laptop device
@@ -86,14 +86,10 @@ pc.extend(pc, (() => {
         platform.ios = true;
     }
 
-    if (navigator.isCocoonJS)
+    if ((navigator as any).isCocoonJS)
         platform.cocoonjs = true;
 
     platform.touch = 'ontouchstart' in window;
 
     platform.gamepads = 'getGamepads' in navigator;
-
-    return {
-        platform
-    };
-})());
+}

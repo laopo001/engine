@@ -1,4 +1,4 @@
-pc.extend(pc, ((() => ({
+namespace pc {
     /**
      * @private
      * @function
@@ -7,7 +7,7 @@ pc.extend(pc, ((() => ({
      * @param {String} str String
      * @returns {Number} Hash value
      */
-    hashCode(str) {
+    export function hashCode(str: string): number {
         let hash = 0;
         if (str.length === 0) return hash;
         for (let i = 0; i < str.length; i++) {
@@ -17,4 +17,4 @@ pc.extend(pc, ((() => ({
         }
         return hash;
     }
-}))()));
+}
