@@ -1,0 +1,196 @@
+pc.extend(pc, (() => {
+    class CubemapHandler {
+        constructor(device, assets, loader) {
+            this._device = device;
+            this._assets = assets;
+            this._loader = loader;
+        }
+
+        load(url, callback) { }
+        open(url, data) { }
+
+        patch(assetCubeMap, assets) {
+            const self = this;
+            let loaded = false;
+
+            if (! assetCubeMap.resources[0]) {
+                assetCubeMap.resources[0] = new pc.Texture(this._device, {
+                    format: pc.PIXELFORMAT_R8_G8_B8_A8,
+                    cubemap: true,
+                    mipmaps: true,
+                    fixCubemapSeams: !! assetCubeMap._dds
+                });
+
+                loaded = true;
+            }
+
+            if (! assetCubeMap.file) {
+                delete assetCubeMap._dds;
+            } else if (assetCubeMap.file && ! assetCubeMap._dds) {
+                const url = assetCubeMap.getFileUrl();
+
+                assets._loader.load(`${url}?t=${assetCubeMap.file.hash}`, 'texture', (err, texture) => {
+                    if (! err) {
+                        assets._loader.patch({
+                            resource: texture,
+                            type: 'texture',
+                            data: assetCubeMap.data
+                        }, assets);
+
+                        assetCubeMap._dds = texture;
+                        self.patch(assetCubeMap, assets);
+                    } else {
+                        assets.fire("error", err, assetCubeMap);
+                        assets.fire(`error:${assetCubeMap.id}`, err, assetCubeMap);
+                        assetCubeMap.fire("error", err, assetCubeMap);
+                    }
+                });
+            }
+
+            if ((! assetCubeMap.file || ! assetCubeMap._dds) && assetCubeMap.resources[1]) {
+                // unset prefiltered textures
+                assetCubeMap.resources = [ assetCubeMap.resources[0] ];
+
+                loaded = true;
+            } else if (assetCubeMap._dds && ! assetCubeMap.resources[1]) {
+                assetCubeMap.resources = [ assetCubeMap.resources[0] ];
+
+                // set prefiltered textures
+                assetCubeMap._dds.fixCubemapSeams = true;
+                assetCubeMap._dds.addressU = pc.ADDRESS_CLAMP_TO_EDGE;
+                assetCubeMap._dds.addressV = pc.ADDRESS_CLAMP_TO_EDGE;
+
+                let startIndex = 0;
+                if (this._device.useTexCubeLod) {
+                    // full PMREM mipchain is added for ios
+                    assetCubeMap.resources.push(assetCubeMap._dds);
+                    startIndex = 1;
+                }
+
+                for (let i = startIndex; i < 6; i++) {
+                    // create a cubemap for each mip in the prefiltered cubemap
+                    const mip = new pc.Texture(this._device, {
+                        cubemap: true,
+                        fixCubemapSeams: true,
+                        mipmaps: true,
+                        format: assetCubeMap._dds.format,
+                        rgbm: assetCubeMap._dds.rgbm,
+                        width: 2 ** (7 - i),
+                        height: 2 ** (7 - i)
+                    });
+
+                    mip._levels[0] = assetCubeMap._dds._levels[i];
+                    mip.upload();
+                    assetCubeMap.resources.push(mip);
+                }
+
+                loaded = true;
+            }
+
+            const cubemap = assetCubeMap.resource;
+
+            if (cubemap.name !== assetCubeMap.name)
+                cubemap.name = assetCubeMap.name;
+
+            const rgbm = !!assetCubeMap.data.rgbm;
+            if (assetCubeMap.data.hasOwnProperty('rgbm') && cubemap.rgbm !== rgbm)
+                cubemap.rgbm = rgbm;
+
+            cubemap.fixCubemapSeams = !! assetCubeMap._dds;
+
+            if (assetCubeMap.data.hasOwnProperty('minFilter') && cubemap.minFilter !== assetCubeMap.data.minFilter)
+                cubemap.minFilter = assetCubeMap.data.minFilter;
+
+            if (assetCubeMap.data.hasOwnProperty('magFilter') && cubemap.magFilter !== assetCubeMap.data.magFilter)
+                cubemap.magFilter = assetCubeMap.data.magFilter;
+
+            if (assetCubeMap.data.hasOwnProperty('anisotropy') && cubemap.anisotropy !== assetCubeMap.data.anisotropy)
+                cubemap.anisotropy = assetCubeMap.data.anisotropy;
+
+            if (cubemap.addressU !== pc.ADDRESS_CLAMP_TO_EDGE)
+                cubemap.addressU = pc.ADDRESS_CLAMP_TO_EDGE;
+
+            if (cubemap.addressV !== pc.ADDRESS_CLAMP_TO_EDGE)
+                cubemap.addressV = pc.ADDRESS_CLAMP_TO_EDGE;
+
+            this._patchTextureFaces(assetCubeMap, assets);
+
+            if (loaded) {
+                // trigger load event as resource is changed
+                assets.fire('load', assetCubeMap);
+                assets.fire(`load:${assetCubeMap.id}`, assetCubeMap);
+                assetCubeMap.fire('load', assetCubeMap);
+            }
+        }
+
+        _patchTexture() {
+            this.registry._loader._handlers.cubemap._patchTextureFaces(this, this.registry);
+        }
+
+        _patchTextureFaces(assetCubeMap, assets) {
+            if (! assetCubeMap.loadFaces && assetCubeMap.file)
+                return;
+
+            const cubemap = assetCubeMap.resource;
+            const sources = [ ];
+            let count = 0;
+            let levelsUpdated = false;
+            const self = this;
+
+            if (! assetCubeMap._levelsEvents)
+                assetCubeMap._levelsEvents = [ null, null, null, null, null, null ];
+
+            assetCubeMap.data.textures.forEach((id, index) => {
+                const assetAdded = asset => {
+                    asset.ready(assetReady);
+                    assets.load(asset);
+                };
+
+                var assetReady = asset => {
+                    count++;
+                    sources[index] = asset && asset.resource.getSource() || null;
+
+                    // events of texture loads
+                    const evtAsset = assetCubeMap._levelsEvents[index];
+                    if (evtAsset !== asset) {
+                        if (evtAsset)
+                            evtAsset.off('load', self._patchTexture, assetCubeMap);
+
+                        if (asset)
+                            asset.on('load', self._patchTexture, assetCubeMap);
+
+                        assetCubeMap._levelsEvents[index] = asset || null;
+                    }
+
+                    // check if source is actually changed
+                    if (sources[index] !== cubemap._levels[0][index])
+                        levelsUpdated = true;
+
+                    // when all faces checked
+                    if (count === 6 && levelsUpdated) {
+                        cubemap.setSource(sources);
+                        // trigger load event (resource changed)
+                        assets.fire('load', assetCubeMap);
+                        assets.fire(`load:${assetCubeMap.id}`, assetCubeMap);
+                        assetCubeMap.fire('load', assetCubeMap);
+                    }
+                };
+
+                const asset = assets.get(id);
+                if (asset) {
+                    asset.ready(assetReady);
+                    assets.load(asset);
+                } else if (id) {
+                    assets.once(`load:${id}`, assetReady);
+                    assets.once(`add:${id}`, assetAdded);
+                } else {
+                    assetReady(null);
+                }
+            });
+        }
+    }
+
+    return {
+        CubemapHandler
+    };
+})());
