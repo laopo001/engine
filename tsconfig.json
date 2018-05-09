@@ -1,40 +1,12 @@
 {
-  "compileOnSave": true,
   "compilerOptions": {
     "target": "es5",
-    "module": "es2015",
+    "module": "commonjs",
     "moduleResolution": "node",
     "sourceMap": true,
-    "declaration": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "skipLibCheck": true,
-    "jsx": "react",
-    "jsxFactory": "hpc.h",
-    "lib": [
-      "es2015",
-      "dom",
-      "es7"
-    ],
-    "noImplicitAny": false,
-    "typeRoots": [
-      "./node_modules/@types",
-      "./typings"
-    ],
-    "outDir": "build/output",
-    "types": [
-    ],
-    "allowSyntheticDefaultImports": true
-  },
-  "files": [
-    "./typings/index.d.ts",
-    "./demo/index.tsx"
-  ],
-  "include": [
-    "demo",
-    "package"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+    "removeComments": false,
+    "noImplicitAny": false
+  }
 }

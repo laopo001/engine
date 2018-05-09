@@ -30,6 +30,7 @@
     "gulp": "^3.9.1",
     "gulp-replace": "^0.6.1",
     "jest": "^21.2.1",
+    "playcanvas-typings": "file:typings",
     "preprocessor": "^1.4.0",
     "ts-loader": "^0.8.2",
     "typescript": "^2.8.0-insiders.20180127",
@@ -39,7 +40,7 @@
   "scripts": {
     "demo": "webpack --display-error-details --progress --colors --watch",
     "build": "cd build && node build.js",
-    "prepublishOnly": "rm -rf lib&&tsc -p ./tsconfig.compiler.json && cp -r package/playcanvas/ lib/playcanvas/" 
+    "prepublishOnly": "rm -rf lib&&tsc -p ./tsconfig.compiler.json && cp -r package/playcanvas/ lib/playcanvas/"
   },
   "engines": {
     "node": ">= 0.6.12"
