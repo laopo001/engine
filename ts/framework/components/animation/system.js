@@ -1,5 +1,5 @@
-pc.extend(pc, function () {
-    var _schema = [
+pc.extend(pc, (() => {
+    const _schema = [
         'enabled',
         'assets',
         'speed',
@@ -25,7 +25,7 @@ pc.extend(pc, function () {
      * @param {pc.Application} app The application managing this system.
      * @extends pc.ComponentSystem
      */
-    var AnimationComponentSystem = function AnimationComponentSystem (app) {
+    let AnimationComponentSystem = function AnimationComponentSystem (app) {
         this.id = 'animation';
         this.description = "Specifies the animation assets that can run on the model specified by the Entity's model Component.";
 
@@ -46,23 +46,23 @@ pc.extend(pc, function () {
     pc.Component._buildAccessors(pc.AnimationComponent.prototype, _schema);
 
     pc.extend(AnimationComponentSystem.prototype, {
-        initializeComponentData: function (component, data, properties) {
+        initializeComponentData(component, data, properties) {
             properties = ['activate', 'enabled', 'loop', 'speed', 'assets'];
             AnimationComponentSystem._super.initializeComponentData.call(this, component, data, properties);
         },
 
-        cloneComponent: function (entity, clone) {
-            var key;
+        cloneComponent({animation}, clone) {
+            let key;
             this.addComponent(clone, {});
 
-            clone.animation.data.assets = pc.extend([], entity.animation.assets);
-            clone.animation.data.speed = entity.animation.speed;
-            clone.animation.data.loop = entity.animation.loop;
-            clone.animation.data.activate = entity.animation.activate;
-            clone.animation.data.enabled = entity.animation.enabled;
+            clone.animation.data.assets = pc.extend([], animation.assets);
+            clone.animation.data.speed = animation.speed;
+            clone.animation.data.loop = animation.loop;
+            clone.animation.data.activate = animation.activate;
+            clone.animation.data.enabled = animation.enabled;
 
-            var clonedAnimations = { };
-            var animations = entity.animation.animations;
+            const clonedAnimations = { };
+            const animations = animation.animations;
             for (key in animations) {
                 if (animations.hasOwnProperty(key)) {
                     clonedAnimations[key] = animations[key];
@@ -70,8 +70,8 @@ pc.extend(pc, function () {
             }
             clone.animation.animations = clonedAnimations;
 
-            var clonedAnimationsIndex = { };
-            var animationsIndex = entity.animation.animationsIndex;
+            const clonedAnimationsIndex = { };
+            const animationsIndex = animation.animationsIndex;
             for (key in animationsIndex) {
                 if (animationsIndex.hasOwnProperty(key)) {
                     clonedAnimationsIndex[key] = animationsIndex[key];
@@ -80,31 +80,31 @@ pc.extend(pc, function () {
             clone.animation.animationsIndex = clonedAnimationsIndex;
         },
 
-        onBeforeRemove: function (entity, component) {
+        onBeforeRemove(entity, component) {
             component.onBeforeRemove();
         },
 
-        onUpdate: function (dt) {
-            var components = this.store;
+        onUpdate(dt) {
+            const components = this.store;
 
-            for (var id in components) {
+            for (const id in components) {
                 if (components.hasOwnProperty(id)) {
-                    var component = components[id];
-                    var componentData = component.data;
+                    const component = components[id];
+                    const componentData = component.data;
                     if (componentData.enabled && componentData.playing && component.entity.enabled) {
-                        var skeleton = componentData.skeleton;
+                        const skeleton = componentData.skeleton;
                         if (skeleton !== null && componentData.model !== null) {
                             if (componentData.blending) {
                                 componentData.blendTimeRemaining -= dt;
                                 if (componentData.blendTimeRemaining < 0.0) {
                                     componentData.blendTimeRemaining = 0.0;
                                 }
-                                var alpha = 1.0 - (componentData.blendTimeRemaining / componentData.blendTime);
+                                const alpha = 1.0 - (componentData.blendTimeRemaining / componentData.blendTime);
                                 skeleton.blend(componentData.fromSkel, componentData.toSkel, alpha);
                             } else {
                                 // Advance the animation, interpolating keyframes at each animated node in
                                 // skeleton
-                                var delta = dt * componentData.speed;
+                                const delta = dt * componentData.speed;
                                 skeleton.addTime(delta);
                                 if ((skeleton._time === skeleton._animation.duration) && !componentData.loop) {
                                     componentData.playing = false;
@@ -125,6 +125,6 @@ pc.extend(pc, function () {
     });
 
     return {
-        AnimationComponentSystem: AnimationComponentSystem
+        AnimationComponentSystem
     };
-}());
+})());

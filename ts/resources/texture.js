@@ -1,13 +1,11 @@
-pc.extend(pc, function () {
-    'use strict';
-
-    var JSON_ADDRESS_MODE = {
+pc.extend(pc, (() => {
+    const JSON_ADDRESS_MODE = {
         "repeat": pc.ADDRESS_REPEAT,
         "clamp": pc.ADDRESS_CLAMP_TO_EDGE,
         "mirror": pc.ADDRESS_MIRRORED_REPEAT
     };
 
-    var JSON_FILTER_MODE = {
+    const JSON_FILTER_MODE = {
         "nearest": pc.FILTER_NEAREST,
         "linear": pc.FILTER_LINEAR,
         "nearest_mip_nearest": pc.FILTER_NEAREST_MIPMAP_NEAREST,
@@ -17,11 +15,11 @@ pc.extend(pc, function () {
     };
 
     function arrayBufferCopy(src, dst, dstByteOffset, numBytes) {
-        var i;
-        var dst32Offset = dstByteOffset / 4;
-        var tail = (numBytes % 4);
-        var src32 = new Uint32Array(src.buffer, 0, (numBytes - tail) / 4);
-        var dst32 = new Uint32Array(dst.buffer);
+        let i;
+        const dst32Offset = dstByteOffset / 4;
+        const tail = (numBytes % 4);
+        const src32 = new Uint32Array(src.buffer, 0, (numBytes - tail) / 4);
+        const dst32 = new Uint32Array(dst.buffer);
         for (i = 0; i < src32.length; i++) {
             dst32[dst32Offset + i] = src32[i];
         }
@@ -30,34 +28,34 @@ pc.extend(pc, function () {
         }
     }
 
-    var TextureHandler = function (device, assets, loader) {
-        this._device = device;
-        this._assets = assets;
-        this._loader = loader;
+    class TextureHandler {
+        constructor(device, assets, loader) {
+            this._device = device;
+            this._assets = assets;
+            this._loader = loader;
 
-        // by default don't try cross-origin, because some browsers send different cookies (e.g. safari) if this is set.
-        this.crossOrigin = undefined;
-        if (assets.prefix) {
-            // ensure we send cookies if we load images.
-            this.crossOrigin = 'anonymous';
+            // by default don't try cross-origin, because some browsers send different cookies (e.g. safari) if this is set.
+            this.crossOrigin = undefined;
+            if (assets.prefix) {
+                // ensure we send cookies if we load images.
+                this.crossOrigin = 'anonymous';
+            }
         }
-    };
 
-    TextureHandler.prototype = {
-        load: function (url, callback) {
-            var self = this;
-            var image;
+        load(url, callback) {
+            const self = this;
+            let image;
 
-            var urlWithoutParams = url.indexOf('?') >= 0 ? url.split('?')[0] : url;
+            let urlWithoutParams = url.includes('?') ? url.split('?')[0] : url;
 
-            var ext = pc.path.getExtension(urlWithoutParams).toLowerCase();
+            const ext = pc.path.getExtension(urlWithoutParams).toLowerCase();
             if ((ext === '.dds') || (ext === '.crn')) {
-                var options = {
+                const options = {
                     cache: true,
                     responseType: "arraybuffer"
                 };
 
-                pc.http.get(url, options, function (err, response) {
+                pc.http.get(url, options, (err, response) => {
                     if (!err) {
                         callback(null, response);
                     } else {
@@ -72,18 +70,18 @@ pc.extend(pc, function () {
                 }
 
                 // Call success callback after opening Texture
-                image.onload = function () {
+                image.onload = () => {
                     callback(null, image);
                 };
 
                 // Call error callback with details.
-                image.onerror = function (event) {
+                image.onerror = event => {
                     callback(pc.string.format("Error loading Texture from: '{0}'", url));
                 };
 
                 image.src = url;
             } else {
-                var blobStart = urlWithoutParams.indexOf("blob:");
+                const blobStart = urlWithoutParams.indexOf("blob:");
                 if (blobStart >= 0) {
                     urlWithoutParams = urlWithoutParams.substr(blobStart);
                     url = urlWithoutParams;
@@ -91,12 +89,12 @@ pc.extend(pc, function () {
                     image = new Image();
 
                     // Call success callback after opening Texture
-                    image.onload = function () {
+                    image.onload = () => {
                         callback(null, image);
                     };
 
                     // Call error callback with details.
-                    image.onerror = function (event) {
+                    image.onerror = event => {
                         callback(pc.string.format("Error loading Texture from: '{0}'", url));
                     };
 
@@ -105,26 +103,26 @@ pc.extend(pc, function () {
                     // Unsupported texture extension
                     // Use timeout because asset events can be hooked up after load gets called in some
                     // cases. For example, material loads a texture on 'add' event.
-                    setTimeout(function () {
+                    setTimeout(() => {
                         callback(pc.string.format("Error loading Texture: format not supported: '{0}'", ext));
                     }, 0);
                 }
             }
-        },
+        }
 
-        open: function (url, data) {
+        open(url, data) {
             if (! url)
                 return;
 
-            var texture;
-            var ext = pc.path.getExtension(url).toLowerCase();
-            var format = null;
+            let texture;
+            const ext = pc.path.getExtension(url).toLowerCase();
+            let format = null;
 
             // Every browser seems to pass data as an Image type. For some reason, the XDK
             // passes an HTMLImageElement. TODO: figure out why!
             // DDS textures are ArrayBuffers
             if ((data instanceof Image) || (data instanceof HTMLImageElement)) { // PNG, JPG or GIF
-                var img = data;
+                const img = data;
 
                 format = (ext === ".jpg" || ext === ".jpeg") ? pc.PIXELFORMAT_R8_G8_B8 : pc.PIXELFORMAT_R8_G8_B8_A8;
                 texture = new pc.Texture(this._device, {
@@ -133,52 +131,52 @@ pc.extend(pc, function () {
                     // #endif
                     width: img.width,
                     height: img.height,
-                    format: format
+                    format
                 });
                 texture.setSource(img);
 
             } else if (data instanceof ArrayBuffer) { // DDS or CRN
                 if (ext === ".crn") {
                     // Copy loaded file into Emscripten-managed memory
-                    var srcSize = data.byteLength;
-                    var bytes = new Uint8Array(data);
-                    var src = Module._malloc(srcSize);
+                    const srcSize = data.byteLength;
+                    const bytes = new Uint8Array(data);
+                    const src = Module._malloc(srcSize);
                     arrayBufferCopy(bytes, Module.HEAPU8, src, srcSize);
 
                     // Decompress CRN to DDS (minus the header)
-                    var dst = Module._crn_decompress_get_data(src, srcSize);
-                    var dstSize = Module._crn_decompress_get_size(src, srcSize);
+                    const dst = Module._crn_decompress_get_data(src, srcSize);
+                    const dstSize = Module._crn_decompress_get_size(src, srcSize);
 
                     data = Module.HEAPU8.buffer.slice(dst, dst + dstSize);
                 }
 
                 // DDS loading
-                var header = new Uint32Array(data, 0, 128 / 4);
+                const header = new Uint32Array(data, 0, 128 / 4);
 
-                var width = header[4];
-                var height = header[3];
-                var mips = Math.max(header[7], 1);
-                var isFourCc = header[20] === 4;
-                var fcc = header[21];
-                var bpp = header[22];
-                var isCubemap = header[28] === 65024; // TODO: check by bitflag
+                const width = header[4];
+                const height = header[3];
+                const mips = Math.max(header[7], 1);
+                const isFourCc = header[20] === 4;
+                const fcc = header[21];
+                const bpp = header[22];
+                const isCubemap = header[28] === 65024; // TODO: check by bitflag
 
-                var FCC_DXT1 = 827611204; // DXT1
-                var FCC_DXT5 = 894720068; // DXT5
-                var FCC_FP32 = 116; // RGBA32f
+                const FCC_DXT1 = 827611204; // DXT1
+                const FCC_DXT5 = 894720068; // DXT5
+                const FCC_FP32 = 116; // RGBA32f
 
                 // non standard
-                var FCC_ETC1 = 826496069;
-                var FCC_PVRTC_2BPP_RGB_1 = 825438800;
-                var FCC_PVRTC_2BPP_RGBA_1 = 825504336;
-                var FCC_PVRTC_4BPP_RGB_1 = 825439312;
-                var FCC_PVRTC_4BPP_RGBA_1 = 825504848;
+                const FCC_ETC1 = 826496069;
+                const FCC_PVRTC_2BPP_RGB_1 = 825438800;
+                const FCC_PVRTC_2BPP_RGBA_1 = 825504336;
+                const FCC_PVRTC_4BPP_RGB_1 = 825439312;
+                const FCC_PVRTC_4BPP_RGBA_1 = 825504848;
 
-                var compressed = false;
-                var floating = false;
-                var etc1 = false;
-                var pvrtc2 = false;
-                var pvrtc4 = false;
+                let compressed = false;
+                let floating = false;
+                let etc1 = false;
+                let pvrtc2 = false;
+                let pvrtc4 = false;
                 if (isFourCc) {
                     if (fcc===FCC_DXT1) {
                         format = pc.PIXELFORMAT_DXT1;
@@ -220,13 +218,13 @@ pc.extend(pc, function () {
                     return texture;
                 }
 
-                var texOptions = {
+                const texOptions = {
                     // #ifdef PROFILER
                     profilerHint: pc.TEXHINT_ASSET,
                     // #endif
-                    width: width,
-                    height: height,
-                    format: format,
+                    width,
+                    height,
+                    format,
                     cubemap: isCubemap
                 };
                 texture = new pc.Texture(this._device, texOptions);
@@ -235,17 +233,17 @@ pc.extend(pc, function () {
                     texture.addressV = pc.ADDRESS_CLAMP_TO_EDGE;
                 }
 
-                var offset = 128;
-                var faces = isCubemap? 6 : 1;
-                var mipSize;
-                var DXT_BLOCK_WIDTH = 4;
-                var DXT_BLOCK_HEIGHT = 4;
-                var blockSize = fcc===FCC_DXT1? 8 : 16;
-                var numBlocksAcross, numBlocksDown, numBlocks;
-                for (var face=0; face<faces; face++) {
-                    var mipWidth = width;
-                    var mipHeight = height;
-                    for (var i=0; i<mips; i++) {
+                let offset = 128;
+                const faces = isCubemap? 6 : 1;
+                let mipSize;
+                const DXT_BLOCK_WIDTH = 4;
+                const DXT_BLOCK_HEIGHT = 4;
+                const blockSize = fcc===FCC_DXT1? 8 : 16;
+                let numBlocksAcross, numBlocksDown, numBlocks;
+                for (let face=0; face<faces; face++) {
+                    let mipWidth = width;
+                    let mipHeight = height;
+                    for (let i=0; i<mips; i++) {
                         if (compressed) {
                             if (etc1) {
                                 mipSize = Math.floor((mipWidth + 3) / 4) * Math.floor((mipHeight + 3) / 4) * 8;
@@ -263,7 +261,7 @@ pc.extend(pc, function () {
                             mipSize = mipWidth * mipHeight * 4;
                         }
 
-                        var mipBuff = floating? new Float32Array(data, offset, mipSize) : new Uint8Array(data, offset, mipSize);
+                        const mipBuff = floating? new Float32Array(data, offset, mipSize) : new Uint8Array(data, offset, mipSize);
                         if (!isCubemap) {
                             texture._levels[i] = mipBuff;
                         } else {
@@ -279,42 +277,42 @@ pc.extend(pc, function () {
                 texture.upload();
             }
             return texture;
-        },
+        }
 
-        patch: function (asset, assets) {
-            var texture = asset.resource;
+        patch({resource, name, data}, assets) {
+            const texture = resource;
 
             if (! texture)
                 return;
 
-            if (texture.name !== asset.name)
-                texture.name = asset.name;
+            if (texture.name !== name)
+                texture.name = name;
 
-            if (asset.data.hasOwnProperty('minfilter') && texture.minFilter !== JSON_FILTER_MODE[asset.data.minfilter])
-                texture.minFilter = JSON_FILTER_MODE[asset.data.minfilter];
+            if (data.hasOwnProperty('minfilter') && texture.minFilter !== JSON_FILTER_MODE[data.minfilter])
+                texture.minFilter = JSON_FILTER_MODE[data.minfilter];
 
-            if (asset.data.hasOwnProperty('magfilter') && texture.magFilter !== JSON_FILTER_MODE[asset.data.magfilter])
-                texture.magFilter = JSON_FILTER_MODE[asset.data.magfilter];
+            if (data.hasOwnProperty('magfilter') && texture.magFilter !== JSON_FILTER_MODE[data.magfilter])
+                texture.magFilter = JSON_FILTER_MODE[data.magfilter];
 
-            if (asset.data.hasOwnProperty('addressu') && texture.addressU !== JSON_ADDRESS_MODE[asset.data.addressu])
-                texture.addressU = JSON_ADDRESS_MODE[asset.data.addressu];
+            if (data.hasOwnProperty('addressu') && texture.addressU !== JSON_ADDRESS_MODE[data.addressu])
+                texture.addressU = JSON_ADDRESS_MODE[data.addressu];
 
-            if (asset.data.hasOwnProperty('addressv') && texture.addressV !== JSON_ADDRESS_MODE[asset.data.addressv])
-                texture.addressV = JSON_ADDRESS_MODE[asset.data.addressv];
+            if (data.hasOwnProperty('addressv') && texture.addressV !== JSON_ADDRESS_MODE[data.addressv])
+                texture.addressV = JSON_ADDRESS_MODE[data.addressv];
 
-            if (asset.data.hasOwnProperty('mipmaps') && texture.mipmaps !== asset.data.mipmaps)
-                texture.mipmaps = asset.data.mipmaps;
+            if (data.hasOwnProperty('mipmaps') && texture.mipmaps !== data.mipmaps)
+                texture.mipmaps = data.mipmaps;
 
-            if (asset.data.hasOwnProperty('anisotropy') && texture.anisotropy !== asset.data.anisotropy)
-                texture.anisotropy = asset.data.anisotropy;
+            if (data.hasOwnProperty('anisotropy') && texture.anisotropy !== data.anisotropy)
+                texture.anisotropy = data.anisotropy;
 
-            var rgbm = !!asset.data.rgbm;
-            if (asset.data.hasOwnProperty('rgbm') && texture.rgbm !== rgbm)
+            const rgbm = !!data.rgbm;
+            if (data.hasOwnProperty('rgbm') && texture.rgbm !== rgbm)
                 texture.rgbm = rgbm;
         }
-    };
+    }
 
     return {
-        TextureHandler: TextureHandler
+        TextureHandler
     };
-}());
+})());

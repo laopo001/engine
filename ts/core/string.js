@@ -36,16 +36,16 @@ pc.string = function () {
          * var s = pc.string.format("Hello {0}", "world");
          * console.log(s); // Prints "Hello world"
          */
-        format: function (s) {
-            var i = 0,
-                regexp,
-                args = pc.makeArray(arguments);
+        format(s) {
+            let i = 0;
+            let regexp;
+            const args = pc.makeArray(arguments);
 
             // drop first argument
             args.shift();
 
             for (i = 0; i < args.length; i++) {
-                regexp = new RegExp('\\{' + i + '\\}', 'gi');
+                regexp = new RegExp(`\\{${i}\\}`, 'gi');
                 s = s.replace(regexp, args[i]);
             }
             return s;
@@ -66,7 +66,7 @@ pc.string = function () {
         *   console.log('Starts with a');
         * }
         */
-        startsWith: function (s, subs) {
+        startsWith(s, subs) {
             console.warn("WARNING: startsWith: Function is deprecated. Use String.startsWith instead.");
             return s.startsWith(subs);
         },
@@ -81,7 +81,7 @@ pc.string = function () {
         * @returns {Boolean} True if s ends with subs
         * @deprecated
         */
-        endsWith: function (s, subs) {
+        endsWith(s, subs) {
             console.warn("WARNING: endsWith: Function is deprecated. Use String.endsWith instead.");
             return s.endsWith(subs);
         },
@@ -96,7 +96,7 @@ pc.string = function () {
         * @param {Boolean} [strict] In strict mode an Exception is thrown if s is not an accepted string value. Defaults to false
         * @returns {Boolean} The converted value
         */
-        toBool: function (s, strict) {
+        toBool(s, strict) {
             if (s === 'true') {
                 return true;
             }

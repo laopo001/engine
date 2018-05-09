@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
      * @constructor
      * @name pc.Skin
@@ -10,9 +10,9 @@ pc.extend(pc, function () {
      * @param {String[]} boneNames The array of bone names for the bones referenced by this skin.
      */
 
-    var _invMatrix = new pc.Mat4();
+    const _invMatrix = new pc.Mat4();
 
-    var Skin = function (graphicsDevice, ibp, boneNames) {
+    const Skin = function (graphicsDevice, ibp, boneNames) {
         // Constant between clones
         this.device = graphicsDevice;
         this.inverseBindPose = ibp;
@@ -27,72 +27,71 @@ pc.extend(pc, function () {
      * @param {pc.Skin} skin The skin that will provide the inverse bind pose matrices to
      * generate the final matrix palette.
      */
-    var SkinInstance = function (skin) {
-        this.skin = skin;
-        this._dirty = true;
+    class SkinInstance {
+        constructor(skin) {
+            this.skin = skin;
+            this._dirty = true;
 
-        // Unique per clone
-        this.bones = [];
+            // Unique per clone
+            this.bones = [];
 
-        var numBones = skin.inverseBindPose.length;
+            const numBones = skin.inverseBindPose.length;
 
-        var device = skin.device;
-        if (device.supportsBoneTextures) {
-            // Calculate a square texture dimension to hold bone matrices
-            // where a matrix takes up 4 texels:
-            //   RGBA (Row 1), RGBA (Row 2), RGBA (Row 3), RGBA (Row 4)
-            // So:
-            //   8x8   holds: 64 / 4   = Up to 16 bones
-            //   16x16 holds: 256 / 4  = Up to 64 bones
-            //   32x32 holds: 1024 / 4 = Up to 256 bones
-            //   64x64 holds: 4096 / 4 = Up to 1024 bones
-            // Let's assume for now no one will create a hierarchy of more
-            // than 1024 bones!
-            var size;
-            if (numBones > 256)
-                size = 64;
-            else if (numBones > 64)
-                size = 32;
-            else if (numBones > 16)
-                size = 16;
-            else
-                size = 8;
+            const device = skin.device;
+            if (device.supportsBoneTextures) {
+                // Calculate a square texture dimension to hold bone matrices
+                // where a matrix takes up 4 texels:
+                //   RGBA (Row 1), RGBA (Row 2), RGBA (Row 3), RGBA (Row 4)
+                // So:
+                //   8x8   holds: 64 / 4   = Up to 16 bones
+                //   16x16 holds: 256 / 4  = Up to 64 bones
+                //   32x32 holds: 1024 / 4 = Up to 256 bones
+                //   64x64 holds: 4096 / 4 = Up to 1024 bones
+                // Let's assume for now no one will create a hierarchy of more
+                // than 1024 bones!
+                let size;
+                if (numBones > 256)
+                    size = 64;
+                else if (numBones > 64)
+                    size = 32;
+                else if (numBones > 16)
+                    size = 16;
+                else
+                    size = 8;
 
-            this.boneTexture = new pc.Texture(device, {
-                width: size,
-                height: size,
-                format: pc.PIXELFORMAT_RGBA32F,
-                mipmaps: false,
-                minFilter: pc.FILTER_NEAREST,
-                magFilter: pc.FILTER_NEAREST
-            });
-            this.matrixPalette = this.boneTexture.lock();
-        } else {
-            this.matrixPalette = new Float32Array(numBones * 16);
+                this.boneTexture = new pc.Texture(device, {
+                    width: size,
+                    height: size,
+                    format: pc.PIXELFORMAT_RGBA32F,
+                    mipmaps: false,
+                    minFilter: pc.FILTER_NEAREST,
+                    magFilter: pc.FILTER_NEAREST
+                });
+                this.matrixPalette = this.boneTexture.lock();
+            } else {
+                this.matrixPalette = new Float32Array(numBones * 16);
+            }
+            this.matrices = [];
+            for (let i=0; i<numBones; i++) {
+                this.matrices[i] = new pc.Mat4();
+            }
         }
-        this.matrices = [];
-        for (var i=0; i<numBones; i++) {
-            this.matrices[i] = new pc.Mat4();
-        }
-    };
 
-    SkinInstance.prototype = {
-
-        updateMatrices: function (rootNode) {
+        updateMatrices(rootNode) {
 
             _invMatrix.copy(rootNode.getWorldTransform()).invert();
-            for (var i = this.bones.length - 1; i >= 0; i--) {
+            for (let i = this.bones.length - 1; i >= 0; i--) {
                 this.matrices[i].mul2(_invMatrix, this.bones[i].getWorldTransform()); // world space -> rootNode space
                 this.matrices[i].mul2(this.matrices[i], this.skin.inverseBindPose[i]); // rootNode space -> bind space
             }
-        },
+        }
 
-        updateMatrixPalette: function () {
-            var pe;
-            var mp = this.matrixPalette;
-            var base;
+        updateMatrixPalette() {
+            let pe;
+            const mp = this.matrixPalette;
+            let base;
 
-            for (var i = this.bones.length - 1; i >= 0; i--) {
+            for (let i = this.bones.length - 1; i >= 0; i--) {
                 pe = this.matrices[i].data;
 
                 // Copy the matrix into the palette, ready to be sent to the vertex shader
@@ -121,10 +120,10 @@ pc.extend(pc, function () {
                 this.boneTexture.unlock();
             }
         }
-    };
+    }
 
     return {
-        Skin: Skin,
-        SkinInstance: SkinInstance
+        Skin,
+        SkinInstance
     };
-}());
+})());

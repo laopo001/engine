@@ -1,5 +1,5 @@
-pc.extend(pc, function() {
-    var ParticleSystemComponentData = function() {
+pc.extend(pc, (() => {
+    let ParticleSystemComponentData = function() {
 
         this.numParticles = 1;                  // Amount of particles allocated (max particles = max GL texture width at this moment)
         this.rate = 1;                          // Emission rate
@@ -73,6 +73,6 @@ pc.extend(pc, function() {
     ParticleSystemComponentData = pc.inherits(ParticleSystemComponentData, pc.ComponentData);
 
     return {
-        ParticleSystemComponentData: ParticleSystemComponentData
+        ParticleSystemComponentData
     };
-}());
+})());

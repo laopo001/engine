@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
      * @private
      * @constructor
@@ -6,7 +6,7 @@ pc.extend(pc, function () {
      * @classdesc ComponentData structure for Camera components.
      * @extends pc.ComponentData
      */
-    var CameraComponentData = function () {
+    let CameraComponentData = function () {
         // serialized
         this.clearColor = new pc.Color(0.722, 0.722, 0.722, 1);
         this.clearColorBuffer = true;
@@ -39,6 +39,6 @@ pc.extend(pc, function () {
     CameraComponentData = pc.inherits(CameraComponentData, pc.ComponentData);
 
     return {
-        CameraComponentData: CameraComponentData
+        CameraComponentData
     };
-}());
+})());

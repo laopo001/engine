@@ -1,13 +1,11 @@
-pc.extend(pc, function () {
-    'use strict';
-
-    var TextHandler = function () {
+pc.extend(pc, (() => {
+    const TextHandler = () => {
 
     };
 
     TextHandler.prototype = {
-        load: function (url, callback) {
-            pc.http.get(url, function (err, response) {
+        load(url, callback) {
+            pc.http.get(url, (err, response) => {
                 if (!err) {
                     callback(null, response);
                 } else {
@@ -16,15 +14,15 @@ pc.extend(pc, function () {
             });
         },
 
-        open: function (url, data) {
+        open(url, data) {
             return data;
         },
 
-        patch: function (asset, assets) {
+        patch(asset, assets) {
         }
     };
 
     return {
-        TextHandler: TextHandler
+        TextHandler
     };
-}());
+})());

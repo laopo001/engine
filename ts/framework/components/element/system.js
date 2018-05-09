@@ -1,7 +1,7 @@
-pc.extend(pc, function () {
-    var _schema = [ 'enabled' ];
+pc.extend(pc, (() => {
+    const _schema = [ 'enabled' ];
 
-    var nineSliceBasePS = [
+    const nineSliceBasePS = [
         "varying vec2 vMask;",
         "varying vec2 vTiledUv;",
         "uniform vec4 innerOffset;",
@@ -10,7 +10,7 @@ pc.extend(pc, function () {
         "vec2 nineSlicedUv;"
     ].join('\n');
 
-    var nineSliceUvPs = [
+    const nineSliceUvPs = [
         "vec2 tileMask = step(vMask, vec2(0.99999));",
         "vec2 clampedUv = mix(innerOffset.xy*0.5, vec2(1.0) - innerOffset.zw*0.5, fract(vTiledUv));",
         "clampedUv = clampedUv * atlasRect.zw + atlasRect.xy;",
@@ -24,7 +24,7 @@ pc.extend(pc, function () {
      * @param {pc.Application} app The application
      * @extends pc.ComponentSystem
      */
-    var ElementComponentSystem = function ElementComponentSystem(app) {
+    let ElementComponentSystem = function ElementComponentSystem(app) {
         this.id = 'element';
         this.app = app;
         app.systems.add(this.id, this);
@@ -36,8 +36,8 @@ pc.extend(pc, function () {
 
         // default texture - make white so we can tint it with emissive color
         this._defaultTexture = new pc.Texture(app.graphicsDevice, {width: 1, height: 1, format: pc.PIXELFORMAT_R8_G8_B8_A8});
-        var pixels = this._defaultTexture.lock();
-        var pixelData = new Uint8Array(4);
+        const pixels = this._defaultTexture.lock();
+        const pixelData = new Uint8Array(4);
         pixelData[0] = 255.0;
         pixelData[1] = 255.0;
         pixelData[2] = 255.0;
@@ -77,16 +77,16 @@ pc.extend(pc, function () {
         // 9 sliced material is like the default but with custom chunks
         this.defaultImage9SlicedMaterial = this.defaultImageMaterial.clone();
         this.defaultImage9SlicedMaterial.chunks.basePS = pc.shaderChunks.basePS + nineSliceBasePS;
-        this.defaultImage9SlicedMaterial.chunks.startPS = pc.shaderChunks.startPS + "nineSlicedUv = vUv0;\n";
+        this.defaultImage9SlicedMaterial.chunks.startPS = `${pc.shaderChunks.startPS}nineSlicedUv = vUv0;\n`;
         this.defaultImage9SlicedMaterial.chunks.emissivePS = pc.shaderChunks.emissivePS.replace("$UV", "nineSlicedUv");
         this.defaultImage9SlicedMaterial.chunks.opacityPS = pc.shaderChunks.opacityPS.replace("$UV", "nineSlicedUv");
-        this.defaultImage9SlicedMaterial.chunks.transformVS = "#define NINESLICED\n" + pc.shaderChunks.transformVS;
+        this.defaultImage9SlicedMaterial.chunks.transformVS = `#define NINESLICED\n${pc.shaderChunks.transformVS}`;
         this.defaultImage9SlicedMaterial.chunks.uv0VS = pc.shaderChunks.uv9SliceVS;
         this.defaultImage9SlicedMaterial.update();
 
         // 9-sliced in tiled mode
         this.defaultImage9TiledMaterial = this.defaultImage9SlicedMaterial.clone();
-        this.defaultImage9TiledMaterial.chunks.basePS = pc.shaderChunks.basePS + "#define NINESLICETILED\n" + nineSliceBasePS;
+        this.defaultImage9TiledMaterial.chunks.basePS = `${pc.shaderChunks.basePS}#define NINESLICETILED\n${nineSliceBasePS}`;
         this.defaultImage9TiledMaterial.chunks.startPS = pc.shaderChunks.startPS + nineSliceUvPs;
         this.defaultImage9TiledMaterial.chunks.emissivePS = pc.shaderChunks.emissivePS.replace("$UV", "nineSlicedUv, -1000.0");
         this.defaultImage9TiledMaterial.chunks.opacityPS = pc.shaderChunks.opacityPS.replace("$UV", "nineSlicedUv, -1000.0");
@@ -122,7 +122,7 @@ pc.extend(pc, function () {
 
         // screen space 9-sliced in tiled mode
         this.defaultScreenSpaceImage9TiledMaterial = this.defaultScreenSpaceImage9SlicedMaterial.clone();
-        this.defaultScreenSpaceImage9TiledMaterial.chunks.basePS = pc.shaderChunks.basePS + "#define NINESLICETILED\n" + nineSliceBasePS;
+        this.defaultScreenSpaceImage9TiledMaterial.chunks.basePS = `${pc.shaderChunks.basePS}#define NINESLICETILED\n${nineSliceBasePS}`;
         this.defaultScreenSpaceImage9TiledMaterial.chunks.startPS = pc.shaderChunks.startPS + nineSliceUvPs;
         this.defaultScreenSpaceImage9TiledMaterial.chunks.emissivePS = pc.shaderChunks.emissivePS.replace("$UV", "nineSlicedUv, -1000.0");
         this.defaultScreenSpaceImage9TiledMaterial.chunks.opacityPS = pc.shaderChunks.opacityPS.replace("$UV", "nineSlicedUv, -1000.0");
@@ -194,7 +194,7 @@ pc.extend(pc, function () {
     pc.Component._buildAccessors(pc.ElementComponent.prototype, _schema);
 
     pc.extend(ElementComponentSystem.prototype, {
-        initializeComponentData: function (component, data, properties) {
+        initializeComponentData(component, data, properties) {
             if (data.anchor !== undefined) {
                 if (data.anchor instanceof pc.Vec4) {
                     component.anchor.copy(data.anchor);
@@ -211,9 +211,9 @@ pc.extend(pc, function () {
                 }
             }
 
-            var splitHorAnchors = Math.abs(component.anchor.x - component.anchor.z) > 0.001;
-            var splitVerAnchors = Math.abs(component.anchor.y - component.anchor.w) > 0.001;
-            var _marginChange = false;
+            const splitHorAnchors = Math.abs(component.anchor.x - component.anchor.z) > 0.001;
+            const splitVerAnchors = Math.abs(component.anchor.y - component.anchor.w) > 0.001;
+            let _marginChange = false;
 
             if (data.margin !== undefined) {
                 if (data.margin instanceof pc.Vec4) {
@@ -289,7 +289,7 @@ pc.extend(pc, function () {
                 } else {
                     // default to white
                     // force a value to update meshinstance parameters
-                    var opacity = data.opacity || 1;
+                    const opacity = data.opacity || 1;
                     component.color.set(1,1,1, opacity);
                     component.color = component.color;
                 }
@@ -346,7 +346,7 @@ pc.extend(pc, function () {
 
             // find screen
             // do this here not in constructor so that component is added to the entity
-            var result = component._parseUpToScreen();
+            const result = component._parseUpToScreen();
             if (result.screen) {
                 component._updateScreen(result.screen);
             }
@@ -354,12 +354,12 @@ pc.extend(pc, function () {
             ElementComponentSystem._super.initializeComponentData.call(this, component, data, properties);
         },
 
-        onRemoveComponent: function (entity, component) {
+        onRemoveComponent(entity, component) {
             component.onRemove();
         },
 
-        cloneComponent: function (entity, clone) {
-            var source = entity.element;
+        cloneComponent({element}, clone) {
+            const source = element;
 
             return this.addComponent(clone, {
                 enabled: source.enabled,
@@ -399,6 +399,6 @@ pc.extend(pc, function () {
     });
 
     return {
-        ElementComponentSystem: ElementComponentSystem
+        ElementComponentSystem
     };
-}());
+})());

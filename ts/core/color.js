@@ -1,4 +1,4 @@
-pc.extend(pc, (function () {
+pc.extend(pc, ((() => {
     /**
      * @constructor
      * @name pc.Color
@@ -13,36 +13,36 @@ pc.extend(pc, (function () {
      * @property {Number} b The blue component of the color
      * @property {Number} a The alpha component of the color
      */
-    var Color = function (r, g, b, a) {
-        this.buffer = new ArrayBuffer(4 * 4);
+    class Color {
+        constructor(r, g, b, a) {
+            this.buffer = new ArrayBuffer(4 * 4);
 
-        this.data = new Float32Array(this.buffer, 0, 4);
-        this.data3 = new Float32Array(this.buffer, 0, 3);
+            this.data = new Float32Array(this.buffer, 0, 4);
+            this.data3 = new Float32Array(this.buffer, 0, 3);
 
-        var length = r && r.length;
-        if (length === 3 || length === 4) {
-            this.data[0] = r[0];
-            this.data[1] = r[1];
-            this.data[2] = r[2];
-            this.data[3] = r[3] !== undefined ? r[3] : 1.0;
-        } else {
-            this.data[0] = r || 0;
-            this.data[1] = g || 0;
-            this.data[2] = b || 0;
-            this.data[3] = a !== undefined ? a : 1.0;
+            const length = r && r.length;
+            if (length === 3 || length === 4) {
+                this.data[0] = r[0];
+                this.data[1] = r[1];
+                this.data[2] = r[2];
+                this.data[3] = r[3] !== undefined ? r[3] : 1.0;
+            } else {
+                this.data[0] = r || 0;
+                this.data[1] = g || 0;
+                this.data[2] = b || 0;
+                this.data[3] = a !== undefined ? a : 1.0;
+            }
         }
-    };
 
-    Color.prototype = {
         /**
         * @function
         * @name pc.Color#clone
         * @description Returns a clone of the specified color.
         * @returns {pc.Color} A duplicate color object
         */
-        clone: function () {
+        clone() {
             return new pc.Color(this.data[0], this.data[1], this.data[2], this.data[3]);
-        },
+        }
 
         /**
          * @function
@@ -58,9 +58,8 @@ pc.extend(pc, (function () {
          *
          * console.log("The two colors are " + (dst.equals(src) ? "equal" : "different"));
          */
-        copy: function (rhs) {
-            var a = this.data,
-                b = rhs.data;
+        copy({data}) {
+            const a = this.data, b = data;
 
             a[0] = b[0];
             a[1] = b[1];
@@ -68,7 +67,7 @@ pc.extend(pc, (function () {
             a[3] = b[3];
 
             return this;
-        },
+        }
 
         /**
          * @function
@@ -80,8 +79,8 @@ pc.extend(pc, (function () {
          * @param {Number} [a] The value for the alpha (0-1), defaults to 1
          * @returns {pc.Color} Self for chaining
          */
-        set: function (r, g, b, a) {
-            var c = this.data;
+        set(r, g, b, a) {
+            const c = this.data;
 
             c[0] = r;
             c[1] = g;
@@ -89,7 +88,7 @@ pc.extend(pc, (function () {
             c[3] = (a === undefined) ? 1 : a;
 
             return this;
-        },
+        }
 
         /**
          * @function
@@ -99,9 +98,9 @@ pc.extend(pc, (function () {
          * This is the same format used in HTML/CSS.
          * @returns {pc.Color} Self for chaining
          */
-        fromString: function (hex) {
-            var i = parseInt(hex.replace('#', '0x'));
-            var bytes;
+        fromString(hex) {
+            const i = parseInt(hex.replace('#', '0x'));
+            let bytes;
             if (hex.length > 7) {
                 bytes = pc.math.intToBytes32(i);
             } else {
@@ -112,7 +111,7 @@ pc.extend(pc, (function () {
             this.set(bytes[0]/255, bytes[1]/255, bytes[2]/255, bytes[3]/255);
 
             return this;
-        },
+        }
 
         /**
          * @function
@@ -127,12 +126,12 @@ pc.extend(pc, (function () {
          * // Should output '#ffffffff'
          * console.log(c.toString());
          */
-        toString: function (alpha) {
-            var s = "#" + ((1 << 24) + (parseInt(this.r*255) << 16) + (parseInt(this.g*255) << 8) + parseInt(this.b*255)).toString(16).slice(1);
+        toString(alpha) {
+            let s = `#${((1 << 24) + (parseInt(this.r*255) << 16) + (parseInt(this.g*255) << 8) + parseInt(this.b*255)).toString(16).slice(1)}`;
             if (alpha === true) {
-                var a = parseInt(this.a * 255).toString(16);
+                const a = parseInt(this.a * 255).toString(16);
                 if (this.a < 16/255) {
-                    s += '0' + a;
+                    s += `0${a}`;
                 } else {
                     s += a;
                 }
@@ -141,45 +140,41 @@ pc.extend(pc, (function () {
 
             return s;
         }
-    };
 
-    Object.defineProperty(Color.prototype, 'r', {
-        get: function () {
+        get r() {
             return this.data[0];
-        },
-        set: function (value) {
+        }
+
+        set r(value) {
             this.data[0] = value;
         }
-    });
 
-    Object.defineProperty(Color.prototype, 'g', {
-        get: function () {
+        get g() {
             return this.data[1];
-        },
-        set: function (value) {
+        }
+
+        set g(value) {
             this.data[1] = value;
         }
-    });
 
-    Object.defineProperty(Color.prototype, 'b', {
-        get: function () {
+        get b() {
             return this.data[2];
-        },
-        set: function (value) {
+        }
+
+        set b(value) {
             this.data[2] = value;
         }
-    });
 
-    Object.defineProperty(Color.prototype, 'a', {
-        get: function () {
+        get a() {
             return this.data[3];
-        },
-        set: function (value) {
+        }
+
+        set a(value) {
             this.data[3] = value;
         }
-    });
+    }
 
     return {
-        Color: Color
+        Color
     };
-}()));
+})()));

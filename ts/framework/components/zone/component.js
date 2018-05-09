@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
     * @component
     * @name pc.ZoneComponent
@@ -11,11 +11,26 @@ pc.extend(pc, function () {
     * @param {pc.Vec3} size The Size of Box of a Zone.
     */
 
-    var ZoneComponent = function ZoneComponent(system, entity) {
-        this._oldState = true;
-        this._size = new pc.Vec3();
-        this.on('set_enabled', this._onSetEnabled, this);
-    };
+    class ZoneComponent {
+        constructor(system, entity) {
+            this._oldState = true;
+            this._size = new pc.Vec3();
+            this.on('set_enabled', this._onSetEnabled, this);
+        }
+
+        set size(data) {
+            if (data instanceof pc.Vec3) {
+                this._size.copy(data);
+            } else if (data instanceof Array && data.length >= 3) {
+                this.size.set(data[0], data[1], data[2]);
+            }
+        }
+
+        get size() {
+            return this._size;
+        }
+    }
+
     ZoneComponent = pc.inherits(ZoneComponent, pc.Component);
 
     /**
@@ -63,22 +78,22 @@ pc.extend(pc, function () {
     */
 
     pc.extend(ZoneComponent.prototype, {
-        onEnable: function () {
+        onEnable() {
             ZoneComponent._super.onEnable.call(this);
             this._checkState();
         },
 
-        onDisable: function () {
+        onDisable() {
             ZoneComponent._super.onDisable.call(this);
             this._checkState();
         },
 
-        _onSetEnabled: function(prop, old, value) {
+        _onSetEnabled(prop, old, value) {
             this._checkState();
         },
 
-        _checkState: function() {
-            var state = this.enabled && this.entity.enabled;
+        _checkState() {
+            const state = this.enabled && this.entity.enabled;
             if (state === this._oldState)
                 return;
 
@@ -88,25 +103,12 @@ pc.extend(pc, function () {
             this.fire('state', this.enabled);
         },
 
-        _onBeforeRemove: function() {
+        _onBeforeRemove() {
             this.fire('remove');
         }
     });
 
-    Object.defineProperty(ZoneComponent.prototype, 'size', {
-        set: function(data) {
-            if (data instanceof pc.Vec3) {
-                this._size.copy(data);
-            } else if (data instanceof Array && data.length >= 3) {
-                this.size.set(data[0], data[1], data[2]);
-            }
-        },
-        get: function() {
-            return this._size;
-        }
-    });
-
     return {
-        ZoneComponent: ZoneComponent
+        ZoneComponent
     };
-}());
+})());

@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
      * @constructor
      * @name pc.AssetRegistry
@@ -8,149 +8,149 @@ pc.extend(pc, function () {
      * @param {pc.ResourceLoader} loader The ResourceLoader used to load the asset files.
      * @property {String} prefix A URL prefix that will be added to all asset loading requests.
      */
-    var AssetRegistry = function (loader) {
-        this._loader = loader;
+    class AssetRegistry {
+        constructor(loader) {
+            this._loader = loader;
 
-        this._assets = []; // list of all assets
-        this._cache = {}; // index for looking up assets by id
-        this._names = {}; // index for looking up assets by name
-        this._tags = new pc.TagsCache('_id'); // index for looking up by tags
-        this._urls = {}; // index for looking up assets by url
+            this._assets = []; // list of all assets
+            this._cache = {}; // index for looking up assets by id
+            this._names = {}; // index for looking up assets by name
+            this._tags = new pc.TagsCache('_id'); // index for looking up by tags
+            this._urls = {}; // index for looking up assets by url
 
-        this.prefix = null;
+            this.prefix = null;
 
-        pc.extend(this, pc.events);
-    };
+            pc.extend(this, pc.events);
+        }
 
-    /**
-    * @event
-    * @name pc.AssetRegistry#load
-    * @description Fired when an asset completes loading
-    * @param {pc.Asset} asset The asset that has just loaded
-    * @example
-    * app.assets.on("load", function (asset) {
-    *     console.log("asset loaded: " + asset.name);
-    * });
-    */
+        /**
+        * @event
+        * @name pc.AssetRegistry#load
+        * @description Fired when an asset completes loading
+        * @param {pc.Asset} asset The asset that has just loaded
+        * @example
+        * app.assets.on("load", function (asset) {
+        *     console.log("asset loaded: " + asset.name);
+        * });
+        */
 
-    /**
-    * @event
-    * @name pc.AssetRegistry#load:[id]
-    * @description Fired when an asset completes loading
-    * @param {pc.Asset} asset The asset that has just loaded
-    * @example
-    * var id = 123456;
-    * var asset = app.assets.get(id);
-    * app.assets.on("load:" + id, function (asset) {
-    *     console.log("asset loaded: " + asset.name);
-    * });
-    * app.assets.load(asset);
-    */
+        /**
+        * @event
+        * @name pc.AssetRegistry#load:[id]
+        * @description Fired when an asset completes loading
+        * @param {pc.Asset} asset The asset that has just loaded
+        * @example
+        * var id = 123456;
+        * var asset = app.assets.get(id);
+        * app.assets.on("load:" + id, function (asset) {
+        *     console.log("asset loaded: " + asset.name);
+        * });
+        * app.assets.load(asset);
+        */
 
-    /**
-    * @event
-    * @name pc.AssetRegistry#load:url:[url]
-    * @description Fired when an asset completes loading
-    * @param {pc.Asset} asset The asset that has just loaded
-    * @example
-    * var id = 123456;
-    * var asset = app.assets.get(id);
-    * app.assets.on("load:url:" + asset.file.url, function (asset) {
-    *     console.log("asset loaded: " + asset.name);
-    * });
-    * app.assets.load(asset);
-    */
+        /**
+        * @event
+        * @name pc.AssetRegistry#load:url:[url]
+        * @description Fired when an asset completes loading
+        * @param {pc.Asset} asset The asset that has just loaded
+        * @example
+        * var id = 123456;
+        * var asset = app.assets.get(id);
+        * app.assets.on("load:url:" + asset.file.url, function (asset) {
+        *     console.log("asset loaded: " + asset.name);
+        * });
+        * app.assets.load(asset);
+        */
 
-    /**
-    * @event
-    * @name pc.AssetRegistry#add
-    * @description Fired when an asset is added to the registry
-    * @param {pc.Asset} asset The asset that was added
-    * @example
-    * app.assets.on("add", function (asset) {
-    *     console.log("New asset added: " + asset.name);
-    * });
-    */
+        /**
+        * @event
+        * @name pc.AssetRegistry#add
+        * @description Fired when an asset is added to the registry
+        * @param {pc.Asset} asset The asset that was added
+        * @example
+        * app.assets.on("add", function (asset) {
+        *     console.log("New asset added: " + asset.name);
+        * });
+        */
 
-    /**
-    * @event
-    * @name pc.AssetRegistry#add:[id]
-    * @description Fired when an asset is added to the registry
-    * @param {pc.Asset} asset The asset that was added
-    * @example
-    * var id = 123456;
-    * app.assets.on("add:" + id, function (asset) {
-    *     console.log("Asset 123456 loaded");
-    * });
-    */
+        /**
+        * @event
+        * @name pc.AssetRegistry#add:[id]
+        * @description Fired when an asset is added to the registry
+        * @param {pc.Asset} asset The asset that was added
+        * @example
+        * var id = 123456;
+        * app.assets.on("add:" + id, function (asset) {
+        *     console.log("Asset 123456 loaded");
+        * });
+        */
 
-    /**
-    * @event
-    * @name pc.AssetRegistry#add:url:[url]
-    * @description Fired when an asset is added to the registry
-    * @param {pc.Asset} asset The asset that was added
-    */
+        /**
+        * @event
+        * @name pc.AssetRegistry#add:url:[url]
+        * @description Fired when an asset is added to the registry
+        * @param {pc.Asset} asset The asset that was added
+        */
 
-    /**
-    * @event
-    * @name pc.AssetRegistry#remove
-    * @description Fired when an asset is removed from the registry
-    * @param {pc.Asset} asset The asset that was removed
-    * @example
-    * app.assets.on("remove", function (aseet) {
-    *     console.log("Asset removed: " + asset.name);
-    * });
-    */
+        /**
+        * @event
+        * @name pc.AssetRegistry#remove
+        * @description Fired when an asset is removed from the registry
+        * @param {pc.Asset} asset The asset that was removed
+        * @example
+        * app.assets.on("remove", function (aseet) {
+        *     console.log("Asset removed: " + asset.name);
+        * });
+        */
 
-    /**
-    * @event
-    * @name pc.AssetRegistry#remove:[id]
-    * @description Fired when an asset is removed from the registry
-    * @param {pc.Asset} asset The asset that was removed
-    * @example
-    * var id = 123456;
-    * app.assets.on("remove:" + id, function (asset) {
-    *     console.log("Asset removed: " + asset.name);
-    * });
-    */
+        /**
+        * @event
+        * @name pc.AssetRegistry#remove:[id]
+        * @description Fired when an asset is removed from the registry
+        * @param {pc.Asset} asset The asset that was removed
+        * @example
+        * var id = 123456;
+        * app.assets.on("remove:" + id, function (asset) {
+        *     console.log("Asset removed: " + asset.name);
+        * });
+        */
 
-    /**
-    * @event
-    * @name pc.AssetRegistry#remove:url:[url]
-    * @description Fired when an asset is removed from the registry
-    * @param {pc.Asset} asset The asset that was removed
-    */
+        /**
+        * @event
+        * @name pc.AssetRegistry#remove:url:[url]
+        * @description Fired when an asset is removed from the registry
+        * @param {pc.Asset} asset The asset that was removed
+        */
 
-    /**
-    * @event
-    * @name pc.AssetRegistry#error
-    * @description Fired when an error occurs during asset loading
-    * @param {String} err The error message
-    * @param {pc.Asset} asset The asset that generated the error
-    * @example
-    * var id = 123456;
-    * var asset = app.assets.get(id);
-    * app.assets.on("error", function (err, asset) {
-    *     console.error(err);
-    * });
-    * app.assets.load(asset);
-    */
+        /**
+        * @event
+        * @name pc.AssetRegistry#error
+        * @description Fired when an error occurs during asset loading
+        * @param {String} err The error message
+        * @param {pc.Asset} asset The asset that generated the error
+        * @example
+        * var id = 123456;
+        * var asset = app.assets.get(id);
+        * app.assets.on("error", function (err, asset) {
+        *     console.error(err);
+        * });
+        * app.assets.load(asset);
+        */
 
-    /**
-    * @event
-    * @name pc.AssetRegistry#error:[id]
-    * @description Fired when an error occurs during asset loading
-    * @param {pc.Asset} asset The asset that generated the error
-    * @example
-    * var id = 123456;
-    * var asset = app.assets.get(id);
-    * app.assets.on("error:" + id, function (err, asset) {
-    *     console.error(err);
-    * });
-    * app.assets.load(asset);
-    */
+        /**
+        * @event
+        * @name pc.AssetRegistry#error:[id]
+        * @description Fired when an error occurs during asset loading
+        * @param {pc.Asset} asset The asset that generated the error
+        * @example
+        * var id = 123456;
+        * var asset = app.assets.get(id);
+        * app.assets.on("error:" + id, function (err, asset) {
+        *     console.error(err);
+        * });
+        * app.assets.load(asset);
+        */
 
-    AssetRegistry.prototype = {
         /**
         * @function
         * @name pc.AssetRegistry#list
@@ -158,16 +158,16 @@ pc.extend(pc, function () {
         * @param {Object} filters Properties to filter on, currently supports: 'preload: true|false'
         * @returns {pc.Asset[]} The filtered list of assets.
         */
-        list: function (filters) {
+        list(filters) {
             filters = filters || {};
-            return this._assets.filter(function (asset) {
-                var include = true;
+            return this._assets.filter(({preload}) => {
+                let include = true;
                 if (filters.preload !== undefined) {
-                    include = (asset.preload === filters.preload);
+                    include = (preload === filters.preload);
                 }
                 return include;
             });
-        },
+        }
 
         /**
         * @function
@@ -178,9 +178,9 @@ pc.extend(pc, function () {
         * var asset = new pc.Asset("My Asset", "texture", {url: "../path/to/image.jpg"});
         * app.assets.add(asset);
         */
-        add: function(asset) {
-            var index = this._assets.push(asset) - 1;
-            var url;
+        add(asset) {
+            const index = this._assets.push(asset) - 1;
+            let url;
 
             // id cache
             this._cache[asset.id] = index;
@@ -201,13 +201,13 @@ pc.extend(pc, function () {
             asset.tags.on('remove', this._onTagRemove, this);
 
             this.fire("add", asset);
-            this.fire("add:" + asset.id, asset);
+            this.fire(`add:${asset.id}`, asset);
             if (url)
-                this.fire("add:url:" + url, asset);
+                this.fire(`add:url:${url}`, asset);
 
             if (asset.preload)
                 this.load(asset);
-        },
+        }
 
         /**
         * @function
@@ -218,11 +218,11 @@ pc.extend(pc, function () {
         * var asset = app.assets.get(100);
         * app.assets.remove(asset);
         */
-        remove: function (asset) {
+        remove(asset) {
             delete this._cache[asset.id];
             delete this._names[asset.name];
 
-            var url = asset.file ? asset.file.url : null;
+            const url = asset.file ? asset.file.url : null;
             if (url)
                 delete this._urls[url];
 
@@ -233,10 +233,10 @@ pc.extend(pc, function () {
 
             asset.fire("remove", asset);
             this.fire("remove", asset);
-            this.fire("remove:" + asset.id, asset);
+            this.fire(`remove:${asset.id}`, asset);
             if (url)
-                this.fire("remove:url:" + url, asset);
-        },
+                this.fire(`remove:url:${url}`, asset);
+        }
 
         /**
         * @function
@@ -247,10 +247,10 @@ pc.extend(pc, function () {
         * @example
         * var asset = app.assets.get(100);
         */
-        get: function (id) {
-            var idx = this._cache[id];
+        get(id) {
+            const idx = this._cache[id];
             return this._assets[idx];
-        },
+        }
 
         /**
         * @function
@@ -261,10 +261,10 @@ pc.extend(pc, function () {
         * @example
         * var asset = app.assets.getByUrl("../path/to/image.jpg");
         */
-        getByUrl: function (url) {
-            var idx = this._urls[url];
+        getByUrl(url) {
+            const idx = this._urls[url];
             return this._assets[idx];
-        },
+        }
 
         /**
         * @function
@@ -286,11 +286,11 @@ pc.extend(pc, function () {
         *     app.assets.load(asset)
         * }
         */
-        load: function (asset) {
+        load(asset) {
             if (asset.loading)
                 return;
 
-            var self = this;
+            const self = this;
 
             // do nothing if asset is already loaded
             // note: lots of code calls assets.load() assuming this check is present
@@ -301,22 +301,22 @@ pc.extend(pc, function () {
                 return;
             }
 
-            var load = !! asset.file;
+            let load = !! asset.file;
 
-            var file = asset.getPreferredFile();
+            const file = asset.getPreferredFile();
 
-            var _load = function () {
-                var url = asset.getFileUrl();
+            const _load = () => {
+                const url = asset.getFileUrl();
 
                 asset.loading = true;
 
-                self._loader.load(url, asset.type, function (err, resource, extra) {
+                self._loader.load(url, asset.type, (err, resource, extra) => {
                     asset.loaded = true;
                     asset.loading = false;
 
                     if (err) {
                         self.fire("error", err, asset);
-                        self.fire("error:" + asset.id, err, asset);
+                        self.fire(`error:${asset.id}`, err, asset);
                         asset.fire("error", err, asset);
                         return;
                     }
@@ -327,7 +327,7 @@ pc.extend(pc, function () {
                     }
 
                     if (! pc.script.legacy && asset.type === 'script') {
-                        var loader = self._loader.getHandler('script');
+                        const loader = self._loader.getHandler('script');
 
                         if (loader._cache[asset.id] && loader._cache[asset.id].parentNode === document.head) {
                             // remove old element
@@ -340,15 +340,15 @@ pc.extend(pc, function () {
                     self._loader.patch(asset, self);
 
                     self.fire("load", asset);
-                    self.fire("load:" + asset.id, asset);
+                    self.fire(`load:${asset.id}`, asset);
                     if (file && file.url)
-                        self.fire("load:url:" + file.url, asset);
+                        self.fire(`load:url:${file.url}`, asset);
                     asset.fire("load", asset);
                 }, asset);
             };
 
-            var _open = function () {
-                var resource = self._loader.open(asset.type, asset.data);
+            const _open = () => {
+                const resource = self._loader.open(asset.type, asset.data);
                 if (resource instanceof Array) {
                     asset.resources = resource;
                 } else {
@@ -359,9 +359,9 @@ pc.extend(pc, function () {
                 self._loader.patch(asset, self);
 
                 self.fire("load", asset);
-                self.fire("load:" + asset.id, asset);
+                self.fire(`load:${asset.id}`, asset);
                 if (file && file.url)
-                    self.fire("load:url:" + file.url, asset);
+                    self.fire(`load:url:${file.url}`, asset);
                 asset.fire("load", asset);
             };
 
@@ -369,9 +369,9 @@ pc.extend(pc, function () {
             if (file && asset.type === "cubemap") {
                 load = false;
                 // loading prefiltered cubemap data
-                var url = asset.getFileUrl();
+                const url = asset.getFileUrl();
 
-                this._loader.load(url, "texture", function (err, texture) {
+                this._loader.load(url, "texture", (err, texture) => {
                     if (!err) {
                         // Fudging an asset so that we can apply texture settings from the cubemap to the DDS texture
                         self._loader.patch({
@@ -385,7 +385,7 @@ pc.extend(pc, function () {
                         _open();
                     } else {
                         self.fire("error", err, asset);
-                        self.fire("error:" + asset.id, err, asset);
+                        self.fire(`error:${asset.id}`, err, asset);
                         asset.fire("error", err, asset);
                     }
                 });
@@ -395,11 +395,11 @@ pc.extend(pc, function () {
                 _open();
             } else if (load) {
                 this.fire("load:start", asset);
-                this.fire("load:" + asset.id + ":start", asset);
+                this.fire(`load:${asset.id}:start`, asset);
 
                 _load();
             }
-        },
+        }
 
         /**
         * @function
@@ -414,17 +414,17 @@ pc.extend(pc, function () {
         *     var texture = asset.resource;
         * });
         */
-        loadFromUrl: function (url, type, callback) {
-            var self = this;
+        loadFromUrl(url, type, callback) {
+            const self = this;
 
-            var name = pc.path.getBasename(url);
+            const name = pc.path.getBasename(url);
 
-            var file = {
-                url: url
+            const file = {
+                url
             };
-            var data = {};
+            const data = {};
 
-            var asset = self.getByUrl(url);
+            let asset = self.getByUrl(url);
             if (!asset) {
                 asset = new pc.Asset(name, type, file, data);
                 self.add(asset);
@@ -435,30 +435,30 @@ pc.extend(pc, function () {
                 return;
             }
 
-            asset.once("load", function (asset) {
+            asset.once("load", asset => {
                 callback(null, asset);
             });
-            asset.once("error", function (err) {
+            asset.once("error", err => {
                 callback(err);
             });
             self.load(asset);
-        },
+        }
 
         // private method used for engine-only loading of model data
-        _loadModel: function (asset, callback) {
-            var self = this;
+        _loadModel(asset, callback) {
+            const self = this;
 
-            var url = asset.getFileUrl();
-            var dir = pc.path.getDirectory(url);
-            var basename = pc.path.getBasename(url);
-            var ext = pc.path.getExtension(url);
+            const url = asset.getFileUrl();
+            const dir = pc.path.getDirectory(url);
+            const basename = pc.path.getBasename(url);
+            const ext = pc.path.getExtension(url);
 
 
-            var _loadAsset = function (asset) {
-                asset.once("load", function (asset) {
+            const _loadAsset = asset => {
+                asset.once("load", asset => {
                     callback(null, asset);
                 });
-                asset.once("error", function (err) {
+                asset.once("error", err => {
                     callback(err);
                 });
                 self.load(asset);
@@ -466,15 +466,15 @@ pc.extend(pc, function () {
 
             if (ext === '.json') {
                 // playcanvas model format supports material mapping file
-                var mappingUrl = pc.path.join(dir, basename.replace(".json", ".mapping.json"));
-                this._loader.load(mappingUrl, 'json', function (err, data) {
+                const mappingUrl = pc.path.join(dir, basename.replace(".json", ".mapping.json"));
+                this._loader.load(mappingUrl, 'json', (err, data) => {
                     if (err) {
                         asset.data = {mapping: []};
                         _loadAsset(asset);
                         return;
                     }
 
-                    self._loadMaterials(dir, data, function (err, materials) {
+                    self._loadMaterials(dir, data, (err, materials) => {
                         asset.data = data;
                         _loadAsset(asset);
                     });
@@ -484,17 +484,17 @@ pc.extend(pc, function () {
                 _loadAsset(asset);
             }
 
-        },
+        }
 
         // private method used for engine-only loading of model data
-        _loadMaterials: function (dir, mapping, callback) {
-            var self = this;
-            var i;
-            var count = mapping.mapping.length;
-            var materials = [];
+        _loadMaterials(dir, mapping, callback) {
+            const self = this;
+            let i;
+            let count = mapping.mapping.length;
+            const materials = [];
 
-            var done = function (err, materials) {
-                self._loadTextures(materials, function (err, textures) {
+            const done = (err, materials) => {
+                self._loadTextures(materials, (err, textures) => {
                     callback(null, materials);
                 });
             };
@@ -503,7 +503,7 @@ pc.extend(pc, function () {
                 callback(null, materials);
             }
 
-            var onLoadAsset = function(err, asset) {
+            const onLoadAsset = (err, asset) => {
                 materials.push(asset);
                 count--;
                 if (count === 0)
@@ -511,7 +511,7 @@ pc.extend(pc, function () {
             };
 
             for (i = 0; i < mapping.mapping.length; i++) {
-                var path = mapping.mapping[i].path;
+                const path = mapping.mapping[i].path;
                 if (path) {
                     self.loadFromUrl(pc.path.join(dir, path), "material", onLoadAsset);
                 } else {
@@ -520,24 +520,24 @@ pc.extend(pc, function () {
             }
 
 
-        },
+        }
 
         // private method used for engine-only loading of model data
-        _loadTextures: function (materials, callback) {
-            var self = this;
-            var i, j;
-            var used = {}; // prevent duplicate urls
-            var urls = [];
-            var textures = [];
-            var count = 0;
+        _loadTextures(materials, callback) {
+            const self = this;
+            let i, j;
+            const used = {}; // prevent duplicate urls
+            const urls = [];
+            const textures = [];
+            let count = 0;
             for (i = 0; i < materials.length; i++) {
                 if (materials[i].data.parameters) {
                     // old material format
-                    var params = materials[i].data.parameters;
+                    const params = materials[i].data.parameters;
                     for (j = 0; j < params.length; j++) {
                         if (params[j].type === "texture") {
-                            var url = materials[i].getFileUrl();
-                            var dir = pc.path.getDirectory(url);
+                            let url = materials[i].getFileUrl();
+                            const dir = pc.path.getDirectory(url);
                             url = pc.path.join(dir, params[j].data);
                             if (!used[url]) {
                                 used[url] = true;
@@ -556,7 +556,7 @@ pc.extend(pc, function () {
                 return;
             }
 
-            var onLoadAsset = function(err, texture) {
+            const onLoadAsset = (err, texture) => {
                 textures.push(texture);
                 count--;
 
@@ -568,7 +568,7 @@ pc.extend(pc, function () {
 
             for (i = 0; i < urls.length; i++)
                 self.loadFromUrl(urls[i], "texture", onLoadAsset);
-        },
+        }
 
         /**
         * @function
@@ -581,34 +581,30 @@ pc.extend(pc, function () {
         * var assets = app.assets.findAll("myTextureAsset", "texture");
         * console.log("Found " + assets.length + " assets called " + name);
         */
-        findAll: function (name, type) {
-            var self = this;
-            var idxs = this._names[name];
-            var assets;
+        findAll(name, type) {
+            const self = this;
+            const idxs = this._names[name];
+            let assets;
             if (idxs) {
-                assets = idxs.map(function (idx) {
-                    return self._assets[idx];
-                });
+                assets = idxs.map(idx => self._assets[idx]);
 
                 if (type) {
-                    return assets.filter(function (asset) {
-                        return (asset.type === type);
-                    });
+                    return assets.filter(asset => asset.type === type);
                 } else {
                     return assets;
                 }
             } else {
                 return [];
             }
-        },
+        }
 
-        _onTagAdd: function(tag, asset) {
+        _onTagAdd(tag, asset) {
             this._tags.add(tag, asset);
-        },
+        }
 
-        _onTagRemove: function(tag, asset) {
+        _onTagRemove(tag, asset) {
             this._tags.remove(tag, asset);
-        },
+        }
 
         /**
         * @function
@@ -632,9 +628,9 @@ pc.extend(pc, function () {
         * var assets = app.assets.findByTag([ "level-1", "monster" ], [ "level-2", "monster" ]);
         * // returns all assets that tagged by (`level-1` AND `monster`) OR (`level-2` AND `monster`)
         */
-        findByTag: function() {
-            return this._tags.find(arguments);
-        },
+        findByTag(...args) {
+            return this._tags.find(args);
+        }
 
         /**
         * @function
@@ -648,14 +644,14 @@ pc.extend(pc, function () {
         * });
         * console.log("Found " + assets.length + " assets, where names contains 'monster'");
         */
-        filter: function (callback) {
-            var items = [ ];
-            for (var i = 0, len = this._assets.length; i < len; i++) {
+        filter(callback) {
+            const items = [ ];
+            for (let i = 0, len = this._assets.length; i < len; i++) {
                 if (callback(this._assets[i]))
                     items.push(this._assets[i]);
             }
             return items;
-        },
+        }
 
         /**
         * @function
@@ -667,20 +663,19 @@ pc.extend(pc, function () {
         * @example
         * var asset = app.assets.find("myTextureAsset", "texture");
         */
-        find: function (name, type) {
-            var asset = this.findAll(name, type);
+        find(name, type) {
+            const asset = this.findAll(name, type);
             return asset ? asset[0] : null;
-        },
+        }
 
         // backwards compatibility
-        getAssetById: function (id) {
+        getAssetById(id) {
             console.warn("DEPRECATED: getAssetById() use get() instead");
             return this.get(id);
         }
-
-    };
+    }
 
     return {
-        AssetRegistry: AssetRegistry
+        AssetRegistry
     };
-}());
+})());

@@ -1,5 +1,5 @@
-pc.extend(pc, function () {
-    var viewProj = new pc.Mat4();
+pc.extend(pc, (() => {
+    const viewProj = new pc.Mat4();
 
     /**
      * @constructor
@@ -14,18 +14,18 @@ pc.extend(pc, function () {
      * @param {pc.Mat4} projectionMatrix The projection matrix describing the shape of the frustum.
      * @param {pc.Mat4} viewMatrix The inverse of the world transformation matrix for the frustum.
      */
-    var Frustum = function Frustum(projectionMatrix, viewMatrix) {
-        projectionMatrix = projectionMatrix || new pc.Mat4().setPerspective(90, 16 / 9, 0.1, 1000);
-        viewMatrix = viewMatrix || new pc.Mat4();
+    class Frustum {
+        constructor(projectionMatrix, viewMatrix) {
+            projectionMatrix = projectionMatrix || new pc.Mat4().setPerspective(90, 16 / 9, 0.1, 1000);
+            viewMatrix = viewMatrix || new pc.Mat4();
 
-        this.planes = [];
-        for (var i = 0; i < 6; i++)
-            this.planes[i] = [ ];
+            this.planes = [];
+            for (let i = 0; i < 6; i++)
+                this.planes[i] = [ ];
 
-        this.update(projectionMatrix, viewMatrix);
-    };
+            this.update(projectionMatrix, viewMatrix);
+        }
 
-    Frustum.prototype = {
         /**
          * @function
          * @name pc.Frustum#update
@@ -33,9 +33,9 @@ pc.extend(pc, function () {
          * @param {pc.Mat4} projectionMatrix The projection matrix describing the shape of the frustum.
          * @param {pc.Mat4} viewMatrix The inverse of the world transformation matrix for the frustum.
          */
-        update: function (projectionMatrix, viewMatrix) {
+        update(projectionMatrix, viewMatrix) {
             viewProj.mul2(projectionMatrix, viewMatrix);
-            var vpm = viewProj.data;
+            const vpm = viewProj.data;
 
             // Extract the numbers for the RIGHT plane
             this.planes[0][0] = vpm[ 3] - vpm[ 0];
@@ -43,7 +43,7 @@ pc.extend(pc, function () {
             this.planes[0][2] = vpm[11] - vpm[ 8];
             this.planes[0][3] = vpm[15] - vpm[12];
             // Normalize the result
-            var t = Math.sqrt(this.planes[0][0] * this.planes[0][0] + this.planes[0][1] * this.planes[0][1] + this.planes[0][2] * this.planes[0][2]);
+            let t = Math.sqrt(this.planes[0][0] * this.planes[0][0] + this.planes[0][1] * this.planes[0][1] + this.planes[0][2] * this.planes[0][2]);
             this.planes[0][0] /= t;
             this.planes[0][1] /= t;
             this.planes[0][2] /= t;
@@ -108,7 +108,7 @@ pc.extend(pc, function () {
             this.planes[5][1] /= t;
             this.planes[5][2] /= t;
             this.planes[5][3] /= t;
-        },
+        }
 
         /**
          * @function
@@ -118,15 +118,15 @@ pc.extend(pc, function () {
          * @param {pc.Vec3} point The point to test
          * @returns {Boolean} true if the point is inside the frustum, false otherwise
          */
-        containsPoint: function (point) {
-            for (var p = 0; p < 6; p++)
-                if (this.planes[p][0] * point.x +
-                    this.planes[p][1] * point.y +
-                    this.planes[p][2] * point.z +
+        containsPoint({x, y, z}) {
+            for (let p = 0; p < 6; p++)
+                if (this.planes[p][0] * x +
+                    this.planes[p][1] * y +
+                    this.planes[p][2] * z +
                     this.planes[p][3] <= 0)
                     return false;
             return true;
-        },
+        }
 
         /**
          * @function
@@ -139,18 +139,18 @@ pc.extend(pc, function () {
          * @returns {Number} 0 if the bounding sphere is outside the frustum, 1 if it intersects the frustum and 2 if
          * it is contained by the frustum
          */
-        containsSphere: function (sphere) {
-            var c = 0;
-            var d;
-            var p;
+        containsSphere({radius, center}) {
+            let c = 0;
+            let d;
+            let p;
 
-            var sr = sphere.radius;
-            var sc = sphere.center.data;
-            var scx = sc[0];
-            var scy = sc[1];
-            var scz = sc[2];
-            var planes = this.planes;
-            var plane;
+            const sr = radius;
+            const sc = center.data;
+            const scx = sc[0];
+            const scy = sc[1];
+            const scz = sc[2];
+            const planes = this.planes;
+            let plane;
 
             for (p = 0; p < 6; p++) {
                 plane = planes[p];
@@ -163,9 +163,9 @@ pc.extend(pc, function () {
 
             return (c === 6) ? 2 : 1;
         }
-    };
+    }
 
     return {
-        Frustum: Frustum
+        Frustum
     };
-}());
+})());

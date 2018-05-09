@@ -1,49 +1,47 @@
-pc.extend(pc, function () {
-    'use strict';
-
-    var AnimationHandler = function () {
+pc.extend(pc, (() => {
+    const AnimationHandler = () => {
     };
 
     AnimationHandler.prototype = {
-        load: function (url, callback) {
-            pc.http.get(url, function (err, response) {
+        load(url, callback) {
+            pc.http.get(url, (err, response) => {
                 if (err) {
                     callback(pc.string.format("Error loading animation resource: {0} [{1}]", url, err));
                 } else {
                     callback(null, response);
                 }
-            }.bind(this));
+            });
         },
 
-        open: function (url, data) {
-            return this["_parseAnimationV" + data.animation.version](data);
+        open(url, data) {
+            return this[`_parseAnimationV${data.animation.version}`](data);
         },
 
-        _parseAnimationV3: function (data) {
-            var animData = data.animation;
+        _parseAnimationV3({animation}) {
+            const animData = animation;
 
-            var anim = new pc.Animation();
+            const anim = new pc.Animation();
             anim.setName(animData.name);
             anim.duration = animData.duration;
 
-            for (var i = 0; i < animData.nodes.length; i++) {
-                var node = new pc.Node();
+            for (let i = 0; i < animData.nodes.length; i++) {
+                const node = new pc.Node();
 
-                var n = animData.nodes[i];
+                const n = animData.nodes[i];
                 node._name = n.name;
 
-                for (var j = 0; j < n.keys.length; j++) {
-                    var k = n.keys[j];
+                for (let j = 0; j < n.keys.length; j++) {
+                    const k = n.keys[j];
 
-                    var t = k.time;
-                    var p = k.pos;
-                    var r = k.rot;
-                    var s = k.scale;
-                    var pos = new pc.Vec3(p[0], p[1], p[2]);
-                    var rot = new pc.Quat().setFromEulerAngles(r[0], r[1], r[2]);
-                    var scl = new pc.Vec3(s[0], s[1], s[2]);
+                    const t = k.time;
+                    const p = k.pos;
+                    const r = k.rot;
+                    const s = k.scale;
+                    const pos = new pc.Vec3(p[0], p[1], p[2]);
+                    const rot = new pc.Quat().setFromEulerAngles(r[0], r[1], r[2]);
+                    const scl = new pc.Vec3(s[0], s[1], s[2]);
 
-                    var key = new pc.Key(t, pos, rot, scl);
+                    const key = new pc.Key(t, pos, rot, scl);
 
                     node._keys.push(key);
                 }
@@ -54,35 +52,35 @@ pc.extend(pc, function () {
             return anim;
         },
 
-        _parseAnimationV4: function (data) {
-            var animData = data.animation;
+        _parseAnimationV4({animation}) {
+            const animData = animation;
 
-            var anim = new pc.Animation();
+            const anim = new pc.Animation();
             anim.setName(animData.name);
             anim.duration = animData.duration;
 
-            for (var i = 0; i < animData.nodes.length; i++) {
-                var node = new pc.Node();
+            for (let i = 0; i < animData.nodes.length; i++) {
+                const node = new pc.Node();
 
-                var n = animData.nodes[i];
+                const n = animData.nodes[i];
                 node._name = n.name;
 
-                var defPos = n.defaults.p;
-                var defRot = n.defaults.r;
-                var defScl = n.defaults.s;
+                const defPos = n.defaults.p;
+                const defRot = n.defaults.r;
+                const defScl = n.defaults.s;
 
-                for (var j = 0; j < n.keys.length; j++) {
-                    var k = n.keys[j];
+                for (let j = 0; j < n.keys.length; j++) {
+                    const k = n.keys[j];
 
-                    var t = k.t;
-                    var p = defPos ? defPos : k.p;
-                    var r = defRot ? defRot : k.r;
-                    var s = defScl ? defScl : k.s;
-                    var pos = new pc.Vec3(p[0], p[1], p[2]);
-                    var rot = new pc.Quat().setFromEulerAngles(r[0], r[1], r[2]);
-                    var scl = new pc.Vec3(s[0], s[1], s[2]);
+                    const t = k.t;
+                    const p = defPos ? defPos : k.p;
+                    const r = defRot ? defRot : k.r;
+                    const s = defScl ? defScl : k.s;
+                    const pos = new pc.Vec3(p[0], p[1], p[2]);
+                    const rot = new pc.Quat().setFromEulerAngles(r[0], r[1], r[2]);
+                    const scl = new pc.Vec3(s[0], s[1], s[2]);
 
-                    var key = new pc.Key(t, pos, rot, scl);
+                    const key = new pc.Key(t, pos, rot, scl);
 
                     node._keys.push(key);
                 }
@@ -95,6 +93,6 @@ pc.extend(pc, function () {
     };
 
     return {
-        AnimationHandler: AnimationHandler
+        AnimationHandler
     };
-}());
+})());

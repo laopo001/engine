@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
      * @component
      * @name pc.LightComponent
@@ -101,21 +101,21 @@ pc.extend(pc, function () {
      * @extends pc.Component
      */
 
-    var _props = [];
-    var _propsDefault = [];
+    const _props = [];
+    const _propsDefault = [];
 
     function _defineProperty(name, defaultValue, setFunc, skipEqualsCheck) {
-        var c = LightComponent.prototype;
+        const c = LightComponent.prototype;
         _props.push(name);
         _propsDefault.push(defaultValue);
 
         Object.defineProperty(c, name, {
-            get: function () {
+            get() {
                 return this.data[name];
             },
-            set: function (value) {
-                var data = this.data;
-                var oldValue = data[name];
+            set(value) {
+                const data = this.data;
+                const oldValue = data[name];
                 if (! skipEqualsCheck && oldValue===value) return;
                 data[name] = value;
                 if (setFunc) setFunc.call(this, value, oldValue);
@@ -124,15 +124,28 @@ pc.extend(pc, function () {
         });
     }
 
-    var LightComponent = function LightComponent(system, entity) {
-        this._cookieAsset = null;
-        this._cookieAssetId = null;
-        this._cookieAssetAdd = false;
-        this._cookieMatrix = null;
-    };
+    class LightComponent {
+        constructor(system, entity) {
+            this._cookieAsset = null;
+            this._cookieAssetId = null;
+            this._cookieAssetAdd = false;
+            this._cookieMatrix = null;
+        }
+
+        get enable() {
+            console.warn("WARNING: enable: Property is deprecated. Query enabled property instead.");
+            return this.enabled;
+        }
+
+        set enable(value) {
+            console.warn("WARNING: enable: Property is deprecated. Set enabled property instead.");
+            this.enabled = value;
+        }
+    }
+
     LightComponent = pc.inherits(LightComponent, pc.Component);
 
-    var _defineProps = function (c, d, s) {
+    const _defineProps = (c, d, s) => {
         _defineProperty("enabled", true, function(newValue, oldValue) {
             this.onSetEnabled(null, oldValue, newValue);
         });
@@ -201,12 +214,12 @@ pc.extend(pc, function () {
                 this.onCookieAssetAdd(newValue);
             } else if (typeof(newValue) === 'number') {
                 this._cookieAssetId = newValue;
-                var asset = this.system.app.assets.get(newValue);
+                const asset = this.system.app.assets.get(newValue);
                 if (asset) {
                     this.onCookieAssetAdd(asset);
                 } else {
                     this._cookieAssetAdd = true;
-                    this.system.app.assets.on('add:' + this._cookieAssetId, this.onCookieAssetAdd, this);
+                    this.system.app.assets.on(`add:${this._cookieAssetId}`, this.onCookieAssetAdd, this);
                 }
             }
         });
@@ -225,14 +238,14 @@ pc.extend(pc, function () {
         _defineProperty("cookieAngle", 0, function(newValue, oldValue) {
             if (newValue!==0 || this.cookieScale!==null) {
                 if (!this._cookieMatrix) this._cookieMatrix = new pc.Vec4();
-                var scx = 1;
-                var scy = 1;
+                let scx = 1;
+                let scy = 1;
                 if (this.cookieScale) {
                     scx = this.cookieScale.x;
                     scy = this.cookieScale.y;
                 }
-                var c = Math.cos(newValue * pc.math.DEG_TO_RAD);
-                var s = Math.sin(newValue * pc.math.DEG_TO_RAD);
+                const c = Math.cos(newValue * pc.math.DEG_TO_RAD);
+                const s = Math.sin(newValue * pc.math.DEG_TO_RAD);
                 this._cookieMatrix.set(c/scx, -s/scx, s/scy, c/scy);
                 this.light.cookieTransform = this._cookieMatrix;
             } else {
@@ -242,10 +255,10 @@ pc.extend(pc, function () {
         _defineProperty("cookieScale", null, function(newValue, oldValue) {
             if (newValue!==null || this.cookieAngle!==0) {
                 if (!this._cookieMatrix) this._cookieMatrix = new pc.Vec4();
-                var scx = newValue.x;
-                var scy = newValue.y;
-                var c = Math.cos(this.cookieAngle * pc.math.DEG_TO_RAD);
-                var s = Math.sin(this.cookieAngle * pc.math.DEG_TO_RAD);
+                const scx = newValue.x;
+                const scy = newValue.y;
+                const c = Math.cos(this.cookieAngle * pc.math.DEG_TO_RAD);
+                const s = Math.sin(this.cookieAngle * pc.math.DEG_TO_RAD);
                 this._cookieMatrix.set(c/scx, -s/scx, s/scy, c/scy);
                 this.light.cookieTransform = this._cookieMatrix;
             } else {
@@ -296,7 +309,7 @@ pc.extend(pc, function () {
             this.light.isStatic = newValue;
         });
         _defineProperty("layers", [pc.LAYERID_WORLD], function(newValue, oldValue) {
-            var i, layer;
+            let i, layer;
             for (i=0; i<oldValue.length; i++) {
                 layer = this.system.app.scene.layers.getLayerById(oldValue[i]);
                 if (!layer) continue;
@@ -314,38 +327,27 @@ pc.extend(pc, function () {
     _defineProps();
 
 
-    Object.defineProperty(LightComponent.prototype, "enable", {
-        get: function() {
-            console.warn("WARNING: enable: Property is deprecated. Query enabled property instead.");
-            return this.enabled;
-        },
-        set: function(value) {
-            console.warn("WARNING: enable: Property is deprecated. Set enabled property instead.");
-            this.enabled = value;
-        }
-    });
-
     pc.extend(LightComponent.prototype, {
 
-        addLightToLayers: function() {
-            var layer;
-            for (var i=0; i<this.layers.length; i++) {
+        addLightToLayers() {
+            let layer;
+            for (let i=0; i<this.layers.length; i++) {
                 layer = this.system.app.scene.layers.getLayerById(this.layers[i]);
                 if (!layer) continue;
                 layer.addLight(this);
             }
         },
 
-        removeLightFromLayers: function() {
-            var layer;
-            for (var i=0; i<this.layers.length; i++) {
+        removeLightFromLayers() {
+            let layer;
+            for (let i=0; i<this.layers.length; i++) {
                 layer = this.system.app.scene.layers.getLayerById(this.layers[i]);
                 if (!layer) continue;
                 layer.removeLight(this);
             }
         },
 
-        onLayersChanged: function(oldComp, newComp) {
+        onLayersChanged(oldComp, newComp) {
             if (this.enabled && this.entity.enabled) {
                 this.addLightToLayers();
             }
@@ -355,23 +357,23 @@ pc.extend(pc, function () {
             newComp.on("remove", this.onLayerRemoved, this);
         },
 
-        onLayerAdded: function(layer) {
-            var index = this.layers.indexOf(layer.id);
+        onLayerAdded(layer) {
+            const index = this.layers.indexOf(layer.id);
             if (index < 0) return;
             if (this.enabled && this.entity.enabled) {
                 layer.addLight(this);
             }
         },
 
-        onLayerRemoved: function(layer) {
-            var index = this.layers.indexOf(layer.id);
+        onLayerRemoved(layer) {
+            const index = this.layers.indexOf(layer.id);
             if (index < 0) return;
             layer.removeLight(this);
         },
 
-        refreshProperties: function() {
-            var name;
-            for (var i=0; i<_props.length; i++) {
+        refreshProperties() {
+            let name;
+            for (let i=0; i<_props.length; i++) {
                 name = _props[i];
                 this[name] = this[name];
             }
@@ -379,12 +381,12 @@ pc.extend(pc, function () {
                 this.onEnable();
         },
 
-        updateShadow: function() {
+        updateShadow() {
             this.light.updateShadow();
         },
 
-        onCookieAssetSet: function() {
-            var forceLoad = false;
+        onCookieAssetSet() {
+            let forceLoad = false;
 
             if (this._cookieAsset.type === 'cubemap' && ! this._cookieAsset.loadFaces) {
                 this._cookieAsset.loadFaces = true;
@@ -398,7 +400,7 @@ pc.extend(pc, function () {
                 this.onCookieAssetLoad();
         },
 
-        onCookieAssetAdd: function(asset) {
+        onCookieAssetAdd(asset) {
             if (this._cookieAssetId !== asset.id)
                 return;
 
@@ -411,19 +413,19 @@ pc.extend(pc, function () {
             this._cookieAsset.on('remove', this.onCookieAssetRemove, this);
         },
 
-        onCookieAssetLoad: function() {
+        onCookieAssetLoad() {
             if (! this._cookieAsset || ! this._cookieAsset.resource)
                 return;
 
             this.cookie = this._cookieAsset.resource;
         },
 
-        onCookieAssetRemove: function() {
+        onCookieAssetRemove() {
             if (! this._cookieAssetId)
                 return;
 
             if (this._cookieAssetAdd) {
-                this.system.app.assets.off('add:' + this._cookieAssetId, this.onCookieAssetAdd, this);
+                this.system.app.assets.off(`add:${this._cookieAssetId}`, this.onCookieAssetAdd, this);
                 this._cookieAssetAdd = false;
             }
 
@@ -436,7 +438,7 @@ pc.extend(pc, function () {
             this.cookie = null;
         },
 
-        onEnable: function () {
+        onEnable() {
             LightComponent._super.onEnable.call(this);
             this.light.enabled = true;
 
@@ -454,7 +456,7 @@ pc.extend(pc, function () {
                 this.onCookieAssetSet();
         },
 
-        onDisable: function () {
+        onDisable() {
             LightComponent._super.onDisable.call(this);
             this.light.enabled = false;
 
@@ -470,8 +472,8 @@ pc.extend(pc, function () {
     });
 
     return {
-        LightComponent: LightComponent,
+        LightComponent,
         _lightProps: _props,
         _lightPropsDefault: _propsDefault
     };
-}());
+})());

@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
      * @constructor
      * @name pc.MouseEvent
@@ -25,8 +25,8 @@ pc.extend(pc, function () {
      * @property {MouseEvent} event The original browser event
      * @since 0.88.0
      */
-    var MouseEvent = function (mouse, event) {
-        var coords = {
+    const MouseEvent = function (mouse, event) {
+        let coords = {
             x: 0,
             y: 0
         };
@@ -121,50 +121,40 @@ pc.extend(pc, function () {
      * @description Create a new Mouse device
      * @param {Element} [element] The Element that the mouse events are attached to
      */
-    var Mouse = function (element) {
-        // Clear the mouse state
-        this._lastX      = 0;
-        this._lastY      = 0;
-        this._buttons      = [false,false,false];
-        this._lastbuttons  = [false, false, false];
+    class Mouse {
+        constructor(element) {
+            // Clear the mouse state
+            this._lastX      = 0;
+            this._lastY      = 0;
+            this._buttons      = [false,false,false];
+            this._lastbuttons  = [false, false, false];
 
 
-        // Setup event handlers so they are bound to the correct 'this'
-        this._upHandler = this._handleUp.bind(this);
-        this._downHandler = this._handleDown.bind(this);
-        this._moveHandler = this._handleMove.bind(this);
-        this._wheelHandler = this._handleWheel.bind(this);
-        this._contextMenuHandler = function (event) {
-            event.preventDefault();
-        };
+            // Setup event handlers so they are bound to the correct 'this'
+            this._upHandler = this._handleUp.bind(this);
+            this._downHandler = this._handleDown.bind(this);
+            this._moveHandler = this._handleMove.bind(this);
+            this._wheelHandler = this._handleWheel.bind(this);
+            this._contextMenuHandler = event => {
+                event.preventDefault();
+            };
 
-        this._target = null;
-        this._attached = false;
+            this._target = null;
+            this._attached = false;
 
-        this.attach(element);
+            this.attach(element);
 
-        // Add events
-        pc.events.attach(this);
-    };
+            // Add events
+            pc.events.attach(this);
+        }
 
-    /**
-    * @function
-    * @name pc.Mouse.isPointerLocked
-    * @description Check if the mouse pointer has been locked, using {@link pc.Mouse#enabledPointerLock}
-    * @returns {Boolean} True if locked
-    */
-    Mouse.isPointerLocked = function () {
-        return !!(document.pointerLockElement || document.mozPointerLockElement || document.webkitPointerLockElement);
-    };
-
-    Mouse.prototype = {
         /**
          * @function
          * @name pc.Mouse#attach
          * @description Attach mouse events to an Element.
          * @param {Element} element The DOM element to attach the mouse to.
          */
-        attach: function (element) {
+        attach(element) {
             this._target = element;
 
             if (this._attached) return;
@@ -175,14 +165,14 @@ pc.extend(pc, function () {
             window.addEventListener("mousemove", this._moveHandler, false);
             window.addEventListener("mousewheel", this._wheelHandler, false); // WekKit
             window.addEventListener("DOMMouseScroll", this._wheelHandler, false); // Gecko
-        },
+        }
 
         /**
          * @function
          * @name pc.Mouse#detach
          * @description Remove mouse events from the element that it is attached to
          */
-        detach: function () {
+        detach() {
             if (! this._attached) return;
             this._attached = false;
 
@@ -191,27 +181,27 @@ pc.extend(pc, function () {
             window.removeEventListener("mousemove", this._moveHandler);
             window.removeEventListener("mousewheel", this._wheelHandler); // WekKit
             window.removeEventListener("DOMMouseScroll", this._wheelHandler); // Gecko
-        },
+        }
 
         /**
          * @function
          * @name pc.Mouse#disableContextMenu
          * @description Disable the context menu usually activated with right-click
          */
-        disableContextMenu: function () {
+        disableContextMenu() {
             if (! this._target) return;
             this._target.addEventListener("contextmenu", this._contextMenuHandler);
-        },
+        }
 
         /**
          * @function
          * @name pc.Mouse#enableContextMenu
          * @description Enable the context menu usually activated with right-click. This option is active by default.
          */
-        enableContextMenu: function () {
+        enableContextMenu() {
             if (! this._target) return;
             this._target.removeEventListener("contextmenu", this._contextMenuHandler);
-        },
+        }
 
         /**
         * @function
@@ -226,7 +216,7 @@ pc.extend(pc, function () {
         * @param {Function} [success] Function called if the request for mouse lock is successful.
         * @param {Function} [error] Function called if the request for mouse lock is unsuccessful.
         */
-        enablePointerLock: function (success, error) {
+        enablePointerLock(success, error) {
             if (! document.body.requestPointerLock) {
                 if (error)
                     error();
@@ -234,11 +224,11 @@ pc.extend(pc, function () {
                 return;
             }
 
-            var s = function () {
+            const s = () => {
                 success();
                 document.removeEventListener('pointerlockchange', s);
             };
-            var e = function () {
+            const e = () => {
                 error();
                 document.removeEventListener('pointerlockerror', e);
             };
@@ -252,7 +242,7 @@ pc.extend(pc, function () {
             }
 
             document.body.requestPointerLock();
-        },
+        }
 
         /**
         * @function
@@ -260,12 +250,12 @@ pc.extend(pc, function () {
         * @description Return control of the mouse cursor to the user
         * @param {Function} [success] Function called when the mouse lock is disabled
         */
-        disablePointerLock: function (success) {
+        disablePointerLock(success) {
             if (! document.exitPointerLock) {
                 return;
             }
 
-            var s = function () {
+            const s = () => {
                 success();
                 document.removeEventListener('pointerlockchange', s);
             };
@@ -273,19 +263,19 @@ pc.extend(pc, function () {
                 document.addEventListener('pointerlockchange', s, false);
             }
             document.exitPointerLock();
-        },
+        }
 
         /**
          * @function
          * @name pc.Mouse#update
          * @description Update method, should be called once per frame
          */
-        update: function () {
+        update() {
             // Copy current button state
             this._lastbuttons[0] = this._buttons[0];
             this._lastbuttons[1] = this._buttons[1];
             this._lastbuttons[2] = this._buttons[2];
-        },
+        }
 
         /**
          * @function
@@ -299,9 +289,9 @@ pc.extend(pc, function () {
          * </ul>
          * @returns {Boolean} True if the mouse button is current pressed
          */
-        isPressed: function (button) {
+        isPressed(button) {
             return this._buttons[button];
-        },
+        }
 
         /**
          * @function
@@ -315,9 +305,9 @@ pc.extend(pc, function () {
          * </ul>
          * @returns {Boolean} True if the mouse button was pressed since the last update
          */
-        wasPressed: function (button) {
+        wasPressed(button) {
             return (this._buttons[button] && !this._lastbuttons[button]);
-        },
+        }
 
         /**
          * @function
@@ -331,33 +321,33 @@ pc.extend(pc, function () {
          * </ul>
          * @returns {Boolean} True if the mouse button was released since the last update
          */
-        wasReleased: function (button) {
+        wasReleased(button) {
             return (!this._buttons[button] && this._lastbuttons[button]);
-        },
+        }
 
-        _handleUp: function (event) {
+        _handleUp(event) {
             // disable released button
             this._buttons[event.button] = false;
 
-            var e = new MouseEvent(this, event);
+            const e = new MouseEvent(this, event);
             if (! e.event) return;
 
             // send 'mouseup' event
             this.fire(pc.EVENT_MOUSEUP, e);
-        },
+        }
 
-        _handleDown: function (event) {
+        _handleDown(event) {
             // Store which button has affected
             this._buttons[event.button] = true;
 
-            var e = new MouseEvent(this, event);
+            const e = new MouseEvent(this, event);
             if (! e.event) return;
 
             this.fire(pc.EVENT_MOUSEDOWN, e);
-        },
+        }
 
-        _handleMove: function (event) {
-            var e = new MouseEvent(this, event);
+        _handleMove(event) {
+            const e = new MouseEvent(this, event);
             if (! e.event) return;
 
             this.fire(pc.EVENT_MOUSEMOVE, e);
@@ -365,38 +355,46 @@ pc.extend(pc, function () {
             // Store the last offset position to calculate deltas
             this._lastX = e.x;
             this._lastY = e.y;
-        },
+        }
 
-        _handleWheel: function (event) {
-            var e = new MouseEvent(this, event);
+        _handleWheel(event) {
+            const e = new MouseEvent(this, event);
             if (! e.event) return;
 
             this.fire(pc.EVENT_MOUSEWHEEL, e);
-        },
+        }
 
-        _getTargetCoords: function (event) {
-            var rect = this._target.getBoundingClientRect();
-            var left = Math.floor(rect.left);
-            var top = Math.floor(rect.top);
+        _getTargetCoords({clientX, clientY}) {
+            const rect = this._target.getBoundingClientRect();
+            const left = Math.floor(rect.left);
+            const top = Math.floor(rect.top);
 
             // mouse is outside of canvas
-            if (event.clientX < left ||
-                event.clientX >= left + this._target.clientWidth ||
-                event.clientY < top ||
-                event.clientY >= top + this._target.clientHeight) {
+            if (clientX < left ||
+                clientX >= left + this._target.clientWidth ||
+                clientY < top ||
+                clientY >= top + this._target.clientHeight) {
 
                 return null;
             }
 
             return {
-                x: event.clientX - left,
-                y: event.clientY - top
+                x: clientX - left,
+                y: clientY - top
             };
         }
-    };
+    }
+
+    /**
+    * @function
+    * @name pc.Mouse.isPointerLocked
+    * @description Check if the mouse pointer has been locked, using {@link pc.Mouse#enabledPointerLock}
+    * @returns {Boolean} True if locked
+    */
+    Mouse.isPointerLocked = () => !!(document.pointerLockElement || document.mozPointerLockElement || document.webkitPointerLockElement);
 
     // Apply PointerLock shims
-    (function () {
+    ((() => {
         // Old API
         if (typeof navigator === 'undefined' || typeof document === 'undefined') {
             // Not running in a browser
@@ -406,14 +404,14 @@ pc.extend(pc, function () {
         navigator.pointer = navigator.pointer || navigator.webkitPointer || navigator.mozPointer;
 
         // Events
-        var pointerlockchange = function () {
-            var e = document.createEvent('CustomEvent');
+        const pointerlockchange = () => {
+            const e = document.createEvent('CustomEvent');
             e.initCustomEvent('pointerlockchange', true, false, null);
             document.dispatchEvent(e);
         };
 
-        var pointerlockerror = function () {
-            var e = document.createEvent('CustomEvent');
+        const pointerlockerror = () => {
+            const e = document.createEvent('CustomEvent');
             e.initCustomEvent('pointerlockerror', true, false, null);
             document.dispatchEvent(e);
         };
@@ -438,7 +436,7 @@ pc.extend(pc, function () {
 
         if (!Element.prototype.requestPointerLock && navigator.pointer) {
             Element.prototype.requestPointerLock = function () {
-                var el = this;
+                const el = this;
                 document.pointerLockElement = el;
                 navigator.pointer.lock(el, pointerlockchange, pointerlockerror);
             };
@@ -447,19 +445,19 @@ pc.extend(pc, function () {
         // exitPointerLock
         document.exitPointerLock = document.exitPointerLock || document.webkitExitPointerLock || document.mozExitPointerLock;
         if (!document.exitPointerLock) {
-            document.exitPointerLock = function () {
+            document.exitPointerLock = () => {
                 if (navigator.pointer) {
                     document.pointerLockElement = null;
                     navigator.pointer.unlock();
                 }
             };
         }
-    })();
+    }))();
 
 
     // Public Interface
-    return  {
-        Mouse: Mouse,
-        MouseEvent: MouseEvent
+    return {
+        Mouse,
+        MouseEvent
     };
-}());
+})());

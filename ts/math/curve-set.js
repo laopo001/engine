@@ -1,6 +1,4 @@
-pc.extend(pc, (function () {
-    'use strict';
-
+pc.extend(pc, ((() => {
     /**
      * @constructor
      * @name pc.CurveSet
@@ -9,35 +7,35 @@ pc.extend(pc, (function () {
      * @param {Array} [curveKeys] An array of arrays of keys (pairs of numbers with
      * the time first and value second).
      */
-    var CurveSet = function () {
-        var i;
+    class CurveSet {
+        constructor(...args) {
+            let i;
 
-        this.curves = [];
-        this._type = pc.CURVE_SMOOTHSTEP;
+            this.curves = [];
+            this._type = pc.CURVE_SMOOTHSTEP;
 
-        if (arguments.length > 1) {
-            for (i = 0; i < arguments.length; i++) {
-                this.curves.push(new pc.Curve(arguments[i]));
-            }
-        } else {
-            if (arguments.length === 0) {
-                this.curves.push(new pc.Curve());
+            if (args.length > 1) {
+                for (i = 0; i < args.length; i++) {
+                    this.curves.push(new pc.Curve(args[i]));
+                }
             } else {
-                var arg = arguments[0];
-                if (pc.type(arg) === 'number') {
-                    for (i = 0; i < arg; i++) {
-                        this.curves.push(new pc.Curve());
-                    }
+                if (args.length === 0) {
+                    this.curves.push(new pc.Curve());
                 } else {
-                    for (i = 0; i < arg.length; i++) {
-                        this.curves.push(new pc.Curve(arg[i]));
+                    const arg = args[0];
+                    if (pc.type(arg) === 'number') {
+                        for (i = 0; i < arg; i++) {
+                            this.curves.push(new pc.Curve());
+                        }
+                    } else {
+                        for (i = 0; i < arg.length; i++) {
+                            this.curves.push(new pc.Curve(arg[i]));
+                        }
                     }
                 }
             }
         }
-    };
 
-    CurveSet.prototype = {
         /**
          * @function
          * @name pc.CurveSet#get
@@ -45,9 +43,9 @@ pc.extend(pc, (function () {
          * @param {Number} index The index of the curve to return
          * @returns {pc.Curve} The curve at the specified index
          */
-        get: function (index) {
+        get(index) {
             return this.curves[index];
-        },
+        }
 
         /**
          * @function
@@ -60,17 +58,17 @@ pc.extend(pc, (function () {
          * to return the result.
          * @returns {Array} The interpolated curve values at the specified time
          */
-        value: function (time, result) {
-            var length = this.curves.length;
+        value(time, result) {
+            const length = this.curves.length;
             result = result || [];
             result.length = length;
 
-            for (var i = 0; i < length; i++) {
+            for (let i = 0; i < length; i++) {
                 result[i] = this.curves[i].value(time);
             }
 
             return result;
-        },
+        }
 
         /**
          * @function
@@ -78,33 +76,33 @@ pc.extend(pc, (function () {
          * @description Returns a clone of the specified curve set object.
          * @returns {pc.CurveSet} A clone of the specified curve set
          */
-        clone: function () {
-            var result = new pc.CurveSet();
+        clone() {
+            const result = new pc.CurveSet();
 
             result.curves = [ ];
-            for (var i = 0; i < this.curves.length; i++) {
+            for (let i = 0; i < this.curves.length; i++) {
                 result.curves.push(this.curves[i].clone());
             }
 
             result._type = this._type;
 
             return result;
-        },
+        }
 
-        quantize: function (precision) {
+        quantize(precision) {
             precision = Math.max(precision, 2);
 
-            var numCurves = this.curves.length;
-            var values = new Float32Array(precision * numCurves);
-            var step = 1.0 / (precision - 1);
-            var temp = [];
+            const numCurves = this.curves.length;
+            const values = new Float32Array(precision * numCurves);
+            const step = 1.0 / (precision - 1);
+            const temp = [];
 
-            for (var i = 0; i < precision; i++) { // quantize graph to table of interpolated values
-                var value = this.value(step * i, temp);
+            for (let i = 0; i < precision; i++) { // quantize graph to table of interpolated values
+                const value = this.value(step * i, temp);
                 if (numCurves == 1) {
                     values[i] = value[0];
                 } else {
-                    for (var j = 0; j < numCurves; j++) {
+                    for (let j = 0; j < numCurves; j++) {
                         values[i * numCurves + j] = value[j];
                     }
                 }
@@ -113,45 +111,40 @@ pc.extend(pc, (function () {
             return values;
         }
 
-    };
-
-    /**
-     * @readonly
-     * @name pc.CurveSet#length
-     * @type Number
-     * @description The number of curves in the curve set.
-     */
-    Object.defineProperty(CurveSet.prototype, 'length', {
-        get: function() {
+        /**
+         * @readonly
+         * @name pc.CurveSet#length
+         * @type Number
+         * @description The number of curves in the curve set.
+         */
+        get length() {
             return this.curves.length;
         }
-    });
 
-    /**
-     * @name pc.CurveSet#type
-     * @type Number
-     * @description The interpolation scheme applied to all curves in the curve set. Can be:
-     * <ul>
-     *     <li>pc.CURVE_LINEAR</li>
-     *     <li>pc.CURVE_SMOOTHSTEP</li>
-     *     <li>pc.CURVE_CATMULL</li>
-     *     <li>pc.CURVE_CARDINAL</li>
-     * </ul>
-     */
-    Object.defineProperty(CurveSet.prototype, 'type', {
-        get: function() {
+        /**
+         * @name pc.CurveSet#type
+         * @type Number
+         * @description The interpolation scheme applied to all curves in the curve set. Can be:
+         * <ul>
+         *     <li>pc.CURVE_LINEAR</li>
+         *     <li>pc.CURVE_SMOOTHSTEP</li>
+         *     <li>pc.CURVE_CATMULL</li>
+         *     <li>pc.CURVE_CARDINAL</li>
+         * </ul>
+         */
+        get type() {
             return this._type;
-        },
+        }
 
-        set: function(value) {
+        set type(value) {
             this._type = value;
-            for (var i = 0; i < this.curves.length; i++) {
+            for (let i = 0; i < this.curves.length; i++) {
                 this.curves[i].type = value;
             }
         }
-    });
+    }
 
     return {
-        CurveSet: CurveSet
+        CurveSet
     };
-}()));
+})()));

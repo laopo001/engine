@@ -3,11 +3,11 @@
 * @private
 * @namespace
 */
-pc.debug = (function () {
-    var table = null;
-    var row = null;
-    var title = null;
-    var field = null;
+pc.debug = ((() => {
+    let table = null;
+    let row = null;
+    let title = null;
+    let field = null;
 
     return {
         /**
@@ -17,7 +17,7 @@ pc.debug = (function () {
          * @description Display an object and its data in a table on the page.
          * @param {Object} data The object to display.
          */
-        display: function (data) {
+        display(data) {
             function init() {
                 table = document.createElement('table');
                 row = document.createElement('tr');
@@ -37,10 +37,10 @@ pc.debug = (function () {
             }
 
             table.innerHTML = '';
-            for (var key in data) {
-                var r = row.cloneNode();
-                var t = title.cloneNode();
-                var f = field.cloneNode();
+            for (const key in data) {
+                const r = row.cloneNode();
+                const t = title.cloneNode();
+                const f = field.cloneNode();
 
                 t.textContent = key;
                 f.textContent = data[key];
@@ -51,4 +51,4 @@ pc.debug = (function () {
             }
         }
     };
-}());
+})());

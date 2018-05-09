@@ -1,7 +1,5 @@
-pc.extend(pc, function () {
-    'use strict';
-
-    var defaultOptions = {
+pc.extend(pc, (() => {
+    const defaultOptions = {
         depth: true,
         face: 0
     };
@@ -45,68 +43,68 @@ pc.extend(pc, function () {
      * // Set the render target on a layer
      * layer.renderTarget = renderTarget;
      */
-    var RenderTarget = function (options, _arg2, _arg3) {
+    class RenderTarget {
+        constructor(options, _arg2, _arg3) {
 
-        if (options instanceof pc.GraphicsDevice) {
-            // old constructor
-            this._colorBuffer = _arg2;
-            options = _arg3;
-        } else {
-            // new constructor
-            this._colorBuffer = options.colorBuffer;
-        }
-
-        this._glFrameBuffer = null;
-        this._glDepthBuffer = null;
-
-        // Process optional arguments
-        options = (options !== undefined) ? options : defaultOptions;
-        this._depthBuffer = options.depthBuffer;
-        this._face = (options.face !== undefined) ? options.face : 0;
-
-        if (this._depthBuffer) {
-            var format = this._depthBuffer._format;
-            if (format === pc.PIXELFORMAT_DEPTH) {
-                this._depth = true;
-                this._stencil = false;
-            } else if (format === pc.PIXELFORMAT_DEPTHSTENCIL) {
-                this._depth = true;
-                this._stencil = true;
+            if (options instanceof pc.GraphicsDevice) {
+                // old constructor
+                this._colorBuffer = _arg2;
+                options = _arg3;
             } else {
-                // #ifdef DEBUG
-                console.warn('Incorrect depthBuffer format. Must be pc.PIXELFORMAT_DEPTH or pc.PIXELFORMAT_DEPTHSTENCIL');
-                // #endif
-                this._depth = false;
-                this._stencil = false;
+                // new constructor
+                this._colorBuffer = options.colorBuffer;
             }
-        } else {
-            this._depth = (options.depth !== undefined) ? options.depth : true;
-            this._stencil = (options.stencil !== undefined) ? options.stencil : false;
+
+            this._glFrameBuffer = null;
+            this._glDepthBuffer = null;
+
+            // Process optional arguments
+            options = (options !== undefined) ? options : defaultOptions;
+            this._depthBuffer = options.depthBuffer;
+            this._face = (options.face !== undefined) ? options.face : 0;
+
+            if (this._depthBuffer) {
+                const format = this._depthBuffer._format;
+                if (format === pc.PIXELFORMAT_DEPTH) {
+                    this._depth = true;
+                    this._stencil = false;
+                } else if (format === pc.PIXELFORMAT_DEPTHSTENCIL) {
+                    this._depth = true;
+                    this._stencil = true;
+                } else {
+                    // #ifdef DEBUG
+                    console.warn('Incorrect depthBuffer format. Must be pc.PIXELFORMAT_DEPTH or pc.PIXELFORMAT_DEPTHSTENCIL');
+                    // #endif
+                    this._depth = false;
+                    this._stencil = false;
+                }
+            } else {
+                this._depth = (options.depth !== undefined) ? options.depth : true;
+                this._stencil = (options.stencil !== undefined) ? options.stencil : false;
+            }
+
+            this._samples = (options.samples !== undefined) ? options.samples : 1;
+            this.autoResolve = (options.autoResolve !== undefined) ? options.autoResolve : true;
+            this._glResolveFrameBuffer = null;
+            this._glMsaaColorBuffer = null;
+            this._glMsaaDepthBuffer = null;
         }
 
-        this._samples = (options.samples !== undefined) ? options.samples : 1;
-        this.autoResolve = (options.autoResolve !== undefined) ? options.autoResolve : true;
-        this._glResolveFrameBuffer = null;
-        this._glMsaaColorBuffer = null;
-        this._glMsaaDepthBuffer = null;
-    };
-
-    RenderTarget.prototype = {
         /**
          * @function
          * @name pc.RenderTarget#destroy
          * @description Frees resources associated with this render target.
          */
-        destroy: function () {
+        destroy() {
             if (!this._device) return;
 
-            var device = this._device;
-            var idx = device.targets.indexOf(this);
+            const device = this._device;
+            const idx = device.targets.indexOf(this);
             if (idx !== -1) {
                 device.targets.splice(idx, 1);
             }
 
-            var gl = device.gl;
+            const gl = device.gl;
             if (this._glFrameBuffer) {
                 gl.deleteFramebuffer(this._glFrameBuffer);
                 this._glFrameBuffer = null;
@@ -131,7 +129,7 @@ pc.extend(pc, function () {
                 gl.deleteRenderbuffer(this._glMsaaDepthBuffer);
                 this._glMsaaDepthBuffer = null;
             }
-        },
+        }
 
         /**
          * @function
@@ -146,10 +144,10 @@ pc.extend(pc, function () {
          * @param {Boolean} color Resolve color buffer
          * @param {Boolean} depth Resolve depth buffer
          */
-        resolve: function (color, depth) {
+        resolve(color, depth) {
             if (!this._device) return;
             if (!this._device.webgl2) return;
-            var gl = this._device.gl;
+            const gl = this._device.gl;
 
             if (color === undefined) color = true;
             if (depth === undefined && this._depthBuffer) depth = true;
@@ -162,7 +160,7 @@ pc.extend(pc, function () {
                                 gl.NEAREST);
 
             gl.bindFramebuffer(gl.FRAMEBUFFER, this._glFrameBuffer);
-        },
+        }
 
         /**
          * @function
@@ -174,7 +172,7 @@ pc.extend(pc, function () {
          * @param {Boolean} depth Copy depth buffer
          * @returns {Boolean} true if the copy was successfull, false otherwise.
          */
-        copy: function (source, color, depth) {
+        copy(source, color, depth) {
             if (!this._device) {
                 if (source._device) {
                     this._device = source._device;
@@ -187,87 +185,77 @@ pc.extend(pc, function () {
             }
             return this._device.copyRenderTarget(source, this, color, depth);
         }
-    };
 
-    /**
-     * @readonly
-     * @name pc.RenderTarget#colorBuffer
-     * @type pc.Texture
-     * @description Color buffer set up on the render target.
-     */
-    Object.defineProperty(RenderTarget.prototype, 'colorBuffer', {
-        get: function() {
+        /**
+         * @readonly
+         * @name pc.RenderTarget#colorBuffer
+         * @type pc.Texture
+         * @description Color buffer set up on the render target.
+         */
+        get colorBuffer() {
             return this._colorBuffer;
         }
-    });
 
-    /**
-     * @readonly
-     * @name pc.RenderTarget#depthBuffer
-     * @type pc.Texture
-     * @description Depth buffer set up on the render target. Only available, if depthBuffer was set in constructor.
-     * Not available, if depth property was used instead.
-     */
-    Object.defineProperty(RenderTarget.prototype, 'depthBuffer', {
-        get: function() {
+        /**
+         * @readonly
+         * @name pc.RenderTarget#depthBuffer
+         * @type pc.Texture
+         * @description Depth buffer set up on the render target. Only available, if depthBuffer was set in constructor.
+         * Not available, if depth property was used instead.
+         */
+        get depthBuffer() {
             return this._depthBuffer;
         }
-    });
 
-    /**
-     * @readonly
-     * @name pc.RenderTarget#face
-     * @type Number
-     * @description If the render target is bound to a cubemap, this property
-     * specifies which face of the cubemap is rendered to. Can be:
-     * <ul>
-     *     <li>pc.CUBEFACE_POSX</li>
-     *     <li>pc.CUBEFACE_NEGX</li>
-     *     <li>pc.CUBEFACE_POSY</li>
-     *     <li>pc.CUBEFACE_NEGY</li>
-     *     <li>pc.CUBEFACE_POSZ</li>
-     *     <li>pc.CUBEFACE_NEGZ</li>
-     * </ul>
-     */
-    Object.defineProperty(RenderTarget.prototype, 'face', {
-        get: function() {
+        /**
+         * @readonly
+         * @name pc.RenderTarget#face
+         * @type Number
+         * @description If the render target is bound to a cubemap, this property
+         * specifies which face of the cubemap is rendered to. Can be:
+         * <ul>
+         *     <li>pc.CUBEFACE_POSX</li>
+         *     <li>pc.CUBEFACE_NEGX</li>
+         *     <li>pc.CUBEFACE_POSY</li>
+         *     <li>pc.CUBEFACE_NEGY</li>
+         *     <li>pc.CUBEFACE_POSZ</li>
+         *     <li>pc.CUBEFACE_NEGZ</li>
+         * </ul>
+         */
+        get face() {
             return this._face;
         }
-    });
 
-    /**
-     * @readonly
-     * @name pc.RenderTarget#width
-     * @type Number
-     * @description Width of the render target in pixels.
-     */
-    Object.defineProperty(RenderTarget.prototype, 'width', {
-        get: function() {
+        /**
+         * @readonly
+         * @name pc.RenderTarget#width
+         * @type Number
+         * @description Width of the render target in pixels.
+         */
+        get width() {
             if (this._colorBuffer) {
                 return this._colorBuffer.width;
             } else {
                 return this._depthBuffer.width;
             }
         }
-    });
 
-    /**
-     * @readonly
-     * @name pc.RenderTarget#height
-     * @type Number
-     * @description Height of the render target in pixels.
-     */
-    Object.defineProperty(RenderTarget.prototype, 'height', {
-        get: function() {
+        /**
+         * @readonly
+         * @name pc.RenderTarget#height
+         * @type Number
+         * @description Height of the render target in pixels.
+         */
+        get height() {
             if (this._colorBuffer) {
                 return this._colorBuffer.height;
             } else {
                 return this._depthBuffer.height;
             }
         }
-    });
+    }
 
     return {
-        RenderTarget: RenderTarget
+        RenderTarget
     };
-}());
+})());

@@ -1,6 +1,6 @@
-(function () {
+((() => {
     // Graphics engine enums
-    var enums = {
+    const enums = {
         /**
          * @static
          * @readonly
@@ -762,4 +762,4 @@
     // For backwards compatibility
     pc.gfx = {};
     pc.extend(pc.gfx, enums);
-}());
+})());

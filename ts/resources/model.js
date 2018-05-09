@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
      * @constructor
      * @name pc.ModelHandler
@@ -6,18 +6,14 @@ pc.extend(pc, function () {
      * @description {@link pc.ResourceHandler} use to load 3D model resources
      * @param {pc.GraphicsDevice} device The graphics device that will be rendering
      */
-    var ModelHandler = function (device) {
-        this._device = device;
-        this._parsers = [];
+    class ModelHandler {
+        constructor(device) {
+            this._device = device;
+            this._parsers = [];
 
-        this.addParser(new pc.JsonModelParser(this._device), function (url, data) {
-            return (pc.path.getExtension(url) === '.json');
-        });
-    };
+            this.addParser(new pc.JsonModelParser(this._device), (url, data) => pc.path.getExtension(url) === '.json');
+        }
 
-    ModelHandler.DEFAULT_MATERIAL = pc.Scene.defaultMaterial;
-
-    ModelHandler.prototype = {
         /**
          * @function
          * @name pc.ModelHandler#load
@@ -28,8 +24,8 @@ pc.extend(pc, function () {
          * the case where the load fails, and repsponse is the model data that has been
          * successfully loaded.
          */
-        load: function (url, callback) {
-            pc.http.get(url, function (err, response) {
+        load(url, callback) {
+            pc.http.get(url, (err, response) => {
                 if (! callback)
                     return;
 
@@ -39,7 +35,7 @@ pc.extend(pc, function () {
                     callback(pc.string.format("Error loading model: {0} [{1}]", url, err));
                 }
             });
-        },
+        }
 
         /**
          * @function
@@ -49,9 +45,9 @@ pc.extend(pc, function () {
          * @param {Object} data The data from model file deserialized into a JavaScript Object.
          * @returns {pc.Model} The loaded model.
          */
-        open: function (url, data) {
-            for (var i = 0; i < this._parsers.length; i++) {
-                var p = this._parsers[i];
+        open(url, data) {
+            for (let i = 0; i < this._parsers.length; i++) {
+                const p = this._parsers[i];
 
                 if (p.decider(url, data)) {
                     return p.parser.parse(data);
@@ -59,17 +55,17 @@ pc.extend(pc, function () {
             }
             logWARNING(pc.string.format("No model parser found for: {0}", url));
             return null;
-        },
+        }
 
-        patch: function (asset, assets) {
+        patch(asset, assets) {
             if (! asset.resource)
                 return;
 
-            var data = asset.data;
+            const data = asset.data;
 
-            asset.resource.meshInstances.forEach(function (meshInstance, i) {
+            asset.resource.meshInstances.forEach((meshInstance, i) => {
                 if (data.mapping) {
-                    var handleMaterial = function(asset) {
+                    const handleMaterial = asset => {
                         if (asset.resource) {
                             meshInstance.material = asset.resource;
                         } else {
@@ -77,8 +73,8 @@ pc.extend(pc, function () {
                             assets.load(asset);
                         }
 
-                        asset.once('remove', function(asset) {
-                            if (meshInstance.material === asset.resource)
+                        asset.once('remove', ({resource}) => {
+                            if (meshInstance.material === resource)
                                 meshInstance.material = pc.ModelHandler.DEFAULT_MATERIAL;
                         });
                     };
@@ -88,9 +84,9 @@ pc.extend(pc, function () {
                         return;
                     }
 
-                    var id = data.mapping[i].material;
-                    var url = data.mapping[i].path;
-                    var material;
+                    const id = data.mapping[i].material;
+                    const url = data.mapping[i].path;
+                    let material;
 
                     if (id !== undefined) { // id mapping
                         if (! id) {
@@ -100,25 +96,25 @@ pc.extend(pc, function () {
                             if (material) {
                                 handleMaterial(material);
                             } else {
-                                assets.once('add:' + id, handleMaterial);
+                                assets.once(`add:${id}`, handleMaterial);
                             }
                         }
                     } else if (url) {
                         // url mapping
-                        var fileUrl = asset.getFileUrl();
-                        var dirUrl = pc.path.getDirectory(fileUrl);
-                        var path = pc.path.join(dirUrl, data.mapping[i].path);
+                        const fileUrl = asset.getFileUrl();
+                        const dirUrl = pc.path.getDirectory(fileUrl);
+                        const path = pc.path.join(dirUrl, data.mapping[i].path);
                         material = assets.getByUrl(path);
 
                         if (material) {
                             handleMaterial(material);
                         } else {
-                            assets.once('add:url:' + path, handleMaterial);
+                            assets.once(`add:url:${path}`, handleMaterial);
                         }
                     }
                 }
             });
-        },
+        }
 
         /**
          * @function
@@ -130,15 +126,17 @@ pc.extend(pc, function () {
          * Function should take (url, data) arguments and return true if this parser should be used to parse the data into a {@link pc.Model}.
          * The first parser to return true is used.
          */
-        addParser: function (parser, decider) {
+        addParser(parser, decider) {
             this._parsers.push({
-                parser: parser,
-                decider: decider
+                parser,
+                decider
             });
         }
-    };
+    }
+
+    ModelHandler.DEFAULT_MATERIAL = pc.Scene.defaultMaterial;
 
     return {
-        ModelHandler: ModelHandler
+        ModelHandler
     };
-}());
+})());

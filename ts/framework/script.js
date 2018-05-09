@@ -4,14 +4,14 @@
  * @description Functions for creating user scripts for the script component
  * @property {Boolean} legacy If True, then engine will use legacy scripting system, defaults to true (subject to change)
  */
-pc.script = (function () {
-    var _legacy = false;
+pc.script = ((() => {
+    let _legacy = false;
 
     // flag to avoid creating multiple loading screens e.g. when
     // loading screen scripts are reloaded
-    var _createdLoadingScreen = false;
+    let _createdLoadingScreen = false;
 
-    var script = {
+    const script = {
         // set during script load to be used for initializing script
         app: null,
 
@@ -37,12 +37,12 @@ pc.script = (function () {
          *  return Scriptable;
          * }
          */
-        create: function (name, callback) {
+        create(name, callback) {
             if (! _legacy)
                 return;
 
             // get the ScriptType from the callback
-            var ScriptType = callback(pc.script.app);
+            const ScriptType = callback(pc.script.app);
 
             // store the script name
             ScriptType._pcScriptName = name;
@@ -103,7 +103,7 @@ pc.script = (function () {
         *  return Scriptable;
         * }
         */
-        attribute: function (name, type, defaultValue, options) {
+        attribute(name, type, defaultValue, options) {
             // only works when parsing the script...
         },
 
@@ -124,22 +124,22 @@ pc.script = (function () {
          *     app.on("start", hideSplashScreen);
          * });
          */
-        createLoadingScreen: function (callback) {
+        createLoadingScreen(callback) {
             if (_createdLoadingScreen)
                 return;
 
             _createdLoadingScreen = true;
 
-            var app = pc.Application.getApplication();
+            const app = pc.Application.getApplication();
             callback(app);
         }
     };
 
     Object.defineProperty(script, 'legacy', {
-        get: function() {
+        get() {
             return _legacy;
         },
-        set: function(value) {
+        set(value) {
             _legacy = value;
         }
     });
@@ -147,4 +147,4 @@ pc.script = (function () {
     pc.events.attach(script);
 
     return script;
-}());
+})());

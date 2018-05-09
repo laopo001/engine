@@ -1,11 +1,9 @@
-pc.extend(pc, function () {
-    'use strict';
-
-    var CssHandler = function () {};
+pc.extend(pc, (() => {
+    const CssHandler = () => {};
 
     CssHandler.prototype = {
-        load: function (url, callback) {
-            pc.http.get(url, function (err, response) {
+        load(url, callback) {
+            pc.http.get(url, (err, response) => {
                 if (!err) {
                     callback(null, response);
                 } else {
@@ -14,11 +12,11 @@ pc.extend(pc, function () {
             });
         },
 
-        open: function (url, data) {
+        open(url, data) {
             return data;
         },
 
-        patch: function (asset, assets) {
+        patch(asset, assets) {
         }
     };
 
@@ -33,8 +31,8 @@ pc.extend(pc, function () {
      * document.head.appendChild(style);
      * @returns {Element} The style DOM element
      */
-    var createStyle = function (cssString) {
-        var result = document.createElement('style');
+    const createStyle = cssString => {
+        const result = document.createElement('style');
         result.type = 'text/css';
         if (result.styleSheet) {
             result.styleSheet.cssText = cssString;
@@ -46,7 +44,7 @@ pc.extend(pc, function () {
     };
 
     return {
-        CssHandler: CssHandler,
-        createStyle: createStyle
+        CssHandler,
+        createStyle
     };
-}());
+})());

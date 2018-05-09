@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
      * @constructor
      * @name pc.Component
@@ -9,33 +9,70 @@ pc.extend(pc, function () {
      * @param {pc.Entity} entity The Entity that this Component is attached to
      * @property {Boolean} enabled Enables or disables the component.
      */
-    var Component = function (system, entity) {
-        this.system = system;
-        this.entity = entity;
+    class Component {
+        constructor(system, entity) {
+            this.system = system;
+            this.entity = entity;
 
-        pc.events.attach(this);
+            pc.events.attach(this);
 
-        if (this.system.schema && !this._accessorsBuilt) {
-            this.buildAccessors(this.system.schema);
+            if (this.system.schema && !this._accessorsBuilt) {
+                this.buildAccessors(this.system.schema);
+            }
+
+            this.on("set", function (name, oldValue, newValue) {
+                this.fire(`set_${name}`, name, oldValue, newValue);
+            });
+
+            this.on('set_enabled', this.onSetEnabled, this);
         }
 
-        this.on("set", function (name, oldValue, newValue) {
-            this.fire("set_" + name, name, oldValue, newValue);
-        });
+        /**
+         * @private
+         * @property {pc.ComponentData} data Access the {@link pc.ComponentData} directly.
+         * Usually you should access the data properties via the individual properties as
+         * modifying this data directly will not fire 'set' events.
+         */
+        data() {
+            const record = this.system.store[this.entity._guid];
+            if (record) {
+                return record.data;
+            } else {
+                return null;
+            }
+        }
 
-        this.on('set_enabled', this.onSetEnabled, this);
-    };
+        buildAccessors(schema) {
+            Component._buildAccessors(this, schema);
+        }
 
-    Component._buildAccessors = function (obj, schema) {
+        onSetEnabled(name, oldValue, newValue) {
+            if (oldValue !== newValue) {
+                if (this.entity.enabled) {
+                    if (newValue) {
+                        this.onEnable();
+                    } else {
+                        this.onDisable();
+                    }
+                }
+            }
+        }
+
+        onEnable() { }
+        onDisable() { }
+        onPostStateChange() { }
+    }
+
+    Component._buildAccessors = (obj, schema) => {
         // Create getter/setter pairs for each property defined in the schema
-        schema.forEach(function (prop) {
+        schema.forEach(prop => {
             Object.defineProperty(obj, prop, {
-                get: function () {
+                get() {
                     return this.data[prop];
                 },
-                set: function (value) {
-                    var data = this.data;
-                    var oldValue = data[prop];
+                set(value) {
+                    const data = this.data;
+                    const oldValue = data[prop];
                     data[prop] = value;
                     this.fire('set', prop, oldValue, value);
                 },
@@ -46,46 +83,7 @@ pc.extend(pc, function () {
         obj._accessorsBuilt = true;
     };
 
-    Component.prototype = {
-        /**
-         * @private
-         * @property {pc.ComponentData} data Access the {@link pc.ComponentData} directly.
-         * Usually you should access the data properties via the individual properties as
-         * modifying this data directly will not fire 'set' events.
-         */
-        get data() {
-            var record = this.system.store[this.entity._guid];
-            if (record) {
-                return record.data;
-            } else {
-                return null;
-            }
-        },
-
-        buildAccessors: function (schema) {
-            Component._buildAccessors(this, schema);
-        },
-
-        onSetEnabled: function (name, oldValue, newValue) {
-            if (oldValue !== newValue) {
-                if (this.entity.enabled) {
-                    if (newValue) {
-                        this.onEnable();
-                    } else {
-                        this.onDisable();
-                    }
-                }
-            }
-        },
-
-        onEnable: function () { },
-
-        onDisable: function () { },
-
-        onPostStateChange: function() { }
-    };
-
     return {
-        Component: Component
+        Component
     };
-}());
+})());

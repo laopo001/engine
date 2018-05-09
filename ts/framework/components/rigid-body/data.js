@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
      * @private
      * @constructor
@@ -7,7 +7,7 @@ pc.extend(pc, function () {
      * @description Create a new data structure for a RigidBodyComponent
      * @extends pc.ComponentData
      */
-    var RigidBodyComponentData = function () {
+    let RigidBodyComponentData = function () {
         this.enabled = true;
         this.mass = 1;
         this.linearDamping = 0;
@@ -30,6 +30,6 @@ pc.extend(pc, function () {
     RigidBodyComponentData = pc.inherits(RigidBodyComponentData, pc.ComponentData);
 
     return {
-        RigidBodyComponentData: RigidBodyComponentData
+        RigidBodyComponentData
     };
-}());
+})());

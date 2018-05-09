@@ -1,5 +1,5 @@
-pc.extend(pc, function () {
-    var _schema = [ 'enabled' ];
+pc.extend(pc, (() => {
+    const _schema = [ 'enabled' ];
 
     /**
      * @constructor
@@ -10,10 +10,10 @@ pc.extend(pc, function () {
      * @param {pc.SoundManager} manager A sound manager instance.
      * @extends pc.ComponentSystem
      */
-    var AudioListenerComponentSystem = function (app, manager) {
+    let AudioListenerComponentSystem = function({systems}, manager) {
         this.id = "audiolistener";
         this.description = "Specifies the location of the listener for 3D audio playback.";
-        app.systems.add(this.id, this);
+        systems.add(this.id, this);
 
         this.ComponentType = pc.AudioListenerComponent;
         this.DataType = pc.AudioListenerComponentData;
@@ -30,24 +30,24 @@ pc.extend(pc, function () {
     pc.Component._buildAccessors(pc.AudioListenerComponent.prototype, _schema);
 
     pc.extend(AudioListenerComponentSystem.prototype, {
-        initializeComponentData: function (component, data, properties) {
+        initializeComponentData(component, data, properties) {
             properties = ['enabled'];
 
             AudioListenerComponentSystem._super.initializeComponentData.call(this, component, data, properties);
         },
 
-        onUpdate: function (dt) {
+        onUpdate(dt) {
             if (this.current) {
-                var position = this.current.getPosition();
+                const position = this.current.getPosition();
                 this.manager.listener.setPosition(position);
 
-                var wtm = this.current.getWorldTransform();
+                const wtm = this.current.getWorldTransform();
                 this.manager.listener.setOrientation(wtm);
             }
         }
     });
 
     return {
-        AudioListenerComponentSystem: AudioListenerComponentSystem
+        AudioListenerComponentSystem
     };
-}());
+})());

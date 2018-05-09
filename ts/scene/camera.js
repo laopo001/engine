@@ -1,77 +1,78 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     // pre-allocated temp variables
-    var _deviceCoord = new pc.Vec3();
-    var _far = new pc.Vec3();
-    var _farW = new pc.Vec3();
-    var _invViewProjMat = new pc.Mat4();
+    const _deviceCoord = new pc.Vec3();
+    const _far = new pc.Vec3();
+    const _farW = new pc.Vec3();
+    const _invViewProjMat = new pc.Mat4();
+
     /**
      * @private
      * @constructor
      * @name pc.Camera
      * @classdesc A camera.
      */
-    var Camera = function () {
-        this._projection = pc.PROJECTION_PERSPECTIVE;
-        this._nearClip = 0.1;
-        this._farClip = 10000;
-        this._shaderParams = new pc.Vec4();
-        this._fov = 45;
-        this._orthoHeight = 10;
-        this._aspect = 16 / 9;
-        this._aspectRatioMode = pc.ASPECT_AUTO;
-        this._horizontalFov = false;
-        this.frustumCulling = false;
-        this.cullingMask = 0xFFFFFFFF;
-        this._renderDepthRequests = 0;
+    class Camera {
+        constructor() {
+            this._projection = pc.PROJECTION_PERSPECTIVE;
+            this._nearClip = 0.1;
+            this._farClip = 10000;
+            this._shaderParams = new pc.Vec4();
+            this._fov = 45;
+            this._orthoHeight = 10;
+            this._aspect = 16 / 9;
+            this._aspectRatioMode = pc.ASPECT_AUTO;
+            this._horizontalFov = false;
+            this.frustumCulling = false;
+            this.cullingMask = 0xFFFFFFFF;
+            this._renderDepthRequests = 0;
 
-        this._projMatDirty = true;
-        this._projMat = new pc.Mat4();
-        this._viewMat = new pc.Mat4();
-        this._viewProjMat = new pc.Mat4();
+            this._projMatDirty = true;
+            this._projMat = new pc.Mat4();
+            this._viewMat = new pc.Mat4();
+            this._viewProjMat = new pc.Mat4();
 
-        this.vrDisplay = null;
+            this.vrDisplay = null;
 
-        this._rect = {
-            x: 0,
-            y: 0,
-            width: 1,
-            height: 1
-        };
+            this._rect = {
+                x: 0,
+                y: 0,
+                width: 1,
+                height: 1
+            };
 
-        this._scissorRect = {
-            x: 0,
-            y: 0,
-            width: 1,
-            height: 1
-        };
+            this._scissorRect = {
+                x: 0,
+                y: 0,
+                width: 1,
+                height: 1
+            };
 
-        this.frustum = new pc.Frustum(this._projMat, this._viewMat);
+            this.frustum = new pc.Frustum(this._projMat, this._viewMat);
 
-        // Create a full size viewport onto the backbuffer
-        this.renderTarget = null;
-        this._depthTarget = null;
+            // Create a full size viewport onto the backbuffer
+            this.renderTarget = null;
+            this._depthTarget = null;
 
-        // Create the clear options
-        this._clearOptions = {
-            color: [ 0.5, 0.5, 0.5, 1.0 ],
-            depth: 1.0,
-            stencil: 0,
-            flags: pc.CLEARFLAG_COLOR | pc.CLEARFLAG_DEPTH | pc.CLEARFLAG_STENCIL
-        };
+            // Create the clear options
+            this._clearOptions = {
+                color: [ 0.5, 0.5, 0.5, 1.0 ],
+                depth: 1.0,
+                stencil: 0,
+                flags: pc.CLEARFLAG_COLOR | pc.CLEARFLAG_DEPTH | pc.CLEARFLAG_STENCIL
+            };
 
-        this._node = null;
+            this._node = null;
 
-        this.calculateTransform = null;
-        this.overrideCalculateTransform = false;
-        this.calculateProjection = null;
-        this.overrideCalculateProjection = false;
-        this._cullFaces = true;
-        this._flipFaces = false;
+            this.calculateTransform = null;
+            this.overrideCalculateTransform = false;
+            this.calculateProjection = null;
+            this.overrideCalculateProjection = false;
+            this._cullFaces = true;
+            this._flipFaces = false;
 
-        this._component = null;
-    };
+            this._component = null;
+        }
 
-    Camera.prototype = {
         /**
          * @private
          * @function
@@ -79,8 +80,8 @@ pc.extend(pc, function () {
          * @description Duplicates a camera node but does not 'deep copy' the hierarchy.
          * @returns {pc.Camera} A cloned Camera.
          */
-        clone: function () {
-            var clone = new pc.Camera();
+        clone() {
+            const clone = new pc.Camera();
             clone.projection = this._projection;
             clone.nearClip = this._nearClip;
             clone.farClip = this._farClip;
@@ -93,7 +94,7 @@ pc.extend(pc, function () {
             clone.frustumCulling = this.frustumCulling;
             clone.cullingMask = this.cullingMask;
             return clone;
-        },
+        }
 
         /**
          * @private
@@ -106,21 +107,21 @@ pc.extend(pc, function () {
          * @param {pc.Vec3} [screenCoord] 3D vector to receive screen coordinate result.
          * @returns {pc.Vec3} The screen space coordinate.
          */
-        worldToScreen: function (worldCoord, cw, ch, screenCoord) {
+        worldToScreen(worldCoord, cw, ch, screenCoord) {
             if (screenCoord === undefined) {
                 screenCoord = new pc.Vec3();
             }
 
-            var projMat = this.getProjectionMatrix();
-            var wtm = this._node.getWorldTransform();
+            const projMat = this.getProjectionMatrix();
+            const wtm = this._node.getWorldTransform();
             this._viewMat.copy(wtm).invert();
             this._viewProjMat.mul2(projMat, this._viewMat);
             this._viewProjMat.transformPoint(worldCoord, screenCoord);
 
             // calculate w co-coord
-            var wp = worldCoord.data;
-            var vpm = this._viewProjMat.data;
-            var w = wp[0] * vpm[3] +
+            const wp = worldCoord.data;
+            const vpm = this._viewProjMat.data;
+            const w = wp[0] * vpm[3] +
                     wp[1] * vpm[7] +
                     wp[2] * vpm[11] +
                         1 * vpm[15];
@@ -129,7 +130,7 @@ pc.extend(pc, function () {
             screenCoord.y = (1 - screenCoord.y / w) * 0.5 * ch;
 
             return screenCoord;
-        },
+        }
 
         /**
          * @private
@@ -144,13 +145,13 @@ pc.extend(pc, function () {
          * @param {pc.Vec3} [worldCoord] 3D vector to receive world coordinate result.
          * @returns {pc.Vec3} The world space coordinate.
          */
-        screenToWorld: function (x, y, z, cw, ch, worldCoord) {
+        screenToWorld(x, y, z, cw, ch, worldCoord) {
             if (worldCoord === undefined) {
                 worldCoord = new pc.Vec3();
             }
 
-            var projMat = this.getProjectionMatrix();
-            var wtm = this._node.getWorldTransform();
+            const projMat = this.getProjectionMatrix();
+            const wtm = this._node.getWorldTransform();
             this._viewMat.copy(wtm).invert();
             this._viewProjMat.mul2(projMat, this._viewMat);
             _invViewProjMat.copy(this._viewProjMat).invert();
@@ -163,19 +164,19 @@ pc.extend(pc, function () {
                 // Transform to world space
                 _invViewProjMat.transformPoint(_far, _farW);
 
-                var w = _far.x * _invViewProjMat.data[3] +
+                const w = _far.x * _invViewProjMat.data[3] +
                         _far.y * _invViewProjMat.data[7] +
                         _far.z * _invViewProjMat.data[11] +
                         _invViewProjMat.data[15];
 
                 _farW.scale(1 / w);
 
-                var alpha = z / this._farClip;
+                const alpha = z / this._farClip;
                 worldCoord.lerp(this._node.getPosition(), _farW, alpha);
             } else {
                 // Calculate the screen click as a point on the far plane of the
                 // normalized device coordinate 'box' (z=1)
-                var range = this._farClip - this._nearClip;
+                const range = this._farClip - this._nearClip;
                 _deviceCoord.set(x / cw, (ch - y) / ch, z / range);
                 _deviceCoord.scale(2);
                 _deviceCoord.sub(pc.Vec3.ONE);
@@ -185,7 +186,7 @@ pc.extend(pc, function () {
             }
 
             return worldCoord;
-        },
+        }
 
         /**
          * @private
@@ -194,9 +195,9 @@ pc.extend(pc, function () {
          * @description Retrieves the options used to determine how the camera's render target will be cleared.
          * @returns {Object} The options determining the behaviour of render target clears.
          */
-        getClearOptions: function () {
+        getClearOptions() {
             return this._clearOptions;
-        },
+        }
 
         /**
          * @private
@@ -205,18 +206,18 @@ pc.extend(pc, function () {
          * @description Retrieves the projection matrix for the specified camera.
          * @returns {pc.Mat4} The camera's projection matrix.
          */
-        getProjectionMatrix: function () {
+        getProjectionMatrix() {
             if (this._projMatDirty) {
                 if (this._projection === pc.PROJECTION_PERSPECTIVE) {
                     this._projMat.setPerspective(this._fov, this._aspect, this._nearClip, this._farClip, this._horizontalFov);
                 } else {
-                    var y = this._orthoHeight;
-                    var x = y * this._aspect;
+                    const y = this._orthoHeight;
+                    const x = y * this._aspect;
                     this._projMat.setOrtho(-x, x, -y, y, this._nearClip, this._farClip);
                 }
 
-                var n = this._nearClip;
-                var f = this._farClip;
+                const n = this._nearClip;
+                const f = this._farClip;
                 this._shaderParams.x = 1 / f;
                 this._shaderParams.y = f;
                 this._shaderParams.z = (1 - f / n) / 2;
@@ -225,11 +226,11 @@ pc.extend(pc, function () {
                 this._projMatDirty = false;
             }
             return this._projMat;
-        },
+        }
 
-        getRect: function () {
+        getRect() {
             return this._rect;
-        },
+        }
 
         /**
          * @private
@@ -241,235 +242,224 @@ pc.extend(pc, function () {
          * @param {Number} options.depth The options determining the behaviour of subsequent render target clears.
          * @param {pc.CLEARFLAG} options.flags The options determining the behaviour of subsequent render target clears.
          */
-        setClearOptions: function (options) {
-            this._clearOptions.color[0] = options.color[0];
-            this._clearOptions.color[1] = options.color[1];
-            this._clearOptions.color[2] = options.color[2];
-            this._clearOptions.color[3] = options.color[3];
-            this._clearOptions.depth = options.depth;
-            this._clearOptions.stencil = options.stencil;
-            this._clearOptions.flags = options.flags;
-        },
+        setClearOptions({color, depth, stencil, flags}) {
+            this._clearOptions.color[0] = color[0];
+            this._clearOptions.color[1] = color[1];
+            this._clearOptions.color[2] = color[2];
+            this._clearOptions.color[3] = color[3];
+            this._clearOptions.depth = depth;
+            this._clearOptions.stencil = stencil;
+            this._clearOptions.flags = flags;
+        }
 
-        setRect: function (x, y, width, height) {
+        setRect(x, y, width, height) {
             this._rect.x = x;
             this._rect.y = y;
             this._rect.width = width;
             this._rect.height = height;
-        },
+        }
 
-        setScissorRect: function (x, y, width, height) {
+        setScissorRect(x, y, width, height) {
             this._scissorRect.x = x;
             this._scissorRect.y = y;
             this._scissorRect.width = width;
             this._scissorRect.height = height;
-        },
+        }
 
-        requestDepthMap: function () {
+        requestDepthMap() {
             this._renderDepthRequests++;
-        },
+        }
 
-        releaseDepthMap: function () {
+        releaseDepthMap() {
             this._renderDepthRequests--;
         }
-    };
 
-    /**
-     * @private
-     * @type Number
-     * @name pc.Camera#aspectRatio
-     * @description Camera's aspect ratio.
-     */
-    Object.defineProperty(Camera.prototype, 'aspectRatio', {
-        get: function() {
+        /**
+         * @private
+         * @type Number
+         * @name pc.Camera#aspectRatio
+         * @description Camera's aspect ratio.
+         */
+        get aspectRatio() {
             return this._aspect;
-        },
-        set: function(v) {
+        }
+
+        set aspectRatio(v) {
             if (this._aspect !== v) {
                 this._aspect = v;
                 this._projMatDirty = true;
             }
         }
-    });
 
-    /**
-     * @private
-     * @type Number
-     * @name pc.Camera#projection
-     * @description Camera's projection type, to specify whether projection is orthographic (parallel projection) or perspective. Can be:
-     * <ul>
-     *     <li>{@link pc.PROJECTION_PERSPECTIVE}</li>
-     *     <li>{@link pc.PROJECTION_ORTHOGRAPHIC}</li>
-     * </ul>
-     */
-    Object.defineProperty(Camera.prototype, 'projection', {
-        get: function() {
+        /**
+         * @private
+         * @type Number
+         * @name pc.Camera#projection
+         * @description Camera's projection type, to specify whether projection is orthographic (parallel projection) or perspective. Can be:
+         * <ul>
+         *     <li>{@link pc.PROJECTION_PERSPECTIVE}</li>
+         *     <li>{@link pc.PROJECTION_ORTHOGRAPHIC}</li>
+         * </ul>
+         */
+        get projection() {
             return this._projection;
-        },
-        set: function(v) {
+        }
+
+        set projection(v) {
             if (this._projection !== v) {
                 this._projection = v;
                 this._projMatDirty = true;
             }
         }
-    });
 
-    /**
-     * @private
-     * @type Number
-     * @name pc.Camera#nearClip
-     * @description Camera's distance to near clipping plane
-     */
-    Object.defineProperty(Camera.prototype, 'nearClip', {
-        get: function() {
+        /**
+         * @private
+         * @type Number
+         * @name pc.Camera#nearClip
+         * @description Camera's distance to near clipping plane
+         */
+        get nearClip() {
             return this._nearClip;
-        },
-        set: function(v) {
+        }
+
+        set nearClip(v) {
             if (this._nearClip !== v) {
                 this._nearClip = v;
                 this._projMatDirty = true;
             }
         }
-    });
 
-    /**
-     * @private
-     * @type Number
-     * @name pc.Camera#farClip
-     * @description Camera's distance to far clipping plane
-     */
-    Object.defineProperty(Camera.prototype, 'farClip', {
-        get: function() {
+        /**
+         * @private
+         * @type Number
+         * @name pc.Camera#farClip
+         * @description Camera's distance to far clipping plane
+         */
+        get farClip() {
             return this._farClip;
-        },
-        set: function(v) {
+        }
+
+        set farClip(v) {
             if (this._farClip !== v) {
                 this._farClip = v;
                 this._projMatDirty = true;
             }
         }
-    });
 
-    /**
-     * @private
-     * @type Number
-     * @name pc.Camera#fov
-     * @description Camera's field of view in degrees. This angle is in degrees
-     * and is measured vertically or horizontally between the sides of camera planes.
-     * hirozontalFov property defines the fov axis - vertical or horizontal.
-     */
-    Object.defineProperty(Camera.prototype, 'fov', {
-        get: function() {
+        /**
+         * @private
+         * @type Number
+         * @name pc.Camera#fov
+         * @description Camera's field of view in degrees. This angle is in degrees
+         * and is measured vertically or horizontally between the sides of camera planes.
+         * hirozontalFov property defines the fov axis - vertical or horizontal.
+         */
+        get fov() {
             return this._fov;
-        },
-        set: function(v) {
+        }
+
+        set fov(v) {
             if (this._fov !== v) {
                 this._fov = v;
                 this._projMatDirty = true;
             }
         }
-    });
 
-    /**
-     * @private
-     * @type Boolean
-     * @name pc.Camera#horizontalFov
-     * @description Camera's horizontal or vertical field of view.
-     */
-    Object.defineProperty(Camera.prototype, 'horizontalFov', {
-        get: function() {
+        /**
+         * @private
+         * @type Boolean
+         * @name pc.Camera#horizontalFov
+         * @description Camera's horizontal or vertical field of view.
+         */
+        get horizontalFov() {
             return this._horizontalFov;
-        },
-        set: function(v) {
+        }
+
+        set horizontalFov(v) {
             if (this._horizontalFov !== v) {
                 this._horizontalFov = v;
                 this._projMatDirty = true;
             }
         }
-    });
 
-    /**
-     * @private
-     * @type Number
-     * @name pc.Camera#orthoHeight
-     * @description Camera's half height of the orthographics view.
-     */
-    Object.defineProperty(Camera.prototype, 'orthoHeight', {
-        get: function() {
+        /**
+         * @private
+         * @type Number
+         * @name pc.Camera#orthoHeight
+         * @description Camera's half height of the orthographics view.
+         */
+        get orthoHeight() {
             return this._orthoHeight;
-        },
-        set: function(v) {
+        }
+
+        set orthoHeight(v) {
             if (this._orthoHeight !== v) {
                 this._orthoHeight = v;
                 this._projMatDirty = true;
             }
         }
-    });
 
-    /**
-     * @private
-     * @type Array
-     * @name pc.Camera#clearColor
-     * @description Camera's clear color.
-     */
-    Object.defineProperty(Camera.prototype, 'clearColor', {
-        get: function() {
+        /**
+         * @private
+         * @type Array
+         * @name pc.Camera#clearColor
+         * @description Camera's clear color.
+         */
+        get clearColor() {
             return this._clearOptions.color;
-        },
-        set: function(v) {
+        }
+
+        set clearColor(v) {
             this._clearOptions.color[0] = v[0];
             this._clearOptions.color[1] = v[1];
             this._clearOptions.color[2] = v[2];
             this._clearOptions.color[3] = v[3];
         }
-    });
 
-    /**
-     * @private
-     * @type Number
-     * @name pc.Camera#clearDepth
-     * @description Camera's clear depth value.
-     */
-    Object.defineProperty(Camera.prototype, 'clearDepth', {
-        get: function() {
+        /**
+         * @private
+         * @type Number
+         * @name pc.Camera#clearDepth
+         * @description Camera's clear depth value.
+         */
+        get clearDepth() {
             return this._clearOptions.depth;
-        },
-        set: function(v) {
+        }
+
+        set clearDepth(v) {
             this._clearOptions.depth = v;
         }
-    });
 
-    /**
-     * @private
-     * @type Number
-     * @name pc.Camera#clearStencil
-     * @description Camera's clear stencil value.
-     */
-    Object.defineProperty(Camera.prototype, 'clearStencil', {
-        get: function() {
+        /**
+         * @private
+         * @type Number
+         * @name pc.Camera#clearStencil
+         * @description Camera's clear stencil value.
+         */
+        get clearStencil() {
             return this._clearOptions.stencil;
-        },
-        set: function(v) {
+        }
+
+        set clearStencil(v) {
             this._clearOptions.stencil = v;
         }
-    });
 
-    /**
-     * @private
-     * @type Number
-     * @name pc.Camera#clearFlags
-     * @description Camera's clear flags bits value.
-     */
-    Object.defineProperty(Camera.prototype, 'clearFlags', {
-        get: function() {
+        /**
+         * @private
+         * @type Number
+         * @name pc.Camera#clearFlags
+         * @description Camera's clear flags bits value.
+         */
+        get clearFlags() {
             return this._clearOptions.flags;
-        },
-        set: function(v) {
+        }
+
+        set clearFlags(v) {
             this._clearOptions.flags = v;
         }
-    });
+    }
 
     return {
-        Camera: Camera
+        Camera
     };
-}());
+})());

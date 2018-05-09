@@ -1,6 +1,5 @@
-pc.extend(pc, function () {
-
-    var ammoVec1, ammoQuat;
+pc.extend(pc, (() => {
+    let ammoVec1, ammoQuat;
 
     /**
      * @private
@@ -12,47 +11,47 @@ pc.extend(pc, function () {
      * @param {pc.Component} component The component for which the trigger will be created
      * @param {pc.ComponentData} data The data for the component
      */
-    var Trigger = function Trigger (app, component, data) {
-        this.entity = component.entity;
-        this.component = component;
-        this.app = app;
+    class Trigger {
+        constructor(app, component, data) {
+            this.entity = component.entity;
+            this.component = component;
+            this.app = app;
 
-        if (typeof Ammo !== 'undefined') {
-            ammoVec1 = new Ammo.btVector3();
-            ammoQuat = new Ammo.btQuaternion();
+            if (typeof Ammo !== 'undefined') {
+                ammoVec1 = new Ammo.btVector3();
+                ammoQuat = new Ammo.btQuaternion();
+            }
+
+            this.initialize(data);
         }
 
-        this.initialize(data);
-    };
-
-    Trigger.prototype =  {
-        initialize: function (data) {
-            var entity = this.entity;
-            var shape = data.shape;
+        initialize(data) {
+            const entity = this.entity;
+            const shape = data.shape;
 
             if (shape && typeof Ammo !== 'undefined') {
                 if (entity.trigger) {
                     entity.trigger.destroy();
                 }
 
-                var mass = 1;
+                const mass = 1;
 
-                var localInertia = new Ammo.btVector3(0, 0, 0);
+                const localInertia = new Ammo.btVector3(0, 0, 0);
                 shape.calculateLocalInertia(mass, localInertia);
 
-                var pos = entity.getPosition();
-                var rot = entity.getRotation();
+                const pos = entity.getPosition();
+                const rot = entity.getRotation();
                 ammoQuat.setValue(rot.x, rot.y, rot.z, rot.w);
 
-                var startTransform = new Ammo.btTransform();
+                const startTransform = new Ammo.btTransform();
                 startTransform.setIdentity();
                 startTransform.getOrigin().setValue(pos.x, pos.y, pos.z);
                 startTransform.setRotation(ammoQuat);
 
-                var motionState = new Ammo.btDefaultMotionState(startTransform);
-                var bodyInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, shape, localInertia);
+                const motionState = new Ammo.btDefaultMotionState(startTransform);
+                const bodyInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, shape, localInertia);
 
-                var body = new Ammo.btRigidBody(bodyInfo);
+                const body = new Ammo.btRigidBody(bodyInfo);
                 this.body = body;
 
                 body.setRestitution(0);
@@ -69,31 +68,31 @@ pc.extend(pc, function () {
                     this.enable();
                 }
             }
-        },
+        }
 
-        destroy: function () {
+        destroy() {
             if (this.body) {
                 this.app.systems.rigidbody.removeBody(this.body);
             }
-        },
+        }
 
-        syncEntityToBody: function () {
-            var body = this.body;
+        syncEntityToBody() {
+            const body = this.body;
             if (body) {
-                var position = this.entity.getPosition();
-                var rotation = this.entity.getRotation();
+                const position = this.entity.getPosition();
+                const rotation = this.entity.getRotation();
 
-                var transform = body.getWorldTransform();
+                const transform = body.getWorldTransform();
                 transform.getOrigin().setValue(position.x, position.y, position.z);
 
                 ammoQuat.setValue(rotation.x, rotation.y, rotation.z, rotation.w);
                 transform.setRotation(ammoQuat);
                 body.activate();
             }
-        },
+        }
 
-        enable: function () {
-            var body = this.body;
+        enable() {
+            const body = this.body;
             if (!body) return;
 
             this.app.systems.rigidbody.addBody(body, pc.BODYGROUP_TRIGGER, pc.BODYMASK_NOT_STATIC ^ pc.BODYGROUP_TRIGGER);
@@ -105,10 +104,10 @@ pc.extend(pc, function () {
             body.activate();
 
             this.syncEntityToBody();
-        },
+        }
 
-        disable: function () {
-            var body = this.body;
+        disable() {
+            const body = this.body;
             if (!body) return;
 
             this.app.systems.rigidbody.removeBody(body);
@@ -117,10 +116,9 @@ pc.extend(pc, function () {
             // that it properly deactivates after we remove it from the physics world
             body.forceActivationState(pc.BODYSTATE_DISABLE_SIMULATION);
         }
-    };
+    }
 
     return {
-        Trigger: Trigger
+        Trigger
     };
-
-}());
+})());

@@ -1,22 +1,28 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
+    const properties = [ ];
 
-    var properties = [ ];
+    class AssetVariants {
+        constructor(asset) {
+            this.asset = asset;
+        }
 
-    var AssetVariants = function(asset) {
-        this.asset = asset;
-    };
+        clear() {
+            for (let i = 0; i < properties.length; i++)
+                this[properties[i]] = null;
+        }
+    }
 
-    var defineVariantProperty = function(name) {
-        var field = '_' + name;
+    const defineVariantProperty = name => {
+        const field = `_${name}`;
         properties.push(field);
 
         Object.defineProperty(AssetVariants.prototype, name, {
-            get: function() {
+            get() {
                 return this[field] || null;
             },
-            set: function(value) {
-                var fieldAsBool = !!this[field];
-                var valueAsBool = !!value;
+            set(value) {
+                const fieldAsBool = !!this[field];
+                const valueAsBool = !!value;
                 if (fieldAsBool !== valueAsBool || (this[field] && value && this[field].hash !== value.hash)) {
                     if (value) {
                         this[field] = {
@@ -45,13 +51,8 @@ pc.extend(pc, function () {
     defineVariantProperty('pvr');
     defineVariantProperty('etc1');
 
-    AssetVariants.prototype.clear = function() {
-        for (var i = 0; i < properties.length; i++)
-            this[properties[i]] = null;
-    };
-
 
     return {
-        AssetVariants: AssetVariants
+        AssetVariants
     };
-}());
+})());

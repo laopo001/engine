@@ -1,6 +1,4 @@
-pc.extend(pc, function () {
-    'use strict';
-
+pc.extend(pc, (() => {
     /**
      * @constructor
      * @name pc.Texture
@@ -85,201 +83,198 @@ pc.extend(pc, function () {
      * texture.unlock();
      * @property {String} name The name of the texture. Defaults to null.
      */
-    var Texture = function (graphicsDevice, options) {
-        this.device = graphicsDevice;
+    class Texture {
+        constructor(graphicsDevice, options) {
+            this.device = graphicsDevice;
 
-        this.name = null;
-        this._width = 4;
-        this._height = 4;
-        this._depth = 1;
-        this._pot = true;
+            this.name = null;
+            this._width = 4;
+            this._height = 4;
+            this._depth = 1;
+            this._pot = true;
 
-        this._format = pc.PIXELFORMAT_R8_G8_B8_A8;
-        this.rgbm = false;
+            this._format = pc.PIXELFORMAT_R8_G8_B8_A8;
+            this.rgbm = false;
 
-        this._cubemap = false;
-        this._volume = false;
-        this.fixCubemapSeams = false;
-        this._flipY = true;
+            this._cubemap = false;
+            this._volume = false;
+            this.fixCubemapSeams = false;
+            this._flipY = true;
 
-        this._mipmaps = true;
+            this._mipmaps = true;
 
-        this._minFilter = pc.FILTER_LINEAR_MIPMAP_LINEAR;
-        this._magFilter = pc.FILTER_LINEAR;
-        this._anisotropy = 1;
-        this._addressU = pc.ADDRESS_REPEAT;
-        this._addressV = pc.ADDRESS_REPEAT;
-        this._addressW = pc.ADDRESS_REPEAT;
+            this._minFilter = pc.FILTER_LINEAR_MIPMAP_LINEAR;
+            this._magFilter = pc.FILTER_LINEAR;
+            this._anisotropy = 1;
+            this._addressU = pc.ADDRESS_REPEAT;
+            this._addressV = pc.ADDRESS_REPEAT;
+            this._addressW = pc.ADDRESS_REPEAT;
 
-        this._compareOnRead = false;
-        this._compareFunc = pc.FUNC_LESS;
-
-        // #ifdef PROFILER
-        this.profilerHint = 0;
-        // #endif
-
-        if (options !== undefined) {
-            this._width = (options.width !== undefined) ? options.width : this._width;
-            this._height = (options.height !== undefined) ? options.height : this._height;
-            this._pot = pc.math.powerOfTwo(this._width) && pc.math.powerOfTwo(this._height);
-
-            this._format = (options.format !== undefined) ? options.format : this._format;
-            this.rgbm = (options.rgbm !== undefined) ? options.rgbm : this.rgbm;
-
-            if (options.mipmaps !== undefined) {
-                this._mipmaps = options.mipmaps;
-            } else {
-                this._mipmaps = (options.autoMipmap !== undefined) ? options.autoMipmap : this._mipmaps;
-            }
-
-            this._cubemap = (options.cubemap !== undefined) ? options.cubemap : this._cubemap;
-            this.fixCubemapSeams = (options.fixCubemapSeams !== undefined) ? options.fixCubemapSeams : this.fixCubemapSeams;
-
-            this._minFilter = (options.minFilter !== undefined) ? options.minFilter : this._minFilter;
-            this._magFilter = (options.magFilter !== undefined) ? options.magFilter : this._magFilter;
-            this._anisotropy = (options.anisotropy !== undefined) ? options.anisotropy : this._anisotropy;
-            this._addressU = (options.addressU !== undefined) ? options.addressU : this._addressU;
-            this._addressV = (options.addressV !== undefined) ? options.addressV : this._addressV;
-
-            this._compareOnRead = (options.compareOnRead !== undefined) ? options.compareOnRead : this._compareOnRead;
-            this._compareFunc = (options._compareFunc !== undefined) ? options._compareFunc : this._compareFunc;
-
-            this._flipY = (options.flipY !== undefined) ? options.flipY : this._flipY;
-
-            if (graphicsDevice.webgl2) {
-                this._depth = (options.depth !== undefined) ? options.depth : this._depth;
-                this._volume = (options.volume !== undefined) ? options.volume : this._volume;
-                this._addressW = (options.addressW !== undefined) ? options.addressW : this._addressW;
-            }
+            this._compareOnRead = false;
+            this._compareFunc = pc.FUNC_LESS;
 
             // #ifdef PROFILER
-            this.profilerHint = (options.profilerHint !== undefined)? options.profilerHint : this.profilerHint;
+            this.profilerHint = 0;
             // #endif
+
+            if (options !== undefined) {
+                this._width = (options.width !== undefined) ? options.width : this._width;
+                this._height = (options.height !== undefined) ? options.height : this._height;
+                this._pot = pc.math.powerOfTwo(this._width) && pc.math.powerOfTwo(this._height);
+
+                this._format = (options.format !== undefined) ? options.format : this._format;
+                this.rgbm = (options.rgbm !== undefined) ? options.rgbm : this.rgbm;
+
+                if (options.mipmaps !== undefined) {
+                    this._mipmaps = options.mipmaps;
+                } else {
+                    this._mipmaps = (options.autoMipmap !== undefined) ? options.autoMipmap : this._mipmaps;
+                }
+
+                this._cubemap = (options.cubemap !== undefined) ? options.cubemap : this._cubemap;
+                this.fixCubemapSeams = (options.fixCubemapSeams !== undefined) ? options.fixCubemapSeams : this.fixCubemapSeams;
+
+                this._minFilter = (options.minFilter !== undefined) ? options.minFilter : this._minFilter;
+                this._magFilter = (options.magFilter !== undefined) ? options.magFilter : this._magFilter;
+                this._anisotropy = (options.anisotropy !== undefined) ? options.anisotropy : this._anisotropy;
+                this._addressU = (options.addressU !== undefined) ? options.addressU : this._addressU;
+                this._addressV = (options.addressV !== undefined) ? options.addressV : this._addressV;
+
+                this._compareOnRead = (options.compareOnRead !== undefined) ? options.compareOnRead : this._compareOnRead;
+                this._compareFunc = (options._compareFunc !== undefined) ? options._compareFunc : this._compareFunc;
+
+                this._flipY = (options.flipY !== undefined) ? options.flipY : this._flipY;
+
+                if (graphicsDevice.webgl2) {
+                    this._depth = (options.depth !== undefined) ? options.depth : this._depth;
+                    this._volume = (options.volume !== undefined) ? options.volume : this._volume;
+                    this._addressW = (options.addressW !== undefined) ? options.addressW : this._addressW;
+                }
+
+                // #ifdef PROFILER
+                this.profilerHint = (options.profilerHint !== undefined)? options.profilerHint : this.profilerHint;
+                // #endif
+            }
+
+            this._compressed = (this._format === pc.PIXELFORMAT_DXT1 ||
+                                this._format === pc.PIXELFORMAT_DXT3 ||
+                                this._format === pc.PIXELFORMAT_DXT5 ||
+                                this._format >= pc.PIXELFORMAT_ETC1);
+
+            // Mip levels
+            this._invalid = false;
+            this._lockedLevel = -1;
+            this._levels = this._cubemap ? [[ null, null, null, null, null, null ]] : [ null ];
+
+            this.dirtyAll();
+
+            this._gpuSize = 0;
+
+            this.device.textures.push(this);
         }
 
-        this._compressed = (this._format === pc.PIXELFORMAT_DXT1 ||
-                            this._format === pc.PIXELFORMAT_DXT3 ||
-                            this._format === pc.PIXELFORMAT_DXT5 ||
-                            this._format >= pc.PIXELFORMAT_ETC1);
-
-        // Mip levels
-        this._invalid = false;
-        this._lockedLevel = -1;
-        this._levels = this._cubemap ? [[ null, null, null, null, null, null ]] : [ null ];
-
-        this.dirtyAll();
-
-        this._gpuSize = 0;
-
-        this.device.textures.push(this);
-    };
-
-    // Public properties
-    /**
-     * @name pc.Texture#minFilter
-     * @type Number
-     * @description The minification filter to be applied to the texture. Can be:
-     * <ul>
-     *     <li>{@link pc.FILTER_NEAREST}</li>
-     *     <li>{@link pc.FILTER_LINEAR}</li>
-     *     <li>{@link pc.FILTER_NEAREST_MIPMAP_NEAREST}</li>
-     *     <li>{@link pc.FILTER_NEAREST_MIPMAP_LINEAR}</li>
-     *     <li>{@link pc.FILTER_LINEAR_MIPMAP_NEAREST}</li>
-     *     <li>{@link pc.FILTER_LINEAR_MIPMAP_LINEAR}</li>
-     * </ul>
-     */
-    Object.defineProperty(Texture.prototype, 'minFilter', {
-        get: function () {
+        // Public properties
+        /**
+         * @name pc.Texture#minFilter
+         * @type Number
+         * @description The minification filter to be applied to the texture. Can be:
+         * <ul>
+         *     <li>{@link pc.FILTER_NEAREST}</li>
+         *     <li>{@link pc.FILTER_LINEAR}</li>
+         *     <li>{@link pc.FILTER_NEAREST_MIPMAP_NEAREST}</li>
+         *     <li>{@link pc.FILTER_NEAREST_MIPMAP_LINEAR}</li>
+         *     <li>{@link pc.FILTER_LINEAR_MIPMAP_NEAREST}</li>
+         *     <li>{@link pc.FILTER_LINEAR_MIPMAP_LINEAR}</li>
+         * </ul>
+         */
+        get minFilter() {
             return this._minFilter;
-        },
-        set: function (v) {
+        }
+
+        set minFilter(v) {
             if (this._minFilter !== v) {
                 this._minFilter = v;
                 this._minFilterDirty = true;
             }
         }
-    });
 
-    /**
-     * @name pc.Texture#magFilter
-     * @type Number
-     * @description The magnification filter to be applied to the texture. Can be:
-     * <ul>
-     *     <li>{@link pc.FILTER_NEAREST}</li>
-     *     <li>{@link pc.FILTER_LINEAR}</li>
-     * </ul>
-     */
-    Object.defineProperty(Texture.prototype, 'magFilter', {
-        get: function () {
+        /**
+         * @name pc.Texture#magFilter
+         * @type Number
+         * @description The magnification filter to be applied to the texture. Can be:
+         * <ul>
+         *     <li>{@link pc.FILTER_NEAREST}</li>
+         *     <li>{@link pc.FILTER_LINEAR}</li>
+         * </ul>
+         */
+        get magFilter() {
             return this._magFilter;
-        },
-        set: function (v) {
+        }
+
+        set magFilter(v) {
             if (this._magFilter !== v) {
                 this._magFilter = v;
                 this._magFilterDirty = true;
             }
         }
-    });
 
-    /**
-     * @name pc.Texture#addressU
-     * @type Number
-     * @description The addressing mode to be applied to the texture horizontally. Can be:
-     * <ul>
-     *     <li>{@link pc.ADDRESS_REPEAT}</li>
-     *     <li>{@link pc.ADDRESS_CLAMP_TO_EDGE}</li>
-     *     <li>{@link pc.ADDRESS_MIRRORED_REPEAT}</li>
-     * </ul>
-     */
-    Object.defineProperty(Texture.prototype, 'addressU', {
-        get: function () {
+        /**
+         * @name pc.Texture#addressU
+         * @type Number
+         * @description The addressing mode to be applied to the texture horizontally. Can be:
+         * <ul>
+         *     <li>{@link pc.ADDRESS_REPEAT}</li>
+         *     <li>{@link pc.ADDRESS_CLAMP_TO_EDGE}</li>
+         *     <li>{@link pc.ADDRESS_MIRRORED_REPEAT}</li>
+         * </ul>
+         */
+        get addressU() {
             return this._addressU;
-        },
-        set: function (v) {
+        }
+
+        set addressU(v) {
             if (this._addressU !== v) {
                 this._addressU = v;
                 this._addressUDirty = true;
             }
         }
-    });
 
-    /**
-     * @name pc.Texture#addressV
-     * @type Number
-     * @description The addressing mode to be applied to the texture vertically. Can be:
-     * <ul>
-     *     <li>{@link pc.ADDRESS_REPEAT}</li>
-     *     <li>{@link pc.ADDRESS_CLAMP_TO_EDGE}</li>
-     *     <li>{@link pc.ADDRESS_MIRRORED_REPEAT}</li>
-     * </ul>
-     */
-    Object.defineProperty(Texture.prototype, 'addressV', {
-        get: function () {
+        /**
+         * @name pc.Texture#addressV
+         * @type Number
+         * @description The addressing mode to be applied to the texture vertically. Can be:
+         * <ul>
+         *     <li>{@link pc.ADDRESS_REPEAT}</li>
+         *     <li>{@link pc.ADDRESS_CLAMP_TO_EDGE}</li>
+         *     <li>{@link pc.ADDRESS_MIRRORED_REPEAT}</li>
+         * </ul>
+         */
+        get addressV() {
             return this._addressV;
-        },
-        set: function (v) {
+        }
+
+        set addressV(v) {
             if (this._addressV !== v) {
                 this._addressV = v;
                 this._addressVDirty = true;
             }
         }
-    });
 
-    /**
-     * @name pc.Texture#addressW
-     * @type Number
-     * @description The addressing mode to be applied to the 3D texture depth (WebGL2 only). Can be:
-     * <ul>
-     *     <li>{@link pc.ADDRESS_REPEAT}</li>
-     *     <li>{@link pc.ADDRESS_CLAMP_TO_EDGE}</li>
-     *     <li>{@link pc.ADDRESS_MIRRORED_REPEAT}</li>
-     * </ul>
-     */
-    Object.defineProperty(Texture.prototype, 'addressW', {
-        get: function () {
+        /**
+         * @name pc.Texture#addressW
+         * @type Number
+         * @description The addressing mode to be applied to the 3D texture depth (WebGL2 only). Can be:
+         * <ul>
+         *     <li>{@link pc.ADDRESS_REPEAT}</li>
+         *     <li>{@link pc.ADDRESS_CLAMP_TO_EDGE}</li>
+         *     <li>{@link pc.ADDRESS_MIRRORED_REPEAT}</li>
+         * </ul>
+         */
+        get addressW() {
             return this._addressW;
-        },
-        set: function (addressW) {
+        }
+
+        set addressW(addressW) {
             if (!this.device.webgl2) return;
             if (!this._volume) {
                 logWARNING("Can't set W addressing mode for a non-3D texture.");
@@ -290,78 +285,74 @@ pc.extend(pc, function () {
                 this._addressWDirty = true;
             }
         }
-    });
 
-    /**
-     * @name pc.Texture#compareOnRead
-     * @type Boolean
-     * @description When enabled, and if texture format is pc.PIXELFORMAT_DEPTH or pc.PIXELFORMAT_DEPTHSTENCIL,
-     * hardware PCF is enabled for this texture, and you can get filtered results of comparison using texture() in your shader (WebGL2 only).
-     */
-    Object.defineProperty(Texture.prototype, 'compareOnRead', {
-        get: function () {
+        /**
+         * @name pc.Texture#compareOnRead
+         * @type Boolean
+         * @description When enabled, and if texture format is pc.PIXELFORMAT_DEPTH or pc.PIXELFORMAT_DEPTHSTENCIL,
+         * hardware PCF is enabled for this texture, and you can get filtered results of comparison using texture() in your shader (WebGL2 only).
+         */
+        get compareOnRead() {
             return this._compareOnRead;
-        },
-        set: function (v) {
+        }
+
+        set compareOnRead(v) {
             if (this._compareOnRead !== v) {
                 this._compareOnRead = v;
                 this._compareModeDirty = true;
             }
         }
-    });
 
-    /**
-     * @name pc.Texture#compareFunc
-     * @type Number
-     * @description Comparison function when compareOnRead is enabled (WebGL2 only).
-     * Possible values:
-     * <ul>
-     *     <li>pc.FUNC_LESS</li>
-     *     <li>pc.FUNC_LESSEQUAL</li>
-     *     <li>pc.FUNC_GREATER</li>
-     *     <li>pc.FUNC_GREATEREQUAL</li>
-     *     <li>pc.FUNC_EQUAL</li>
-     *     <li>pc.FUNC_NOTEQUAL</li>
-     * </ul>
-     */
-    Object.defineProperty(Texture.prototype, 'compareFunc', {
-        get: function () {
+        /**
+         * @name pc.Texture#compareFunc
+         * @type Number
+         * @description Comparison function when compareOnRead is enabled (WebGL2 only).
+         * Possible values:
+         * <ul>
+         *     <li>pc.FUNC_LESS</li>
+         *     <li>pc.FUNC_LESSEQUAL</li>
+         *     <li>pc.FUNC_GREATER</li>
+         *     <li>pc.FUNC_GREATEREQUAL</li>
+         *     <li>pc.FUNC_EQUAL</li>
+         *     <li>pc.FUNC_NOTEQUAL</li>
+         * </ul>
+         */
+        get compareFunc() {
             return this._compareFunc;
-        },
-        set: function (v) {
+        }
+
+        set compareFunc(v) {
             if (this._compareFunc !== v) {
                 this._compareFunc = v;
                 this._compareModeDirty = true;
             }
         }
-    });
 
-    /**
-     * @private
-     * @deprecated
-     * @name pc.Texture#autoMipmap
-     * @type Boolean
-     * @description Toggles automatic mipmap generation. Can't be used on non power of two textures.
-     */
-    Object.defineProperty(Texture.prototype, 'autoMipmap', {
-        get: function () {
+        /**
+         * @private
+         * @deprecated
+         * @name pc.Texture#autoMipmap
+         * @type Boolean
+         * @description Toggles automatic mipmap generation. Can't be used on non power of two textures.
+         */
+        get autoMipmap() {
             return this._mipmaps;
-        },
-        set: function (v) {
+        }
+
+        set autoMipmap(v) {
             this._mipmaps = v;
         }
-    });
 
-    /**
-     * @name pc.Texture#mipmaps
-     * @type Boolean
-     * @description Defines if texture should generate/upload mipmaps if possible.
-     */
-    Object.defineProperty(Texture.prototype, 'mipmaps', {
-        get: function () {
+        /**
+         * @name pc.Texture#mipmaps
+         * @type Boolean
+         * @description Defines if texture should generate/upload mipmaps if possible.
+         */
+        get mipmaps() {
             return this._mipmaps;
-        },
-        set: function (v) {
+        }
+
+        set mipmaps(v) {
             if (this._mipmaps !== v) {
                 this._mipmaps = v;
                 this._minFilterDirty = true;
@@ -369,139 +360,125 @@ pc.extend(pc, function () {
                 if (v) this._needsMipmapsUpload = true;
             }
         }
-    });
 
-    /**
-     * @name pc.Texture#anisotropy
-     * @type Number
-     * @description Integer value specifying the level of anisotropic to apply to the texture
-     * ranging from 1 (no anisotropic filtering) to the {@link pc.GraphicsDevice} property maxAnisotropy.
-     */
-    Object.defineProperty(Texture.prototype, 'anisotropy', {
-        get: function () {
+        /**
+         * @name pc.Texture#anisotropy
+         * @type Number
+         * @description Integer value specifying the level of anisotropic to apply to the texture
+         * ranging from 1 (no anisotropic filtering) to the {@link pc.GraphicsDevice} property maxAnisotropy.
+         */
+        get anisotropy() {
             return this._anisotropy;
-        },
-        set: function (v) {
+        }
+
+        set anisotropy(v) {
             if (this._anisotropy !== v) {
                 this._anisotropy = v;
                 this._anisotropyDirty = true;
             }
         }
-    });
 
-    /**
-     * @readonly
-     * @name pc.Texture#width
-     * @type Number
-     * @description The width of the texture in pixels.
-     */
-    Object.defineProperty(Texture.prototype, 'width', {
-        get: function () {
+        /**
+         * @readonly
+         * @name pc.Texture#width
+         * @type Number
+         * @description The width of the texture in pixels.
+         */
+        get width() {
             return this._width;
         }
-    });
 
-    /**
-     * @readonly
-     * @name pc.Texture#height
-     * @type Number
-     * @description The height of the texture in pixels.
-     */
-    Object.defineProperty(Texture.prototype, 'height', {
-        get: function () {
+        /**
+         * @readonly
+         * @name pc.Texture#height
+         * @type Number
+         * @description The height of the texture in pixels.
+         */
+        get height() {
             return this._height;
         }
-    });
 
-    /**
-     * @readonly
-     * @name pc.Texture#depth
-     * @type Number
-     * @description The number of depth slices in a 3D texture (WebGL2 only).
-     */
-    Object.defineProperty(Texture.prototype, 'depth', {
-        get: function () {
+        /**
+         * @readonly
+         * @name pc.Texture#depth
+         * @type Number
+         * @description The number of depth slices in a 3D texture (WebGL2 only).
+         */
+        get depth() {
             return this._depth;
         }
-    });
 
-    /**
-     * @readonly
-     * @name pc.Texture#format
-     * @type Number
-     * @description The pixel format of the texture. Can be:
-     * <ul>
-     *     <li>{@link pc.PIXELFORMAT_A8}</li>
-     *     <li>{@link pc.PIXELFORMAT_L8}</li>
-     *     <li>{@link pc.PIXELFORMAT_L8_A8}</li>
-     *     <li>{@link pc.PIXELFORMAT_R5_G6_B5}</li>
-     *     <li>{@link pc.PIXELFORMAT_R5_G5_B5_A1}</li>
-     *     <li>{@link pc.PIXELFORMAT_R4_G4_B4_A4}</li>
-     *     <li>{@link pc.PIXELFORMAT_R8_G8_B8}</li>
-     *     <li>{@link pc.PIXELFORMAT_R8_G8_B8_A8}</li>
-     *     <li>{@link pc.PIXELFORMAT_DXT1}</li>
-     *     <li>{@link pc.PIXELFORMAT_DXT3}</li>
-     *     <li>{@link pc.PIXELFORMAT_DXT5}</li>
-     *     <li>{@link pc.PIXELFORMAT_RGB16F}</li>
-     *     <li>{@link pc.PIXELFORMAT_RGBA16F}</li>
-     *     <li>{@link pc.PIXELFORMAT_RGB32F}</li>
-     *     <li>{@link pc.PIXELFORMAT_RGBA32F}</li>
-     *     <li>{@link pc.PIXELFORMAT_ETC1}</li>
-     *     <li>{@link pc.PIXELFORMAT_PVRTC_2BPP_RGB_1}</li>
-     *     <li>{@link pc.PIXELFORMAT_PVRTC_2BPP_RGBA_1}</li>
-     *     <li>{@link pc.PIXELFORMAT_PVRTC_4BPP_RGB_1}</li>
-     *     <li>{@link pc.PIXELFORMAT_PVRTC_4BPP_RGBA_1}</li>
-     *     <li>{@link pc.PIXELFORMAT_111110F}</li>
-     * </ul>
-     */
-    Object.defineProperty(Texture.prototype, 'format', {
-        get: function () {
+        /**
+         * @readonly
+         * @name pc.Texture#format
+         * @type Number
+         * @description The pixel format of the texture. Can be:
+         * <ul>
+         *     <li>{@link pc.PIXELFORMAT_A8}</li>
+         *     <li>{@link pc.PIXELFORMAT_L8}</li>
+         *     <li>{@link pc.PIXELFORMAT_L8_A8}</li>
+         *     <li>{@link pc.PIXELFORMAT_R5_G6_B5}</li>
+         *     <li>{@link pc.PIXELFORMAT_R5_G5_B5_A1}</li>
+         *     <li>{@link pc.PIXELFORMAT_R4_G4_B4_A4}</li>
+         *     <li>{@link pc.PIXELFORMAT_R8_G8_B8}</li>
+         *     <li>{@link pc.PIXELFORMAT_R8_G8_B8_A8}</li>
+         *     <li>{@link pc.PIXELFORMAT_DXT1}</li>
+         *     <li>{@link pc.PIXELFORMAT_DXT3}</li>
+         *     <li>{@link pc.PIXELFORMAT_DXT5}</li>
+         *     <li>{@link pc.PIXELFORMAT_RGB16F}</li>
+         *     <li>{@link pc.PIXELFORMAT_RGBA16F}</li>
+         *     <li>{@link pc.PIXELFORMAT_RGB32F}</li>
+         *     <li>{@link pc.PIXELFORMAT_RGBA32F}</li>
+         *     <li>{@link pc.PIXELFORMAT_ETC1}</li>
+         *     <li>{@link pc.PIXELFORMAT_PVRTC_2BPP_RGB_1}</li>
+         *     <li>{@link pc.PIXELFORMAT_PVRTC_2BPP_RGBA_1}</li>
+         *     <li>{@link pc.PIXELFORMAT_PVRTC_4BPP_RGB_1}</li>
+         *     <li>{@link pc.PIXELFORMAT_PVRTC_4BPP_RGBA_1}</li>
+         *     <li>{@link pc.PIXELFORMAT_111110F}</li>
+         * </ul>
+         */
+        get format() {
             return this._format;
         }
-    });
 
-    /**
-     * @readonly
-     * @name pc.Texture#cubemap
-     * @type Boolean
-     * @description Returns true if this texture is a cube map and false otherwise.
-     */
-    Object.defineProperty(Texture.prototype, 'cubemap', {
-        get: function () {
+        /**
+         * @readonly
+         * @name pc.Texture#cubemap
+         * @type Boolean
+         * @description Returns true if this texture is a cube map and false otherwise.
+         */
+        get cubemap() {
             return this._cubemap;
         }
-    });
 
-    /**
-     * @readonly
-     * @name pc.Texture#volume
-     * @type Boolean
-     * @description Returns true if this texture is a 3D volume and false otherwise.
-     */
-    Object.defineProperty(Texture.prototype, 'volume', {
-        get: function () {
+        /**
+         * @readonly
+         * @name pc.Texture#volume
+         * @type Boolean
+         * @description Returns true if this texture is a 3D volume and false otherwise.
+         */
+        get volume() {
             return this._volume;
         }
-    });
 
-    /**
-     * @name pc.Texture#flipY
-     * @type Boolean
-     * @description Specifies whether the texture should be flipped in the Y-direction. Only affects textures
-     * with a source that is an image, canvas or video element. Does not affect cubemaps, compressed textures
-     * or textures set from raw pixel data. Defaults to true.
-     */
-    Object.defineProperty(Texture.prototype, 'flipY', {
-        get: function () {
+        /**
+         * @name pc.Texture#flipY
+         * @type Boolean
+         * @description Specifies whether the texture should be flipped in the Y-direction. Only affects textures
+         * with a source that is an image, canvas or video element. Does not affect cubemaps, compressed textures
+         * or textures set from raw pixel data. Defaults to true.
+         */
+        get flipY() {
             return this._flipY;
-        },
-        set: function (flipY) {
+        }
+
+        set flipY(flipY) {
             if (this._flipY !== flipY) {
                 this._flipY = flipY;
                 this._needsUpload = true;
             }
         }
-    });
+    }
 
     // Public methods
     pc.extend(Texture.prototype, {
@@ -510,15 +487,15 @@ pc.extend(pc, function () {
          * @name pc.Texture#destroy
          * @description Forcibly free up the underlying WebGL resource owned by the texture.
          */
-        destroy: function () {
-            var device = this.device;
-            var idx = device.textures.indexOf(this);
+        destroy() {
+            const device = this.device;
+            const idx = device.textures.indexOf(this);
             if (idx !== -1) {
                 device.textures.splice(idx, 1);
             }
 
             if (this._glTextureId) {
-                var gl = this.device.gl;
+                const gl = this.device.gl;
                 gl.deleteTexture(this._glTextureId);
 
                 this.device._vram.tex -= this._gpuSize;
@@ -537,7 +514,7 @@ pc.extend(pc, function () {
         },
 
         // Force a full resubmission of the texture to WebGL (used on a context restore event)
-        dirtyAll: function () {
+        dirtyAll() {
             this._glTextureId = undefined;
             this._levelsUpdated = this._cubemap ? [[ true, true, true, true, true, true ]] : [ true ];
 
@@ -563,7 +540,7 @@ pc.extend(pc, function () {
          * @param {Number} options.face If the texture is a cubemap, this is the index of the face to lock.
          * @returns {ArrayBuffer} A typed array containing the pixel data of the locked mip level.
          */
-        lock: function (options) {
+        lock(options) {
             // Initialize options to some sensible defaults
             options = options || { level: 0, face: 0, mode: pc.TEXTURELOCK_WRITE };
             if (options.level === undefined) {
@@ -631,10 +608,10 @@ pc.extend(pc, function () {
          * @param {HTMLCanvasElement|HTMLImageElement|HTMLVideoElement|Array} source A canvas, image or video element,
          * or an array of 6 canvas, image or video elements.
          */
-        setSource: function (source) {
-            var i;
-            var invalid = false;
-            var width, height;
+        setSource(source) {
+            let i;
+            let invalid = false;
+            let width, height;
 
             if (this._cubemap) {
                 if (source[0]) {
@@ -725,7 +702,7 @@ pc.extend(pc, function () {
          * a single image.
          * @returns {HTMLImageElement} The source image of this texture.
          */
-        getSource: function () {
+        getSource() {
             return this._levels[0];
         },
 
@@ -734,7 +711,7 @@ pc.extend(pc, function () {
          * @name pc.Texture#unlock
          * @description Unlocks the currently locked mip level and uploads it to VRAM.
          */
-        unlock: function () {
+        unlock() {
             logASSERT(this._lockedLevel !== -1, "Attempting to unlock a texture that is not locked");
 
             // Upload the new pixel data
@@ -750,37 +727,37 @@ pc.extend(pc, function () {
          * be called explicitly in the case where an HTMLVideoElement is set as the source of the texture.  Normally,
          * this is done once every frame before video textured geometry is rendered.
          */
-        upload: function () {
+        upload() {
             this._needsUpload = true;
             this._needsMipmapsUpload = this._mipmaps;
         },
 
-        getDds: function () {
+        getDds() {
             if (this.format !== pc.PIXELFORMAT_R8_G8_B8_A8)
                 console.error("This format is not implemented yet");
 
-            var fsize = 128;
-            var i = 0;
-            var j;
-            var face;
+            let fsize = 128;
+            let i = 0;
+            let j;
+            let face;
             while (this._levels[i]) {
-                var mipSize;
+                let mipSize;
                 if (!this.cubemap) {
                     mipSize = this._levels[i].length;
                     if (!mipSize) {
-                        console.error("No byte array for mip " + i);
+                        console.error(`No byte array for mip ${i}`);
                         return;
                     }
                     fsize += mipSize;
                 } else {
                     for (face=0; face<6; face++) {
                         if (! this._levels[i][face]) {
-                            console.error('No level data for mip ' + i + ', face ' + face);
+                            console.error(`No level data for mip ${i}, face ${face}`);
                             return;
                         }
                         mipSize = this._levels[i][face].length;
                         if (!mipSize) {
-                            console.error("No byte array for mip " + i + ", face " + face);
+                            console.error(`No byte array for mip ${i}, face ${face}`);
                             return;
                         }
                         fsize += mipSize;
@@ -790,28 +767,28 @@ pc.extend(pc, function () {
                 i++;
             }
 
-            var buff = new ArrayBuffer(fsize);
-            var header = new Uint32Array(buff, 0, 128 / 4);
+            const buff = new ArrayBuffer(fsize);
+            const header = new Uint32Array(buff, 0, 128 / 4);
 
-            var DDS_MAGIC = 542327876; // "DDS"
-            var DDS_HEADER_SIZE = 124;
-            var DDS_FLAGS_REQUIRED = 0x01 | 0x02 | 0x04 | 0x1000 | 0x80000; // caps | height | width | pixelformat | linearsize
-            var DDS_FLAGS_MIPMAP = 0x20000;
-            var DDS_PIXELFORMAT_SIZE = 32;
-            var DDS_PIXELFLAGS_RGBA8 = 0x01 | 0x40; // alpha | rgb
-            var DDS_CAPS_REQUIRED = 0x1000;
-            var DDS_CAPS_MIPMAP = 0x400000;
-            var DDS_CAPS_COMPLEX = 0x8;
-            var DDS_CAPS2_CUBEMAP = 0x200 | 0x400 | 0x800 | 0x1000 | 0x2000 | 0x4000 | 0x8000; // cubemap | all faces
+            const DDS_MAGIC = 542327876; // "DDS"
+            const DDS_HEADER_SIZE = 124;
+            const DDS_FLAGS_REQUIRED = 0x01 | 0x02 | 0x04 | 0x1000 | 0x80000; // caps | height | width | pixelformat | linearsize
+            const DDS_FLAGS_MIPMAP = 0x20000;
+            const DDS_PIXELFORMAT_SIZE = 32;
+            const DDS_PIXELFLAGS_RGBA8 = 0x01 | 0x40; // alpha | rgb
+            const DDS_CAPS_REQUIRED = 0x1000;
+            const DDS_CAPS_MIPMAP = 0x400000;
+            const DDS_CAPS_COMPLEX = 0x8;
+            const DDS_CAPS2_CUBEMAP = 0x200 | 0x400 | 0x800 | 0x1000 | 0x2000 | 0x4000 | 0x8000; // cubemap | all faces
 
-            var flags = DDS_FLAGS_REQUIRED;
+            let flags = DDS_FLAGS_REQUIRED;
             if (this._levels.length > 1) flags |= DDS_FLAGS_MIPMAP;
 
-            var caps = DDS_CAPS_REQUIRED;
+            let caps = DDS_CAPS_REQUIRED;
             if (this._levels.length > 1) caps |= DDS_CAPS_MIPMAP;
             if (this._levels.length > 1 || this.cubemap) caps |= DDS_CAPS_COMPLEX;
 
-            var caps2 = this.cubemap? DDS_CAPS2_CUBEMAP : 0;
+            const caps2 = this.cubemap? DDS_CAPS2_CUBEMAP : 0;
 
             header[0] = DDS_MAGIC;
             header[1] = DDS_HEADER_SIZE;
@@ -836,8 +813,8 @@ pc.extend(pc, function () {
             header[30] = 0;
             header[31] = 0;
 
-            var offset = 128;
-            var level, mip;
+            let offset = 128;
+            let level, mip;
             if (!this.cubemap) {
                 for (i=0; i<this._levels.length; i++) {
                     level = this._levels[i];
@@ -861,6 +838,6 @@ pc.extend(pc, function () {
     });
 
     return {
-        Texture: Texture
+        Texture
     };
-}());
+})());

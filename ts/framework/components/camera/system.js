@@ -1,5 +1,5 @@
-pc.extend(pc, function () {
-    var _schema = [
+pc.extend(pc, (() => {
+    const _schema = [
         'enabled',
         'clearColorBuffer',
         'clearColor',
@@ -38,10 +38,10 @@ pc.extend(pc, function () {
      * @property {pc.CameraComponent[]} cameras Holds all the active camera components
      * @extends pc.ComponentSystem
      */
-    var CameraComponentSystem = function (app) {
+    let CameraComponentSystem = function({systems}) {
         this.id = 'camera';
         this.description = "Renders the scene from the location of the Entity.";
-        app.systems.add(this.id, this);
+        systems.add(this.id, this);
 
         this.ComponentType = pc.CameraComponent;
         this.DataType = pc.CameraComponentData;
@@ -61,7 +61,7 @@ pc.extend(pc, function () {
     pc.Component._buildAccessors(pc.CameraComponent.prototype, _schema);
 
     pc.extend(CameraComponentSystem.prototype, {
-        initializeComponentData: function (component, _data, properties) {
+        initializeComponentData(component, _data, properties) {
             properties = [
                 'postEffects',
                 'enabled',
@@ -92,8 +92,8 @@ pc.extend(pc, function () {
             ];
 
             // duplicate data because we're modifying the data
-            var data = {};
-            properties.forEach(function (prop) {
+            const data = {};
+            properties.forEach(prop => {
                 data[prop] = _data[prop];
             });
 
@@ -102,17 +102,17 @@ pc.extend(pc, function () {
             }
 
             if (data.clearColor && pc.type(data.clearColor) === 'array') {
-                var c = data.clearColor;
+                const c = data.clearColor;
                 data.clearColor = new pc.Color(c[0], c[1], c[2], c[3]);
             }
 
             if (data.rect && pc.type(data.rect) === 'array') {
-                var rect = data.rect;
+                const rect = data.rect;
                 data.rect = new pc.Vec4(rect[0], rect[1], rect[2], rect[3]);
             }
 
             if (data.scissorRect && pc.type(data.scissorRect) === 'array') {
-                var scissorRect = data.scissorRect;
+                const scissorRect = data.scissorRect;
                 data.scissorRect = new pc.Vec4(scissorRect[0], scissorRect[1], scissorRect[2], scissorRect[3]);
             }
 
@@ -125,14 +125,14 @@ pc.extend(pc, function () {
             data._node = component.entity;
             data.camera._component = component;
 
-            var self = component;
-            data.camera.calculateTransform = function(mat, mode) {
+            const self = component;
+            data.camera.calculateTransform = (mat, mode) => {
                 if (!self._calculateTransform)
                     return null;
 
                 return self._calculateTransform(mat, mode);
             };
-            data.camera.calculateProjection = function(mat, mode) {
+            data.camera.calculateProjection = (mat, mode) => {
                 if (!self._calculateProjection)
                     return null;
 
@@ -144,20 +144,20 @@ pc.extend(pc, function () {
             CameraComponentSystem._super.initializeComponentData.call(this, component, data, properties);
         },
 
-        onBeforeRemove: function (entity, component) {
+        onBeforeRemove(entity, component) {
             this.removeCamera(component);
         },
 
-        onRemove: function (entity, data) {
+        onRemove(entity, data) {
             data.camera = null;
         },
 
-        onUpdate: function (dt) {
-            var components = this.store;
-            var component, componentData, cam, vrDisplay;
+        onUpdate(dt) {
+            const components = this.store;
+            let component, componentData, cam, vrDisplay;
 
             if (this.app.vr) {
-                for (var id in components) {
+                for (const id in components) {
                     component = components[id];
                     componentData = component.data;
                     cam = componentData.camera;
@@ -178,27 +178,25 @@ pc.extend(pc, function () {
             }
         },
 
-        addCamera: function (camera) {
+        addCamera(camera) {
             this.cameras.push(camera);
             this.sortCamerasByPriority();
         },
 
-        removeCamera: function (camera) {
-            var index = this.cameras.indexOf(camera);
+        removeCamera(camera) {
+            const index = this.cameras.indexOf(camera);
             if (index >= 0) {
                 this.cameras.splice(index, 1);
                 this.sortCamerasByPriority();
             }
         },
 
-        sortCamerasByPriority: function () {
-            this.cameras.sort(function (a, b) {
-                return a.priority - b.priority;
-            });
+        sortCamerasByPriority() {
+            this.cameras.sort(({priority}, {priority}) => priority - priority);
         }
     });
 
     return {
-        CameraComponentSystem: CameraComponentSystem
+        CameraComponentSystem
     };
-}());
+})());

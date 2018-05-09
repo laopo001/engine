@@ -1,27 +1,25 @@
-pc.extend(pc, function () {
-    'use strict';
+pc.extend(pc, (() => {
+    class SceneSettingsHandler {
+        constructor(app) {
+            this._app = app;
+        }
 
-    var SceneSettingsHandler = function (app) {
-        this._app = app;
-    };
-
-    SceneSettingsHandler.prototype = {
-        load: function (url, callback) {
-            pc.http.get(url, function (err, response) {
+        load(url, callback) {
+            pc.http.get(url, (err, response) => {
                 if (!err) {
                     callback(null, response);
                 } else {
-                    callback("Error requesting scene: " + url);
+                    callback(`Error requesting scene: ${url}`);
                 }
             });
-        },
-
-        open: function (url, data) {
-            return data.settings;
         }
-    };
+
+        open(url, {settings}) {
+            return settings;
+        }
+    }
 
     return {
-        SceneSettingsHandler: SceneSettingsHandler
+        SceneSettingsHandler
     };
-}());
+})());

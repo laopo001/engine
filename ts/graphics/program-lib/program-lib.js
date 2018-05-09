@@ -1,14 +1,14 @@
 pc.programlib = {
-    gammaCode: function (value) {
+    gammaCode(value) {
         if (value === pc.GAMMA_SRGB || value === pc.GAMMA_SRGBFAST) {
             return pc.shaderChunks.gamma2_2PS;
         } else if (value === pc.GAMMA_SRGBHDR) {
-            return "#define HDR\n" + pc.shaderChunks.gamma2_2PS;
+            return `#define HDR\n${pc.shaderChunks.gamma2_2PS}`;
         }
         return pc.shaderChunks.gamma1_0PS;
     },
 
-    tonemapCode: function (value) {
+    tonemapCode(value) {
         if (value === pc.TONEMAP_FILMIC) {
             return pc.shaderChunks.tonemappingFilmicPS;
         } else if (value === pc.TONEMAP_LINEAR) {
@@ -23,7 +23,7 @@ pc.programlib = {
         return pc.shaderChunks.tonemappingNonePS;
     },
 
-    fogCode: function(value) {
+    fogCode(value) {
         if (value === 'linear') {
             return pc.shaderChunks.fogLinearPS;
         } else if (value === 'exp') {
@@ -35,36 +35,36 @@ pc.programlib = {
         }
     },
 
-    skinCode: function(device, chunks) {
+    skinCode(device, chunks) {
         if (!chunks) chunks = pc.shaderChunks;
         if (device.supportsBoneTextures) {
             return chunks.skinTexVS;
         } else {
-            return "#define BONE_LIMIT " + device.getBoneLimit() + "\n" + chunks.skinConstVS;
+            return `#define BONE_LIMIT ${device.getBoneLimit()}\n${chunks.skinConstVS}`;
         }
     },
 
-    precisionCode: function(device) {
-        var pcode = 'precision ' + device.precision + ' float;\n';
-        if (device.webgl2) {
-            pcode += '#ifdef GL2\nprecision ' + device.precision + ' sampler2DShadow;\n#endif\n';
+    precisionCode({precision, webgl2}) {
+        let pcode = `precision ${precision} float;\n`;
+        if (webgl2) {
+            pcode += `#ifdef GL2\nprecision ${precision} sampler2DShadow;\n#endif\n`;
         }
         return pcode;
     },
 
-    versionCode: function(device) {
-        return device.webgl2 ? "#version 300 es\n" : "";
+    versionCode({webgl2}) {
+        return webgl2 ? "#version 300 es\n" : "";
     },
 
-    dummyFragmentCode: function() {
+    dummyFragmentCode() {
         return "void main(void) {gl_FragColor = vec4(0.0);}";
     },
 
-    begin: function() {
+    begin() {
         return 'void main(void)\n{\n';
     },
 
-    end: function() {
+    end() {
         return '}\n';
     }
 };

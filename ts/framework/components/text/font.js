@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     pc.FONT_MSDF = 'msdf';
 
     /**
@@ -10,31 +10,28 @@ pc.extend(pc, function () {
      * @property {Number} intensity The font intensity
      * @property {pc.Texture[]} textures The font textures
      */
-    var Font = function (textures, data) {
-        this.type = pc.FONT_MSDF;
+    class Font {
+        constructor(textures, data) {
+            this.type = pc.FONT_MSDF;
 
-        this.em = 1;
+            this.em = 1;
 
-        // atlas texture
-        this.textures = textures;
+            // atlas texture
+            this.textures = textures;
 
-        // intensity
-        this.intensity = 0.0;
+            // intensity
+            this.intensity = 0.0;
 
-        // json data
-        this._data = null;
-        this.data = data;
-    };
+            // json data
+            this._data = null;
+            this.data = data;
+        }
 
-    Font.prototype = {
-    };
-
-    Object.defineProperty(Font.prototype, "data", {
-        get: function () {
+        get data() {
             return this._data;
-        },
+        }
 
-        set: function (value){
+        set data(value) {
             this._data = value;
             if (! value)
                 return;
@@ -54,16 +51,19 @@ pc.extend(pc, function () {
                 }];
 
                 if (this._data.chars) {
-                    for (var key in this._data.chars) {
+                    for (const key in this._data.chars) {
                         this._data.chars[key].map = 0;
                     }
                 }
             }
         }
-    });
+    }
+
+    Font.prototype = {
+    };
 
     return {
         FONT_MSDF: pc.FONT_MSDF,
-        Font: Font
+        Font
     };
-}());
+})());

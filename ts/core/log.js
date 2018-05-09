@@ -1,5 +1,5 @@
-pc.extend(pc, function () {
-    var log = {
+pc.extend(pc, (() => {
+    const log = {
         /**
          * @private
          * @function
@@ -7,7 +7,7 @@ pc.extend(pc, function () {
          * @description Write text to the console
          * @param {String} text The text to log.
          */
-        write: function (text) {
+        write(text) {
             console.log(text);
         },
 
@@ -17,8 +17,8 @@ pc.extend(pc, function () {
          * @name pc.log.open
          * @description Starting logging to the console
          */
-        open: function () {
-            pc.log.write("Powered by PlayCanvas " + pc.version + " " + pc.revision);
+        open() {
+            pc.log.write(`Powered by PlayCanvas ${pc.version} ${pc.revision}`);
         },
 
         /**
@@ -28,8 +28,8 @@ pc.extend(pc, function () {
          * @description Write text to the log preceded by 'INFO:'
          * @param {String} text The text to log.
          */
-        info: function (text) {
-            console.info("INFO:    " + text);
+        info(text) {
+            console.info(`INFO:    ${text}`);
         },
 
         /**
@@ -39,8 +39,8 @@ pc.extend(pc, function () {
          * @description Write text to the log preceded by 'DEBUG:'
          * @param {String} text The text to log.
          */
-        debug: function (text) {
-            console.debug("DEBUG:   " + text);
+        debug(text) {
+            console.debug(`DEBUG:   ${text}`);
         },
 
         /**
@@ -50,8 +50,8 @@ pc.extend(pc, function () {
          * @description Write text to the log preceded by 'ERROR:'
          * @param {String} text The text to log.
          */
-        error: function (text) {
-            console.error("ERROR:   " + text);
+        error(text) {
+            console.error(`ERROR:   ${text}`);
         },
 
         /**
@@ -61,8 +61,8 @@ pc.extend(pc, function () {
          * @description Write text to the log preceded by 'WARNING:'
          * @param {String} text The text to log.
          */
-        warning: function (text) {
-            console.warn("WARNING: " + text);
+        warning(text) {
+            console.warn(`WARNING: ${text}`);
         },
 
         /**
@@ -72,8 +72,8 @@ pc.extend(pc, function () {
          * @description Write text to the log preceded by 'ALERT:' and pop up an alert dialog box with the text
          * @param {String} text The text to show in the alert.
          */
-        alert: function (text) {
-            pc.log.write("ALERT:   " + text);
+        alert(text) {
+            pc.log.write(`ALERT:   ${text}`);
             alert(text);
         },
 
@@ -85,24 +85,24 @@ pc.extend(pc, function () {
          * @param {Boolean} condition The condition to test.
          * @param {String} text The text to show if the condition is false.
          */
-        assert: function (condition, text) {
+        assert(condition, text) {
             if (condition === false) {
-                pc.log.write("ASSERT:  " + text);
-                alert("ASSERT failed: " + text);
+                pc.log.write(`ASSERT:  ${text}`);
+                alert(`ASSERT failed: ${text}`);
             }
         }
     };
 
     return {
-        log: log
+        log
     };
-}());
+})());
 
 // Shortcuts to logging functions
-var logINFO = pc.log.info;
-var logDEBUG = pc.log.debug;
-var logWARNING = pc.log.warning;
-var logERROR = pc.log.error;
+const logINFO = pc.log.info;
+const logDEBUG = pc.log.debug;
+const logWARNING = pc.log.warning;
+const logERROR = pc.log.error;
 
-var logALERT = pc.log.alert;
-var logASSERT = pc.log.assert;
+const logALERT = pc.log.alert;
+const logASSERT = pc.log.assert;

@@ -1,5 +1,5 @@
-pc.extend(pc, function () {
-    var _schema = [
+pc.extend(pc, (() => {
+    const _schema = [
         'enabled',
         'type',
         'asset',
@@ -26,7 +26,7 @@ pc.extend(pc, function () {
      * @param {pc.Application} app The Application.
      * @extends pc.ComponentSystem
      */
-    var ModelComponentSystem = function ModelComponentSystem (app) {
+    let ModelComponentSystem = function ModelComponentSystem (app) {
         this.id = 'model';
         this.description = "Renders a 3D model at the location of the Entity.";
         app.systems.add(this.id, this);
@@ -36,7 +36,7 @@ pc.extend(pc, function () {
 
         this.schema = _schema;
 
-        var gd = app.graphicsDevice;
+        const gd = app.graphicsDevice;
         this.box = pc.createBox(gd, {
             halfExtents: new pc.Vec3(0.5, 0.5, 0.5)
         });
@@ -71,15 +71,15 @@ pc.extend(pc, function () {
     pc.Component._buildAccessors(pc.ModelComponent.prototype, _schema);
 
     pc.extend(ModelComponentSystem.prototype, {
-        initializeComponentData: function (component, _data, properties) {
+        initializeComponentData(component, _data, properties) {
 
             // order matters here
             properties = ['enabled', 'material', 'materialAsset', 'asset', 'castShadows', 'receiveShadows', 'castShadowsLightmap', 'lightmapped', 'lightmapSizeMultiplier', 'type', 'mapping', 'layers', 'isStatic', 'batchGroupId'];
 
             // copy data into new structure
-            var data = {};
-            var name;
-            for (var i=0; i < properties.length; i++) {
+            const data = {};
+            let name;
+            for (let i=0; i < properties.length; i++) {
                 name = properties[i];
                 data[name] = _data[name];
             }
@@ -99,8 +99,8 @@ pc.extend(pc, function () {
             ModelComponentSystem._super.initializeComponentData.call(this, component, data, properties);
         },
 
-        removeComponent: function (entity) {
-            var data = entity.model.data;
+        removeComponent(entity) {
+            const data = entity.model.data;
             entity.model.asset = null;
             if (data.type !== 'asset' && data.model) {
                 entity.model.removeModelFromLayers(entity.model.model);
@@ -111,31 +111,31 @@ pc.extend(pc, function () {
             ModelComponentSystem._super.removeComponent.call(this, entity);
         },
 
-        cloneComponent: function (entity, clone) {
-            var data = {
-                type: entity.model.type,
-                asset: entity.model.asset,
-                castShadows: entity.model.castShadows,
-                receiveShadows: entity.model.receiveShadows,
-                castShadowsLightmap: entity.model.castShadowsLightmap,
-                lightmapped: entity.model.lightmapped,
-                lightmapSizeMultiplier: entity.model.lightmapSizeMultiplier,
-                isStatic: entity.model.isStatic,
-                enabled: entity.model.enabled,
-                layers: entity.model.layers,
-                batchGroupId: entity.model.batchGroupId,
-                mapping: pc.extend({}, entity.model.mapping)
+        cloneComponent({model}, clone) {
+            const data = {
+                type: model.type,
+                asset: model.asset,
+                castShadows: model.castShadows,
+                receiveShadows: model.receiveShadows,
+                castShadowsLightmap: model.castShadowsLightmap,
+                lightmapped: model.lightmapped,
+                lightmapSizeMultiplier: model.lightmapSizeMultiplier,
+                isStatic: model.isStatic,
+                enabled: model.enabled,
+                layers: model.layers,
+                batchGroupId: model.batchGroupId,
+                mapping: pc.extend({}, model.mapping)
             };
 
             // if original has a different material
             // than the assigned materialAsset then make sure we
             // clone that one instead of the materialAsset one
-            var materialAsset = entity.model.materialAsset;
+            let materialAsset = model.materialAsset;
             if (!(materialAsset instanceof pc.Asset) && materialAsset != null) {
                 materialAsset = this.app.assets.get(materialAsset);
             }
 
-            var material = entity.model.material;
+            const material = model.material;
             if (!material ||
                 material === pc.ModelHandler.DEFAULT_MATERIAL ||
                 !materialAsset ||
@@ -144,15 +144,15 @@ pc.extend(pc, function () {
                 data.materialAsset = materialAsset;
             }
 
-            var component = this.addComponent(clone, data);
+            const component = this.addComponent(clone, data);
 
             if (!data.materialAsset)
                 component.material = material;
 
-            if (entity.model.model) {
-                var meshInstances = entity.model.model.meshInstances;
-                var meshInstancesClone = component.model.meshInstances;
-                for (var i = 0; i < meshInstances.length; i++) {
+            if (model.model) {
+                const meshInstances = model.model.meshInstances;
+                const meshInstancesClone = component.model.meshInstances;
+                for (let i = 0; i < meshInstances.length; i++) {
                     meshInstancesClone[i].mask = meshInstances[i].mask;
                     meshInstancesClone[i].material = meshInstances[i].material;
                     meshInstancesClone[i].layer = meshInstances[i].layer;
@@ -161,14 +161,14 @@ pc.extend(pc, function () {
             }
         },
 
-        onRemove: function(entity, component) {
+        onRemove({model}, component) {
             // Unhook any material asset events
-            entity.model.materialAsset = null;
+            model.materialAsset = null;
             component.remove();
         }
     });
 
     return {
-        ModelComponentSystem: ModelComponentSystem
+        ModelComponentSystem
     };
-}());
+})());

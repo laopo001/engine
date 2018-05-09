@@ -1,14 +1,14 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
      * @private
      * @constructor
      * @name pc.ComponentData
      * @classdesc Base class for Component data storage.
      */
-    var ComponentData = function () {
+    const ComponentData = () => {
     };
 
     return {
-        ComponentData: ComponentData
+        ComponentData
     };
-}());
+})());

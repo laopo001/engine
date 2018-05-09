@@ -1,5 +1,5 @@
-pc.extend(pc, function () {
-    var _schema = [ 'enabled' ];
+pc.extend(pc, (() => {
+    const _schema = [ 'enabled' ];
 
     /**
      * @name pc.ZoneComponentSystem
@@ -9,7 +9,7 @@ pc.extend(pc, function () {
      * @extends pc.ComponentSystem
      */
 
-    var ZoneComponentSystem = function ZoneComponentSystem(app) {
+    let ZoneComponentSystem = function ZoneComponentSystem(app) {
         this.id = 'zone';
         this.app = app;
         app.systems.add(this.id, this);
@@ -26,7 +26,7 @@ pc.extend(pc, function () {
     pc.Component._buildAccessors(pc.ZoneComponent.prototype, _schema);
 
     pc.extend(ZoneComponentSystem.prototype, {
-        initializeComponentData: function(component, data, properties) {
+        initializeComponentData(component, data, properties) {
             component.enabled = data.hasOwnProperty('enabled') ? !!data.enabled : true;
 
             if (data.size) {
@@ -38,20 +38,20 @@ pc.extend(pc, function () {
             }
         },
 
-        cloneComponent: function(entity, clone) {
-            var data = {
-                size: entity.zone.size
+        cloneComponent({zone}, clone) {
+            const data = {
+                size: zone.size
             };
 
             return this.addComponent(clone, data);
         },
 
-        _onBeforeRemove: function(entity, component) {
+        _onBeforeRemove(entity, component) {
             component._onBeforeRemove();
         }
     });
 
     return {
-        ZoneComponentSystem: ZoneComponentSystem
+        ZoneComponentSystem
     };
-}());
+})());

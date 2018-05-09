@@ -1,17 +1,17 @@
-pc.extend(pc, function () {
-    var rawToValue = function(app, args, value, old) {
-        var i;
+pc.extend(pc, (() => {
+    const rawToValue = ({assets, root}, {type, array}, value, old) => {
+        let i;
 
         // TODO scripts2
         // arrays
-        switch (args.type) {
+        switch (type) {
             case 'boolean':
                 return !! value;
             case 'number':
                 if (typeof(value) === 'number') {
                     return value;
                 } else if (typeof(value) === 'string') {
-                    var v = parseInt(value, 10);
+                    const v = parseInt(value, 10);
                     if (isNaN(v)) return null;
                     return v;
                 } else if (typeof(value) === 'boolean') {
@@ -32,17 +32,17 @@ pc.extend(pc, function () {
                 }
                 break;
             case 'asset':
-                if (args.array) {
-                    var result = [ ];
+                if (array) {
+                    const result = [ ];
 
                     if (value instanceof Array) {
                         for (i = 0; i < value.length; i++) {
                             if (value[i] instanceof pc.Asset) {
                                 result.push(value[i]);
                             } else if (typeof(value[i]) === 'number') {
-                                result.push(app.assets.get(value[i]) || null);
+                                result.push(assets.get(value[i]) || null);
                             } else if (typeof(value[i]) === 'string') {
-                                result.push(app.assets.get(parseInt(value[i], 10)) || null);
+                                result.push(assets.get(parseInt(value[i], 10)) || null);
                             } else {
                                 result.push(null);
                             }
@@ -54,9 +54,9 @@ pc.extend(pc, function () {
                     if (value instanceof pc.Asset) {
                         return value;
                     } else if (typeof(value) === 'number') {
-                        return app.assets.get(value) || null;
+                        return assets.get(value) || null;
                     } else if (typeof(value) === 'string') {
-                        return app.assets.get(parseInt(value, 10)) || null;
+                        return assets.get(parseInt(value, 10)) || null;
                     } else {
                         return null;
                     }
@@ -66,7 +66,7 @@ pc.extend(pc, function () {
                 if (value instanceof pc.GraphNode) {
                     return value;
                 } else if (typeof(value) === 'string') {
-                    return app.root.findByGuid(value);
+                    return root.findByGuid(value);
                 } else {
                     return null;
                 }
@@ -104,10 +104,10 @@ pc.extend(pc, function () {
             case 'vec2':
             case 'vec3':
             case 'vec4':
-                var len = parseInt(args.type.slice(3), 10);
+                const len = parseInt(type.slice(3), 10);
 
-                if (value instanceof pc['Vec' + len]) {
-                    if (old instanceof pc['Vec' + len]) {
+                if (value instanceof pc[`Vec${len}`]) {
+                    if (old instanceof pc[`Vec${len}`]) {
                         old.copy(value);
                         return old;
                     } else {
@@ -118,7 +118,7 @@ pc.extend(pc, function () {
                         if (typeof(value[i]) !== 'number')
                             return null;
                     }
-                    if (! old) old = new pc['Vec' + len]();
+                    if (! old) old = new pc[`Vec${len}`]();
 
                     for (i = 0; i < len; i++)
                         old.data[i] = value[i];
@@ -130,11 +130,11 @@ pc.extend(pc, function () {
                 break;
             case 'curve':
                 if (value) {
-                    var curve;
+                    let curve;
                     if (value instanceof pc.Curve || value instanceof pc.CurveSet) {
                         curve = value.clone();
                     } else {
-                        var CurveType = value.keys[0] instanceof Array ? pc.CurveSet : pc.Curve;
+                        const CurveType = value.keys[0] instanceof Array ? pc.CurveSet : pc.Curve;
                         curve = new CurveType(value.keys);
                         curve.type = value.type;
                     }
@@ -154,131 +154,133 @@ pc.extend(pc, function () {
      * Note: An instance of pc.ScriptAttributes is created automatically by each {@link ScriptType}.
      * @param {ScriptType} scriptType Script Type that attributes relate to.
      */
-    var ScriptAttributes = function(scriptType) {
-        this.scriptType = scriptType;
-        this.index = { };
-    };
-
-    /**
-     * @function
-     * @name pc.ScriptAttributes#add
-     * @description Add Attribute
-     * @param {String} name Name of an attribute
-     * @param {Object} args Object with Arguments for an attribute
-     * @param {String} args.type Type of an attribute value, list of possible types:
-     * boolean, number, string, json, asset, entity, rgb, rgba, vec2, vec3, vec4, curve
-     * @param {?} [args.default] Default attribute value
-     * @param {String} [args.title] Title for Editor's for field UI
-     * @param {String} [args.description] Description for Editor's for field UI
-     * @param {(String|String[])} [args.placeholder] Placeholder for Editor's for field UI.
-     * For multi-field types, such as vec2, vec3, and others use array of strings.
-     * @param {Boolean} [args.array] If attribute can hold single or multiple values
-     * @param {Number} [args.size] If attribute is array, maximum number of values can be set
-     * @param {Number} [args.min] Minimum value for type 'number', if max and min defined, slider will be rendered in Editor's UI
-     * @param {Number} [args.max] Maximum value for type 'number', if max and min defined, slider will be rendered in Editor's UI
-     * @param {Number} [args.precision] Level of precision for field type 'number' with floating values
-     * @param {String} [args.assetType] Name of asset type to be used in 'asset' type attribute picker in Editor's UI, defaults to '*' (all)
-     * @param {String[]} [args.curves] List of names for Curves for field type 'curve'
-     * @param {String} [args.color] String of color channels for Curves for field type 'curve', can be any combination of `rgba` characters.
-     * Defining this property will render Gradient in Editor's field UI
-     * @param {Object[]} [args.enum] List of fixed choices for field, defined as array of objects, where key in object is a title of an option
-     * @example
-     * PlayerController.attributes.add('fullName', {
-     *     type: 'string',
-     * });
-     * @example
-     * PlayerController.attributes.add('speed', {
-     *     type: 'number',
-     *     title: 'Speed',
-     *     placeholder: 'km/h',
-     *     default: 22.2
-     * });
-     * @example
-     * PlayerController.attributes.add('resolution', {
-     *     type: 'number',
-     *     default: 32,
-     *     enum: [
-     *        { '32x32': 32 },
-     *        { '64x64': 64 },
-     *        { '128x128': 128 }
-     *     ]
-     * });
-     */
-    ScriptAttributes.prototype.add = function(name, args) {
-        if (this.index[name]) {
-            console.warn('attribute \'' + name + '\' is already defined for script type \'' + this.scriptType.name + '\'');
-            return;
-        } else if (pc.createScript.reservedAttributes[name]) {
-            console.warn('attribute \'' + name + '\' is a reserved attribute name');
-            return;
+    class ScriptAttributes {
+        constructor(scriptType) {
+            this.scriptType = scriptType;
+            this.index = { };
         }
 
-        this.index[name] = args;
-
-        Object.defineProperty(this.scriptType.prototype, name, {
-            get: function() {
-                return this.__attributes[name];
-            },
-            set: function(raw) {
-                var old = this.__attributes[name];
-
-                // convert to appropriate type
-                this.__attributes[name] = rawToValue(this.app, args, raw, old);
-
-                this.fire('attr', name, this.__attributes[name], old);
-                this.fire('attr:' + name, this.__attributes[name], old);
+        /**
+         * @function
+         * @name pc.ScriptAttributes#add
+         * @description Add Attribute
+         * @param {String} name Name of an attribute
+         * @param {Object} args Object with Arguments for an attribute
+         * @param {String} args.type Type of an attribute value, list of possible types:
+         * boolean, number, string, json, asset, entity, rgb, rgba, vec2, vec3, vec4, curve
+         * @param {?} [args.default] Default attribute value
+         * @param {String} [args.title] Title for Editor's for field UI
+         * @param {String} [args.description] Description for Editor's for field UI
+         * @param {(String|String[])} [args.placeholder] Placeholder for Editor's for field UI.
+         * For multi-field types, such as vec2, vec3, and others use array of strings.
+         * @param {Boolean} [args.array] If attribute can hold single or multiple values
+         * @param {Number} [args.size] If attribute is array, maximum number of values can be set
+         * @param {Number} [args.min] Minimum value for type 'number', if max and min defined, slider will be rendered in Editor's UI
+         * @param {Number} [args.max] Maximum value for type 'number', if max and min defined, slider will be rendered in Editor's UI
+         * @param {Number} [args.precision] Level of precision for field type 'number' with floating values
+         * @param {String} [args.assetType] Name of asset type to be used in 'asset' type attribute picker in Editor's UI, defaults to '*' (all)
+         * @param {String[]} [args.curves] List of names for Curves for field type 'curve'
+         * @param {String} [args.color] String of color channels for Curves for field type 'curve', can be any combination of `rgba` characters.
+         * Defining this property will render Gradient in Editor's field UI
+         * @param {Object[]} [args.enum] List of fixed choices for field, defined as array of objects, where key in object is a title of an option
+         * @example
+         * PlayerController.attributes.add('fullName', {
+         *     type: 'string',
+         * });
+         * @example
+         * PlayerController.attributes.add('speed', {
+         *     type: 'number',
+         *     title: 'Speed',
+         *     placeholder: 'km/h',
+         *     default: 22.2
+         * });
+         * @example
+         * PlayerController.attributes.add('resolution', {
+         *     type: 'number',
+         *     default: 32,
+         *     enum: [
+         *        { '32x32': 32 },
+         *        { '64x64': 64 },
+         *        { '128x128': 128 }
+         *     ]
+         * });
+         */
+        add(name, args) {
+            if (this.index[name]) {
+                console.warn(`attribute '${name}' is already defined for script type '${this.scriptType.name}'`);
+                return;
+            } else if (pc.createScript.reservedAttributes[name]) {
+                console.warn(`attribute '${name}' is a reserved attribute name`);
+                return;
             }
-        });
-    };
 
-    /**
-     * @function
-     * @name pc.ScriptAttributes#remove
-     * @description Remove Attribute.
-     * @param {String} name Name of an attribute
-     * @returns {Boolean} True if removed or false if not defined
-     * @example
-     * PlayerController.attributes.remove('fullName');
-     */
-    ScriptAttributes.prototype.remove = function(name) {
-        if (! this.index[name])
-            return false;
+            this.index[name] = args;
 
-        delete this.index[name];
-        delete this.scriptType.prototype[name];
-        return true;
-    };
+            Object.defineProperty(this.scriptType.prototype, name, {
+                get() {
+                    return this.__attributes[name];
+                },
+                set(raw) {
+                    const old = this.__attributes[name];
 
-    /**
-     * @function
-     * @name pc.ScriptAttributes#has
-     * @description Detect if Attribute is added.
-     * @param {String} name Name of an attribute
-     * @returns {Boolean} True if Attribute is defined
-     * @example
-     * if (PlayerController.attributes.has('fullName')) {
-     *     // attribute `fullName` is defined
-     * });
-     */
-    ScriptAttributes.prototype.has = function(name) {
-        return !! this.index[name];
-    };
+                    // convert to appropriate type
+                    this.__attributes[name] = rawToValue(this.app, args, raw, old);
 
-    /**
-     * @function
-     * @name pc.ScriptAttributes#get
-     * @description Get object with attribute arguments.
-     * Note: Changing argument properties will not affect existing Script Instances.
-     * @param {String} name Name of an attribute
-     * @returns {?Object} Arguments with attribute properties
-     * @example
-     * // changing default value for an attribute 'fullName'
-     * var attr = PlayerController.attributes.get('fullName');
-     * if (attr) attr.default = 'Unknown';
-     */
-    ScriptAttributes.prototype.get = function(name) {
-        return this.index[name] || null;
-    };
+                    this.fire('attr', name, this.__attributes[name], old);
+                    this.fire(`attr:${name}`, this.__attributes[name], old);
+                }
+            });
+        }
+
+        /**
+         * @function
+         * @name pc.ScriptAttributes#remove
+         * @description Remove Attribute.
+         * @param {String} name Name of an attribute
+         * @returns {Boolean} True if removed or false if not defined
+         * @example
+         * PlayerController.attributes.remove('fullName');
+         */
+        remove(name) {
+            if (! this.index[name])
+                return false;
+
+            delete this.index[name];
+            delete this.scriptType.prototype[name];
+            return true;
+        }
+
+        /**
+         * @function
+         * @name pc.ScriptAttributes#has
+         * @description Detect if Attribute is added.
+         * @param {String} name Name of an attribute
+         * @returns {Boolean} True if Attribute is defined
+         * @example
+         * if (PlayerController.attributes.has('fullName')) {
+         *     // attribute `fullName` is defined
+         * });
+         */
+        has(name) {
+            return !! this.index[name];
+        }
+
+        /**
+         * @function
+         * @name pc.ScriptAttributes#get
+         * @description Get object with attribute arguments.
+         * Note: Changing argument properties will not affect existing Script Instances.
+         * @param {String} name Name of an attribute
+         * @returns {?Object} Arguments with attribute properties
+         * @example
+         * // changing default value for an attribute 'fullName'
+         * var attr = PlayerController.attributes.get('fullName');
+         * if (attr) attr.default = 'Unknown';
+         */
+        get(name) {
+            return this.index[name] || null;
+        }
+    }
 
 
     /**
@@ -311,14 +313,14 @@ pc.extend(pc, function () {
     *     this.entity.rotate(0, this.speed * dt, 0);
     * };
     */
-    var createScript = function(name, app) {
+    const createScript = (name, app) => {
         if (pc.script.legacy) {
             console.error("This project is using the legacy script system. You cannot call pc.createScript(). See: http://developer.playcanvas.com/en/user-manual/scripting/legacy/");
             return null;
         }
 
         if (createScript.reservedScripts[name])
-            throw new Error('script name: \'' + name + '\' is reserved, please change script name');
+            throw new Error(`script name: '${name}' is reserved, please change script name`);
 
         /**
          * @constructor
@@ -337,198 +339,142 @@ pc.extend(pc, function () {
          * When disabled no update methods will be called on each tick.
          * initialize and postInitialize methods will run once when the script instance is in `enabled` state during app tick.
          */
-        var script = function(args) {
-            if (! args || ! args.app || ! args.entity)
-                console.warn('script \'' + name + '\' has missing arguments in consructor');
+        class script {
+            constructor(args) {
+                if (! args || ! args.app || ! args.entity)
+                    console.warn(`script '${name}' has missing arguments in consructor`);
 
-            pc.events.attach(this);
+                pc.events.attach(this);
 
-            this.app = args.app;
-            this.entity = args.entity;
-            this._enabled = typeof(args.enabled) === 'boolean' ? args.enabled : true;
-            this._enabledOld = this.enabled;
-            this.__attributes = { };
-            this.__attributesRaw = args.attributes || null;
-            this.__scriptType = script;
-        };
+                this.app = args.app;
+                this.entity = args.entity;
+                this._enabled = typeof(args.enabled) === 'boolean' ? args.enabled : true;
+                this._enabledOld = this.enabled;
+                this.__attributes = { };
+                this.__attributesRaw = args.attributes || null;
+                this.__scriptType = script;
+            }
 
-        /**
-         * @private
-         * @readonly
-         * @static
-         * @name ScriptType.__name
-         * @type String
-         * @description Name of a Script Type.
-         */
-        script.__name = name;
+            // initialize attributes
+            __initializeAttributes(force) {
+                if (! force && ! this.__attributesRaw)
+                    return;
 
-        /**
-         * @field
-         * @static
-         * @readonly
-         * @type pc.ScriptAttributes
-         * @name ScriptType.attributes
-         * @description The interface to define attributes for Script Types. Refer to {@link pc.ScriptAttributes}
-         * @example
-         * var PlayerController = pc.createScript('playerController');
-         *
-         * PlayerController.attributes.add('speed', {
-         *     type: 'number',
-         *     title: 'Speed',
-         *     placeholder: 'km/h',
-         *     default: 22.2
-         * });
-         */
-        script.attributes = new ScriptAttributes(script);
-
-        // initialize attributes
-        script.prototype.__initializeAttributes = function(force) {
-            if (! force && ! this.__attributesRaw)
-                return;
-
-            // set attributes values
-            for (var key in script.attributes.index) {
-                if (this.__attributesRaw && this.__attributesRaw.hasOwnProperty(key)) {
-                    this[key] = this.__attributesRaw[key];
-                } else if (! this.__attributes.hasOwnProperty(key)) {
-                    if (script.attributes.index[key].hasOwnProperty('default')) {
-                        this[key] = script.attributes.index[key].default;
-                    } else {
-                        this[key] = null;
+                // set attributes values
+                for (const key in script.attributes.index) {
+                    if (this.__attributesRaw && this.__attributesRaw.hasOwnProperty(key)) {
+                        this[key] = this.__attributesRaw[key];
+                    } else if (! this.__attributes.hasOwnProperty(key)) {
+                        if (script.attributes.index[key].hasOwnProperty('default')) {
+                            this[key] = script.attributes.index[key].default;
+                        } else {
+                            this[key] = null;
+                        }
                     }
                 }
+
+                this.__attributesRaw = null;
             }
 
-            this.__attributesRaw = null;
-        };
+            /**
+            * @event
+            * @name ScriptType#enable
+            * @description Fired when a script instance becomes enabled
+            * @example
+            * PlayerController.prototype.initialize = function() {
+            *     this.on('enable', function() {
+            *         // Script Instance is now enabled
+            *     });
+            * };
+            */
 
-        /**
-         * @readonly
-         * @static
-         * @function
-         * @name ScriptType.extend
-         * @param {Object} methods Object with methods, where key - is name of method, and value - is function.
-         * @description Shorthand function to extend Script Type prototype with list of methods.
-         * @example
-         * var PlayerController = pc.createScript('playerController');
-         *
-         * PlayerController.extend({
-         *     initialize: function() {
-         *         // called once on initialize
-         *     },
-         *     update: function(dt) {
-         *         // called each tick
-         *     }
-         * })
-         */
-        script.extend = function(methods) {
-            for (var key in methods) {
-                if (! methods.hasOwnProperty(key))
-                    continue;
+            /**
+            * @event
+            * @name ScriptType#disable
+            * @description Fired when a script instance becomes disabled
+            * @example
+            * PlayerController.prototype.initialize = function() {
+            *     this.on('disable', function() {
+            *         // Script Instance is now disabled
+            *     });
+            * };
+            */
 
-                script.prototype[key] = methods[key];
-            }
-        };
+            /**
+            * @event
+            * @name ScriptType#state
+            * @description Fired when a script instance changes state to enabled or disabled
+            * @param {Boolean} enabled True if now enabled, False if disabled
+            * @example
+            * PlayerController.prototype.initialize = function() {
+            *     this.on('state', function(enabled) {
+            *         console.log('Script Instance is now ' + (enabled ? 'enabled' : 'disabled'));
+            *     });
+            * };
+            */
 
-        /**
-        * @event
-        * @name ScriptType#enable
-        * @description Fired when a script instance becomes enabled
-        * @example
-        * PlayerController.prototype.initialize = function() {
-        *     this.on('enable', function() {
-        *         // Script Instance is now enabled
-        *     });
-        * };
-        */
+            /**
+            * @event
+            * @name ScriptType#destroy
+            * @description Fired when a script instance is destroyed and removed from component
+            * @example
+            * PlayerController.prototype.initialize = function() {
+            *     this.on('destroy', function() {
+            *         // no more part of an entity
+            *         // good place to cleanup entity from destroyed script
+            *     });
+            * };
+            */
 
-        /**
-        * @event
-        * @name ScriptType#disable
-        * @description Fired when a script instance becomes disabled
-        * @example
-        * PlayerController.prototype.initialize = function() {
-        *     this.on('disable', function() {
-        *         // Script Instance is now disabled
-        *     });
-        * };
-        */
+            /**
+            * @event
+            * @name ScriptType#attr
+            * @description Fired when any script attribute has been changed
+            * @param {String} name Name of attribute
+            * @param {Object} value New value
+            * @param {Object} valueOld Old value
+            * @example
+            * PlayerController.prototype.initialize = function() {
+            *     this.on('attr', function(name, value, valueOld) {
+            *         console.log(name + ' been changed from ' + valueOld + ' to ' + value);
+            *     });
+            * };
+            */
 
-        /**
-        * @event
-        * @name ScriptType#state
-        * @description Fired when a script instance changes state to enabled or disabled
-        * @param {Boolean} enabled True if now enabled, False if disabled
-        * @example
-        * PlayerController.prototype.initialize = function() {
-        *     this.on('state', function(enabled) {
-        *         console.log('Script Instance is now ' + (enabled ? 'enabled' : 'disabled'));
-        *     });
-        * };
-        */
+            /**
+            * @event
+            * @name ScriptType#attr:[name]
+            * @description Fired when a specific script attribute has been changed
+            * @param {Object} value New value
+            * @param {Object} valueOld Old value
+            * @example
+            * PlayerController.prototype.initialize = function() {
+            *     this.on('attr:speed', function(value, valueOld) {
+            *         console.log('speed been changed from ' + valueOld + ' to ' + value);
+            *     });
+            * };
+            */
 
-        /**
-        * @event
-        * @name ScriptType#destroy
-        * @description Fired when a script instance is destroyed and removed from component
-        * @example
-        * PlayerController.prototype.initialize = function() {
-        *     this.on('destroy', function() {
-        *         // no more part of an entity
-        *         // good place to cleanup entity from destroyed script
-        *     });
-        * };
-        */
+            /**
+            * @event
+            * @name ScriptType#error
+            * @description Fired when a script instance had an exception. The script instance will be automatically disabled.
+            * @param {Error} err Native JavaScript Error object with details of error
+            * @param {String} method The method of the script instance that the exception originated from.
+            * @example
+            * PlayerController.prototype.initialize = function() {
+            *     this.on('error', function(err, method) {
+            *         // caught an exception
+            *         console.log(err.stack);
+            *     });
+            * };
+            */
 
-        /**
-        * @event
-        * @name ScriptType#attr
-        * @description Fired when any script attribute has been changed
-        * @param {String} name Name of attribute
-        * @param {Object} value New value
-        * @param {Object} valueOld Old value
-        * @example
-        * PlayerController.prototype.initialize = function() {
-        *     this.on('attr', function(name, value, valueOld) {
-        *         console.log(name + ' been changed from ' + valueOld + ' to ' + value);
-        *     });
-        * };
-        */
-
-        /**
-        * @event
-        * @name ScriptType#attr:[name]
-        * @description Fired when a specific script attribute has been changed
-        * @param {Object} value New value
-        * @param {Object} valueOld Old value
-        * @example
-        * PlayerController.prototype.initialize = function() {
-        *     this.on('attr:speed', function(value, valueOld) {
-        *         console.log('speed been changed from ' + valueOld + ' to ' + value);
-        *     });
-        * };
-        */
-
-        /**
-        * @event
-        * @name ScriptType#error
-        * @description Fired when a script instance had an exception. The script instance will be automatically disabled.
-        * @param {Error} err Native JavaScript Error object with details of error
-        * @param {String} method The method of the script instance that the exception originated from.
-        * @example
-        * PlayerController.prototype.initialize = function() {
-        *     this.on('error', function(err, method) {
-        *         // caught an exception
-        *         console.log(err.stack);
-        *     });
-        * };
-        */
-
-        Object.defineProperty(script.prototype, 'enabled', {
-            get: function() {
+            get enabled() {
                 return this._enabled && this.entity.script.enabled && this.entity.enabled;
-            },
-            set: function(value) {
+            }
+
+            set enabled(value) {
                 this._enabled = !!value;
 
                 if (this.enabled === this._enabledOld) return;
@@ -559,10 +505,67 @@ pc.extend(pc, function () {
                         this.entity.script._scriptMethod(this, pc.ScriptComponent.scriptMethods.postInitialize);
                 }
             }
-        });
+        }
+
+        /**
+         * @private
+         * @readonly
+         * @static
+         * @name ScriptType.__name
+         * @type String
+         * @description Name of a Script Type.
+         */
+        script.__name = name;
+
+        /**
+         * @field
+         * @static
+         * @readonly
+         * @type pc.ScriptAttributes
+         * @name ScriptType.attributes
+         * @description The interface to define attributes for Script Types. Refer to {@link pc.ScriptAttributes}
+         * @example
+         * var PlayerController = pc.createScript('playerController');
+         *
+         * PlayerController.attributes.add('speed', {
+         *     type: 'number',
+         *     title: 'Speed',
+         *     placeholder: 'km/h',
+         *     default: 22.2
+         * });
+         */
+        script.attributes = new ScriptAttributes(script);
+
+        /**
+         * @readonly
+         * @static
+         * @function
+         * @name ScriptType.extend
+         * @param {Object} methods Object with methods, where key - is name of method, and value - is function.
+         * @description Shorthand function to extend Script Type prototype with list of methods.
+         * @example
+         * var PlayerController = pc.createScript('playerController');
+         *
+         * PlayerController.extend({
+         *     initialize: function() {
+         *         // called once on initialize
+         *     },
+         *     update: function(dt) {
+         *         // called each tick
+         *     }
+         * })
+         */
+        script.extend = methods => {
+            for (const key in methods) {
+                if (! methods.hasOwnProperty(key))
+                    continue;
+
+                script.prototype[key] = methods[key];
+            }
+        };
 
         // add to scripts registry
-        var registry = app ? app.scripts : pc.Application.getApplication().scripts;
+        const registry = app ? app.scripts : pc.Application.getApplication().scripts;
         registry.add(script);
 
         pc.ScriptHandler._push(script);
@@ -580,8 +583,8 @@ pc.extend(pc, function () {
         '_onUpdate', '_onPostUpdate',
         '_callbacks', 'has', 'on', 'off', 'fire', 'once', 'hasEvent'
     ];
-    var reservedScripts = { };
-    var i;
+    const reservedScripts = { };
+    let i;
     for (i = 0; i < createScript.reservedScripts.length; i++)
         reservedScripts[createScript.reservedScripts[i]] = 1;
     createScript.reservedScripts = reservedScripts;
@@ -593,13 +596,13 @@ pc.extend(pc, function () {
         '__attributes', '__attributesRaw', '__scriptType',
         '_callbacks', 'has', 'on', 'off', 'fire', 'once', 'hasEvent'
     ];
-    var reservedAttributes = { };
+    const reservedAttributes = { };
     for (i = 0; i < createScript.reservedAttributes.length; i++)
         reservedAttributes[createScript.reservedAttributes[i]] = 1;
     createScript.reservedAttributes = reservedAttributes;
 
 
     return {
-        createScript: createScript
+        createScript
     };
-}());
+})());

@@ -1,5 +1,5 @@
-pc.extend(pc, function () {
-    var _schema = [ 'enabled' ];
+pc.extend(pc, (() => {
+    const _schema = [ 'enabled' ];
 
     /**
      * @constructor
@@ -9,7 +9,7 @@ pc.extend(pc, function () {
      * @param {pc.Application} app The application
      * @extends pc.ComponentSystem
      */
-    var ScreenComponentSystem = function ScreenComponentSystem(app) {
+    let ScreenComponentSystem = function ScreenComponentSystem(app) {
         this.id = 'screen';
         this.app = app;
         app.systems.add(this.id, this);
@@ -31,7 +31,7 @@ pc.extend(pc, function () {
     pc.Component._buildAccessors(pc.ScreenComponent.prototype, _schema);
 
     pc.extend(ScreenComponentSystem.prototype, {
-        initializeComponentData: function (component, data, properties) {
+        initializeComponentData(component, data, properties) {
             if (data.screenSpace !== undefined) component.screenSpace = data.screenSpace;
             if (data.scaleMode !== undefined) component.scaleMode = data.scaleMode;
             if (data.scaleBlend !== undefined) component.scaleBlend = data.scaleBlend;
@@ -55,21 +55,21 @@ pc.extend(pc, function () {
             ScreenComponentSystem._super.initializeComponentData.call(this, component, data, properties);
         },
 
-        _onUpdate: function (dt) {
-            var components = this.store;
+        _onUpdate(dt) {
+            const components = this.store;
 
-            for (var id in components) {
+            for (const id in components) {
                 if (components[id].entity.screen.update) components[id].entity.screen.update(dt);
             }
         },
 
-        _onResize: function (width, height) {
+        _onResize(width, height) {
             this.windowResolution.x = width;
             this.windowResolution.y = height;
         },
 
-        cloneComponent: function (entity, clone) {
-            var screen = entity.screen;
+        cloneComponent(entity, clone) {
+            const screen = entity.screen;
 
             return this.addComponent(clone, {
                 enabled: screen.enabled,
@@ -80,12 +80,12 @@ pc.extend(pc, function () {
             });
         },
 
-        onRemoveComponent: function (entity, component) {
+        onRemoveComponent(entity, component) {
             component.onRemove();
         }
     });
 
     return {
-        ScreenComponentSystem: ScreenComponentSystem
+        ScreenComponentSystem
     };
-}());
+})());

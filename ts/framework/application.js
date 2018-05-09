@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
     * @name pc.Application
     * @class Default application which performs general setup code and initiates the main game loop.
@@ -131,396 +131,370 @@ pc.extend(pc, function () {
     * }
     */
 
-    var Application = function (canvas, options) {
-        options = options || {};
+    class Application {
+        constructor(canvas, options) {
+            options = options || {};
 
-        // Open the log
-        pc.log.open();
-        // Add event support
-        pc.events.attach(this);
+            // Open the log
+            pc.log.open();
+            // Add event support
+            pc.events.attach(this);
 
-        // Store application instance
-        Application._applications[canvas.id] = this;
-        Application._currentApplication = this;
+            // Store application instance
+            Application._applications[canvas.id] = this;
+            Application._currentApplication = this;
 
-        this._time = 0;
-        this.timeScale = 1;
-        this.maxDeltaTime = 0.1; // Maximum delta is 0.1s or 10 fps.
+            this._time = 0;
+            this.timeScale = 1;
+            this.maxDeltaTime = 0.1; // Maximum delta is 0.1s or 10 fps.
 
-        this.autoRender = true;
-        this.renderNextFrame = false;
+            this.autoRender = true;
+            this.renderNextFrame = false;
 
-        this._librariesLoaded = false;
-        this._fillMode = pc.FILLMODE_KEEP_ASPECT;
-        this._resolutionMode = pc.RESOLUTION_FIXED;
-        this._allowResize = true;
+            this._librariesLoaded = false;
+            this._fillMode = pc.FILLMODE_KEEP_ASPECT;
+            this._resolutionMode = pc.RESOLUTION_FIXED;
+            this._allowResize = true;
 
-        // for compatibility
-        this.context = this;
+            // for compatibility
+            this.context = this;
 
-        this.graphicsDevice = new pc.GraphicsDevice(canvas, options.graphicsDeviceOptions);
-        this.stats = new pc.ApplicationStats(this.graphicsDevice);
-        this.systems = new pc.ComponentSystemRegistry();
-        this._audioManager = new pc.SoundManager(options);
-        this.loader = new pc.ResourceLoader();
+            this.graphicsDevice = new pc.GraphicsDevice(canvas, options.graphicsDeviceOptions);
+            this.stats = new pc.ApplicationStats(this.graphicsDevice);
+            this.systems = new pc.ComponentSystemRegistry();
+            this._audioManager = new pc.SoundManager(options);
+            this.loader = new pc.ResourceLoader();
 
-        this.scene = new pc.Scene();
-        this.root = new pc.Entity(this);
-        this.root._enabledInHierarchy = true;
-        this._enableList = [ ];
-        this._enableList.size = 0;
-        this.assets = new pc.AssetRegistry(this.loader);
-        if (options.assetPrefix) this.assets.prefix = options.assetPrefix;
-        this.scriptsOrder = options.scriptsOrder || [ ];
-        this.scripts = new pc.ScriptRegistry(this);
+            this.scene = new pc.Scene();
+            this.root = new pc.Entity(this);
+            this.root._enabledInHierarchy = true;
+            this._enableList = [ ];
+            this._enableList.size = 0;
+            this.assets = new pc.AssetRegistry(this.loader);
+            if (options.assetPrefix) this.assets.prefix = options.assetPrefix;
+            this.scriptsOrder = options.scriptsOrder || [ ];
+            this.scripts = new pc.ScriptRegistry(this);
 
-        var self = this;
-        this.defaultLayerWorld = new pc.Layer({
-            name: "World",
-            id: pc.LAYERID_WORLD
-        });
+            const self = this;
+            this.defaultLayerWorld = new pc.Layer({
+                name: "World",
+                id: pc.LAYERID_WORLD
+            });
 
-        if (this.graphicsDevice.webgl2) {
-            // WebGL 2 depth layer just copies existing depth
-            this.defaultLayerDepth = new pc.Layer({
-                enabled: false,
-                name: "Depth",
-                id: pc.LAYERID_DEPTH,
+            if (this.graphicsDevice.webgl2) {
+                // WebGL 2 depth layer just copies existing depth
+                this.defaultLayerDepth = new pc.Layer({
+                    enabled: false,
+                    name: "Depth",
+                    id: pc.LAYERID_DEPTH,
 
-                onEnable: function() {
-                    if (this.renderTarget) return;
-                    var depthBuffer = new pc.Texture(self.graphicsDevice, {
-                        format: pc.PIXELFORMAT_DEPTHSTENCIL,
-                        width: self.graphicsDevice.width,
-                        height: self.graphicsDevice.height
-                    });
-                    depthBuffer.minFilter = pc.FILTER_NEAREST;
-                    depthBuffer.magFilter = pc.FILTER_NEAREST;
-                    depthBuffer.addressU = pc.ADDRESS_CLAMP_TO_EDGE;
-                    depthBuffer.addressV = pc.ADDRESS_CLAMP_TO_EDGE;
-                    this.renderTarget = new pc.RenderTarget({
-                        colorBuffer: null,
-                        depthBuffer: depthBuffer,
-                        autoResolve: false
-                    });
-                    self.graphicsDevice.scope.resolve("uDepthMap").setValue(depthBuffer);
-                },
+                    onEnable() {
+                        if (this.renderTarget) return;
+                        const depthBuffer = new pc.Texture(self.graphicsDevice, {
+                            format: pc.PIXELFORMAT_DEPTHSTENCIL,
+                            width: self.graphicsDevice.width,
+                            height: self.graphicsDevice.height
+                        });
+                        depthBuffer.minFilter = pc.FILTER_NEAREST;
+                        depthBuffer.magFilter = pc.FILTER_NEAREST;
+                        depthBuffer.addressU = pc.ADDRESS_CLAMP_TO_EDGE;
+                        depthBuffer.addressV = pc.ADDRESS_CLAMP_TO_EDGE;
+                        this.renderTarget = new pc.RenderTarget({
+                            colorBuffer: null,
+                            depthBuffer,
+                            autoResolve: false
+                        });
+                        self.graphicsDevice.scope.resolve("uDepthMap").setValue(depthBuffer);
+                    },
 
-                onDisable: function() {
-                    if (!this.renderTarget) return;
-                    this.renderTarget._depthBuffer.destroy();
-                    this.renderTarget.destroy();
-                    this.renderTarget = null;
-                },
+                    onDisable() {
+                        if (!this.renderTarget) return;
+                        this.renderTarget._depthBuffer.destroy();
+                        this.renderTarget.destroy();
+                        this.renderTarget = null;
+                    },
 
-                onPreRenderOpaque: function(cameraPass) { // resize depth map if needed
-                    var gl = self.graphicsDevice.gl;
-                    this.srcFbo = gl.getParameter(gl.FRAMEBUFFER_BINDING);
+                    onPreRenderOpaque(cameraPass) { // resize depth map if needed
+                        const gl = self.graphicsDevice.gl;
+                        this.srcFbo = gl.getParameter(gl.FRAMEBUFFER_BINDING);
 
-                    if (! this.renderTarget || (this.renderTarget.width !== self.graphicsDevice.width || this.renderTarget.height !== self.graphicsDevice.height)) {
-                        this.onDisable();
-                        this.onEnable();
+                        if (! this.renderTarget || (this.renderTarget.width !== self.graphicsDevice.width || this.renderTarget.height !== self.graphicsDevice.height)) {
+                            this.onDisable();
+                            this.onEnable();
+                        }
+
+                        // disable clearing
+                        this.oldClear = this.cameras[cameraPass].camera._clearOptions;
+                        this.cameras[cameraPass].camera._clearOptions = this.depthClearOptions;
+                    },
+
+                    onPostRenderOpaque(cameraPass) { // copy depth
+                        if (! this.renderTarget) return;
+
+                        this.cameras[cameraPass].camera._clearOptions = this.oldClear;
+
+                        const gl = self.graphicsDevice.gl;
+
+                        self.graphicsDevice.setRenderTarget(this.renderTarget);
+                        self.graphicsDevice.updateBegin();
+
+                        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.srcFbo);
+                        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.renderTarget._glFrameBuffer);
+                        gl.blitFramebuffer( 0, 0, this.renderTarget.width, this.renderTarget.height,
+                                            0, 0, this.renderTarget.width, this.renderTarget.height,
+                                            gl.DEPTH_BUFFER_BIT,
+                                            gl.NEAREST);
                     }
 
-                    // disable clearing
-                    this.oldClear = this.cameras[cameraPass].camera._clearOptions;
-                    this.cameras[cameraPass].camera._clearOptions = this.depthClearOptions;
-                },
+                });
+                this.defaultLayerDepth.depthClearOptions = {
+                    flags: 0
+                };
+            } else {
+                // WebGL 1 depth layer just renders same objects as in World, but with RGBA-encoded depth shader
+                this.defaultLayerDepth = new pc.Layer({
+                    enabled: false,
+                    name: "Depth",
+                    id: pc.LAYERID_DEPTH,
+                    shaderPass: pc.SHADER_DEPTH,
 
-                onPostRenderOpaque: function(cameraPass) { // copy depth
-                    if (! this.renderTarget) return;
+                    onEnable() {
+                        if (this.renderTarget) return;
+                        const colorBuffer = new pc.Texture(self.graphicsDevice, {
+                            format: pc.PIXELFORMAT_R8_G8_B8_A8,
+                            width: self.graphicsDevice.width,
+                            height: self.graphicsDevice.height
+                        });
+                        colorBuffer.minFilter = pc.FILTER_NEAREST;
+                        colorBuffer.magFilter = pc.FILTER_NEAREST;
+                        colorBuffer.addressU = pc.ADDRESS_CLAMP_TO_EDGE;
+                        colorBuffer.addressV = pc.ADDRESS_CLAMP_TO_EDGE;
+                        this.renderTarget = new pc.RenderTarget(self.graphicsDevice, colorBuffer, {
+                            depth: true,
+                            stencil: self.graphicsDevice.supportsStencil
+                        });
+                        self.graphicsDevice.scope.resolve("uDepthMap").setValue(colorBuffer);
+                    },
 
-                    this.cameras[cameraPass].camera._clearOptions = this.oldClear;
+                    onDisable() {
+                        if (!this.renderTarget) return;
+                        this.renderTarget._colorBuffer.destroy();
+                        this.renderTarget.destroy();
+                        this.renderTarget = null;
+                    },
 
-                    var gl = self.graphicsDevice.gl;
-
-                    self.graphicsDevice.setRenderTarget(this.renderTarget);
-                    self.graphicsDevice.updateBegin();
-
-                    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.srcFbo);
-                    gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.renderTarget._glFrameBuffer);
-                    gl.blitFramebuffer( 0, 0, this.renderTarget.width, this.renderTarget.height,
-                                        0, 0, this.renderTarget.width, this.renderTarget.height,
-                                        gl.DEPTH_BUFFER_BIT,
-                                        gl.NEAREST);
-                }
-
-            });
-            this.defaultLayerDepth.depthClearOptions = {
-                flags: 0
-            };
-        } else {
-            // WebGL 1 depth layer just renders same objects as in World, but with RGBA-encoded depth shader
-            this.defaultLayerDepth = new pc.Layer({
-                enabled: false,
-                name: "Depth",
-                id: pc.LAYERID_DEPTH,
-                shaderPass: pc.SHADER_DEPTH,
-
-                onEnable: function() {
-                    if (this.renderTarget) return;
-                    var colorBuffer = new pc.Texture(self.graphicsDevice, {
-                        format: pc.PIXELFORMAT_R8_G8_B8_A8,
-                        width: self.graphicsDevice.width,
-                        height: self.graphicsDevice.height
-                    });
-                    colorBuffer.minFilter = pc.FILTER_NEAREST;
-                    colorBuffer.magFilter = pc.FILTER_NEAREST;
-                    colorBuffer.addressU = pc.ADDRESS_CLAMP_TO_EDGE;
-                    colorBuffer.addressV = pc.ADDRESS_CLAMP_TO_EDGE;
-                    this.renderTarget = new pc.RenderTarget(self.graphicsDevice, colorBuffer, {
-                        depth: true,
-                        stencil: self.graphicsDevice.supportsStencil
-                    });
-                    self.graphicsDevice.scope.resolve("uDepthMap").setValue(colorBuffer);
-                },
-
-                onDisable: function() {
-                    if (!this.renderTarget) return;
-                    this.renderTarget._colorBuffer.destroy();
-                    this.renderTarget.destroy();
-                    this.renderTarget = null;
-                },
-
-                onPostCull: function(cameraPass) {
-                    // Collect all rendered mesh instances with the same render target as World has, depthWrite == true and prior to this layer to replicate blitFramebuffer on WebGL2
-                    var visibleObjects = this.instances.visibleOpaque[cameraPass];
-                    var visibleList = visibleObjects.list;
-                    var visibleLength = 0;
-                    var layers = self.scene.layers.layerList;
-                    var subLayerEnabled = self.scene.layers.subLayerEnabled;
-                    var isTransparent = self.scene.layers.subLayerList;
-                    var rt = self.defaultLayerWorld.renderTarget;
-                    var cam = this.cameras[cameraPass];
-                    var layer;
-                    var j;
-                    var layerVisibleList, layerCamId, layerVisibleListLength, drawCall, transparent;
-                    for (var i=0; i<layers.length; i++) {
-                        layer = layers[i];
-                        if (layer === this) break;
-                        if (layer.renderTarget !== rt || !layer.enabled || !subLayerEnabled[i]) continue;
-                        layerCamId = layer.cameras.indexOf(cam);
-                        if (layerCamId < 0) continue;
-                        transparent = isTransparent[i];
-                        layerVisibleList = transparent ? layer.instances.visibleTransparent[layerCamId] : layer.instances.visibleOpaque[layerCamId];
-                        layerVisibleListLength = layerVisibleList.length;
-                        layerVisibleList = layerVisibleList.list;
-                        for (j=0; j<layerVisibleListLength; j++) {
-                            drawCall = layerVisibleList[j];
-                            if (drawCall.material && drawCall.material.depthWrite && !drawCall._noDepthDrawGl1) {
-                                visibleList[visibleLength] = drawCall;
-                                visibleLength++;
+                    onPostCull(cameraPass) {
+                        // Collect all rendered mesh instances with the same render target as World has, depthWrite == true and prior to this layer to replicate blitFramebuffer on WebGL2
+                        const visibleObjects = this.instances.visibleOpaque[cameraPass];
+                        const visibleList = visibleObjects.list;
+                        let visibleLength = 0;
+                        const layers = self.scene.layers.layerList;
+                        const subLayerEnabled = self.scene.layers.subLayerEnabled;
+                        const isTransparent = self.scene.layers.subLayerList;
+                        const rt = self.defaultLayerWorld.renderTarget;
+                        const cam = this.cameras[cameraPass];
+                        let layer;
+                        let j;
+                        let layerVisibleList, layerCamId, layerVisibleListLength, drawCall, transparent;
+                        for (let i=0; i<layers.length; i++) {
+                            layer = layers[i];
+                            if (layer === this) break;
+                            if (layer.renderTarget !== rt || !layer.enabled || !subLayerEnabled[i]) continue;
+                            layerCamId = layer.cameras.indexOf(cam);
+                            if (layerCamId < 0) continue;
+                            transparent = isTransparent[i];
+                            layerVisibleList = transparent ? layer.instances.visibleTransparent[layerCamId] : layer.instances.visibleOpaque[layerCamId];
+                            layerVisibleListLength = layerVisibleList.length;
+                            layerVisibleList = layerVisibleList.list;
+                            for (j=0; j<layerVisibleListLength; j++) {
+                                drawCall = layerVisibleList[j];
+                                if (drawCall.material && drawCall.material.depthWrite && !drawCall._noDepthDrawGl1) {
+                                    visibleList[visibleLength] = drawCall;
+                                    visibleLength++;
+                                }
                             }
                         }
+                        visibleObjects.length = visibleLength;
+                    },
+
+                    onPreRenderOpaque(cameraPass) { // resize depth map if needed
+                        if (!this.renderTarget || (this.renderTarget.width !== self.graphicsDevice.width || this.renderTarget.height !== self.graphicsDevice.height)) {
+                            this.onDisable();
+                            this.onEnable();
+                        }
+                        this.oldClear = this.cameras[cameraPass].camera._clearOptions;
+                        this.cameras[cameraPass].camera._clearOptions = this.rgbaDepthClearOptions;
+                    },
+
+                    onDrawCall() {
+                        self.graphicsDevice.setColorWrite(true, true, true, true);
+                    },
+
+                    onPostRenderOpaque(cameraPass) {
+                        if (!this.renderTarget) return;
+                        this.cameras[cameraPass].camera._clearOptions = this.oldClear;
                     }
-                    visibleObjects.length = visibleLength;
-                },
 
-                onPreRenderOpaque: function(cameraPass) { // resize depth map if needed
-                    if (!this.renderTarget || (this.renderTarget.width !== self.graphicsDevice.width || this.renderTarget.height !== self.graphicsDevice.height)) {
-                        this.onDisable();
-                        this.onEnable();
-                    }
-                    this.oldClear = this.cameras[cameraPass].camera._clearOptions;
-                    this.cameras[cameraPass].camera._clearOptions = this.rgbaDepthClearOptions;
-                },
-
-                onDrawCall: function() {
-                    self.graphicsDevice.setColorWrite(true, true, true, true);
-                },
-
-                onPostRenderOpaque: function(cameraPass) {
-                    if (!this.renderTarget) return;
-                    this.cameras[cameraPass].camera._clearOptions = this.oldClear;
-                }
-
-            });
-            this.defaultLayerDepth.rgbaDepthClearOptions = {
-                color: [ 254.0 / 255, 254.0 / 255, 254.0 / 255, 254.0 / 255 ],
-                depth: 1.0,
-                flags: pc.CLEARFLAG_COLOR | pc.CLEARFLAG_DEPTH
-            };
-        }
-
-        this.defaultLayerSkybox = new pc.Layer({
-            enabled: false,
-            name: "Skybox",
-            id: pc.LAYERID_SKYBOX,
-            opaqueSortMode: pc.SORTMODE_NONE
-        });
-        this.defaultLayerUi = new pc.Layer({
-            enabled: true,
-            name: "UI",
-            id: pc.LAYERID_UI,
-            transparentSortMode: pc.SORTMODE_MANUAL,
-            passThrough: true
-        });
-        this.defaultLayerImmediate = new pc.Layer({
-            enabled: true,
-            name: "Immediate",
-            id: pc.LAYERID_IMMEDIATE,
-            opaqueSortMode: pc.SORTMODE_NONE,
-            passThrough: true
-        });
-        this.defaultLayerComposition = new pc.LayerComposition();
-
-        this.defaultLayerComposition.pushOpaque(this.defaultLayerWorld);
-        this.defaultLayerComposition.pushOpaque(this.defaultLayerDepth);
-        this.defaultLayerComposition.pushOpaque(this.defaultLayerSkybox);
-        this.defaultLayerComposition.pushTransparent(this.defaultLayerWorld);
-        this.defaultLayerComposition.pushOpaque(this.defaultLayerImmediate);
-        this.defaultLayerComposition.pushTransparent(this.defaultLayerImmediate);
-        this.defaultLayerComposition.pushTransparent(this.defaultLayerUi);
-
-        this.scene.layers = this.defaultLayerComposition;
-
-        this._immediateLayer = this.defaultLayerImmediate;
-
-        // Default layers patch
-        this.scene.on('set:layers', function(oldComp, newComp) {
-            var list = newComp.layerList;
-            var layer;
-            for (var i=0; i<list.length; i++) {
-                layer = list[i];
-                switch (layer.id) {
-                    case pc.LAYERID_DEPTH:
-                        layer.onEnable = self.defaultLayerDepth.onEnable;
-                        layer.onDisable = self.defaultLayerDepth.onDisable;
-                        layer.onPreRenderOpaque = self.defaultLayerDepth.onPreRenderOpaque;
-                        layer.onPostRenderOpaque = self.defaultLayerDepth.onPostRenderOpaque;
-                        layer.depthClearOptions = self.defaultLayerDepth.depthClearOptions;
-                        layer.rgbaDepthClearOptions = self.defaultLayerDepth.rgbaDepthClearOptions;
-                        layer.shaderPass = self.defaultLayerDepth.shaderPass;
-                        layer.onPostCull = self.defaultLayerDepth.onPostCull;
-                        layer.onDrawCall = self.defaultLayerDepth.onDrawCall;
-                        break;
-                    case pc.LAYERID_UI:
-                        layer.passThrough = self.defaultLayerUi.passThrough;
-                        break;
-                    case pc.LAYERID_IMMEDIATE:
-                        layer.passThrough = self.defaultLayerImmediate.passThrough;
-                        break;
-                }
+                });
+                this.defaultLayerDepth.rgbaDepthClearOptions = {
+                    color: [ 254.0 / 255, 254.0 / 255, 254.0 / 255, 254.0 / 255 ],
+                    depth: 1.0,
+                    flags: pc.CLEARFLAG_COLOR | pc.CLEARFLAG_DEPTH
+                };
             }
-        });
 
-        this.renderer = new pc.ForwardRenderer(this.graphicsDevice);
-        this.renderer.scene = this.scene;
-        this.lightmapper = new pc.Lightmapper(this.graphicsDevice, this.root, this.scene, this.renderer, this.assets);
-        this.once('prerender', this._firstBake, this);
-        this.batcher = new pc.BatchManager(this.graphicsDevice, this.root, this.scene);
-        this.once('prerender', this._firstBatch, this);
+            this.defaultLayerSkybox = new pc.Layer({
+                enabled: false,
+                name: "Skybox",
+                id: pc.LAYERID_SKYBOX,
+                opaqueSortMode: pc.SORTMODE_NONE
+            });
+            this.defaultLayerUi = new pc.Layer({
+                enabled: true,
+                name: "UI",
+                id: pc.LAYERID_UI,
+                transparentSortMode: pc.SORTMODE_MANUAL,
+                passThrough: true
+            });
+            this.defaultLayerImmediate = new pc.Layer({
+                enabled: true,
+                name: "Immediate",
+                id: pc.LAYERID_IMMEDIATE,
+                opaqueSortMode: pc.SORTMODE_NONE,
+                passThrough: true
+            });
+            this.defaultLayerComposition = new pc.LayerComposition();
 
-        this.keyboard = options.keyboard || null;
-        this.mouse = options.mouse || null;
-        this.touch = options.touch || null;
-        this.gamepads = options.gamepads || null;
-        this.elementInput = options.elementInput || null;
-        if (this.elementInput)
-            this.elementInput.app = this;
+            this.defaultLayerComposition.pushOpaque(this.defaultLayerWorld);
+            this.defaultLayerComposition.pushOpaque(this.defaultLayerDepth);
+            this.defaultLayerComposition.pushOpaque(this.defaultLayerSkybox);
+            this.defaultLayerComposition.pushTransparent(this.defaultLayerWorld);
+            this.defaultLayerComposition.pushOpaque(this.defaultLayerImmediate);
+            this.defaultLayerComposition.pushTransparent(this.defaultLayerImmediate);
+            this.defaultLayerComposition.pushTransparent(this.defaultLayerUi);
 
-        this.vr = null;
-        // you can enable vr here, or in application properties
-        if (options.vr) {
-            this._onVrChange(options.vr);
+            this.scene.layers = this.defaultLayerComposition;
+
+            this._immediateLayer = this.defaultLayerImmediate;
+
+            // Default layers patch
+            this.scene.on('set:layers', (oldComp, {layerList}) => {
+                const list = layerList;
+                let layer;
+                for (let i=0; i<list.length; i++) {
+                    layer = list[i];
+                    switch (layer.id) {
+                        case pc.LAYERID_DEPTH:
+                            layer.onEnable = self.defaultLayerDepth.onEnable;
+                            layer.onDisable = self.defaultLayerDepth.onDisable;
+                            layer.onPreRenderOpaque = self.defaultLayerDepth.onPreRenderOpaque;
+                            layer.onPostRenderOpaque = self.defaultLayerDepth.onPostRenderOpaque;
+                            layer.depthClearOptions = self.defaultLayerDepth.depthClearOptions;
+                            layer.rgbaDepthClearOptions = self.defaultLayerDepth.rgbaDepthClearOptions;
+                            layer.shaderPass = self.defaultLayerDepth.shaderPass;
+                            layer.onPostCull = self.defaultLayerDepth.onPostCull;
+                            layer.onDrawCall = self.defaultLayerDepth.onDrawCall;
+                            break;
+                        case pc.LAYERID_UI:
+                            layer.passThrough = self.defaultLayerUi.passThrough;
+                            break;
+                        case pc.LAYERID_IMMEDIATE:
+                            layer.passThrough = self.defaultLayerImmediate.passThrough;
+                            break;
+                    }
+                }
+            });
+
+            this.renderer = new pc.ForwardRenderer(this.graphicsDevice);
+            this.renderer.scene = this.scene;
+            this.lightmapper = new pc.Lightmapper(this.graphicsDevice, this.root, this.scene, this.renderer, this.assets);
+            this.once('prerender', this._firstBake, this);
+            this.batcher = new pc.BatchManager(this.graphicsDevice, this.root, this.scene);
+            this.once('prerender', this._firstBatch, this);
+
+            this.keyboard = options.keyboard || null;
+            this.mouse = options.mouse || null;
+            this.touch = options.touch || null;
+            this.gamepads = options.gamepads || null;
+            this.elementInput = options.elementInput || null;
+            if (this.elementInput)
+                this.elementInput.app = this;
+
+            this.vr = null;
+            // you can enable vr here, or in application properties
+            if (options.vr) {
+                this._onVrChange(options.vr);
+            }
+
+            this._inTools = false;
+
+            this._skyboxLast = 0;
+
+            this._scriptPrefix = options.scriptPrefix || '';
+
+            this.loader.addHandler("animation", new pc.AnimationHandler());
+            this.loader.addHandler("model", new pc.ModelHandler(this.graphicsDevice));
+            this.loader.addHandler("material", new pc.MaterialHandler(this));
+            this.loader.addHandler("texture", new pc.TextureHandler(this.graphicsDevice, this.assets, this.loader));
+            this.loader.addHandler("text", new pc.TextHandler());
+            this.loader.addHandler("json", new pc.JsonHandler());
+            this.loader.addHandler("audio", new pc.AudioHandler(this._audioManager));
+            this.loader.addHandler("script", new pc.ScriptHandler(this));
+            this.loader.addHandler("scene", new pc.SceneHandler(this));
+            this.loader.addHandler("cubemap", new pc.CubemapHandler(this.graphicsDevice, this.assets, this.loader));
+            this.loader.addHandler("html", new pc.HtmlHandler());
+            this.loader.addHandler("css", new pc.CssHandler());
+            this.loader.addHandler("shader", new pc.ShaderHandler());
+            this.loader.addHandler("hierarchy", new pc.HierarchyHandler(this));
+            this.loader.addHandler("scenesettings", new pc.SceneSettingsHandler(this));
+            this.loader.addHandler("folder", new pc.FolderHandler());
+            this.loader.addHandler("font", new pc.FontHandler(this.loader));
+            this.loader.addHandler("binary", new pc.BinaryHandler());
+            this.loader.addHandler("textureatlas", new pc.TextureAtlasHandler(this.loader));
+            this.loader.addHandler("sprite", new pc.SpriteHandler(this.assets, this.graphicsDevice));
+
+            new pc.RigidBodyComponentSystem(this);
+            new pc.CollisionComponentSystem(this);
+            new pc.AnimationComponentSystem(this);
+            new pc.ModelComponentSystem(this);
+            new pc.CameraComponentSystem(this);
+            new pc.LightComponentSystem(this);
+            if (pc.script.legacy) {
+                new pc.ScriptLegacyComponentSystem(this);
+            } else {
+                new pc.ScriptComponentSystem(this);
+            }
+            new pc.AudioSourceComponentSystem(this, this._audioManager);
+            new pc.SoundComponentSystem(this, this._audioManager);
+            new pc.AudioListenerComponentSystem(this, this._audioManager);
+            new pc.ParticleSystemComponentSystem(this);
+            new pc.ScreenComponentSystem(this);
+            new pc.ElementComponentSystem(this);
+            new pc.SpriteComponentSystem(this);
+            new pc.ZoneComponentSystem(this);
+
+            this._visibilityChangeHandler = this.onVisibilityChange.bind(this);
+
+            // Depending on browser add the correct visibiltychange event and store the name of the hidden attribute
+            // in this._hiddenAttr.
+            if (document.hidden !== undefined) {
+                this._hiddenAttr = 'hidden';
+                document.addEventListener('visibilitychange', this._visibilityChangeHandler, false);
+            } else if (document.mozHidden !== undefined) {
+                this._hiddenAttr = 'mozHidden';
+                document.addEventListener('mozvisibilitychange', this._visibilityChangeHandler, false);
+            } else if (document.msHidden !== undefined) {
+                this._hiddenAttr = 'msHidden';
+                document.addEventListener('msvisibilitychange', this._visibilityChangeHandler, false);
+            } else if (document.webkitHidden !== undefined) {
+                this._hiddenAttr = 'webkitHidden';
+                document.addEventListener('webkitvisibilitychange', this._visibilityChangeHandler, false);
+            }
+
+            // bind tick function to current scope
+            this.tick = makeTick(this);
         }
 
-        this._inTools = false;
-
-        this._skyboxLast = 0;
-
-        this._scriptPrefix = options.scriptPrefix || '';
-
-        this.loader.addHandler("animation", new pc.AnimationHandler());
-        this.loader.addHandler("model", new pc.ModelHandler(this.graphicsDevice));
-        this.loader.addHandler("material", new pc.MaterialHandler(this));
-        this.loader.addHandler("texture", new pc.TextureHandler(this.graphicsDevice, this.assets, this.loader));
-        this.loader.addHandler("text", new pc.TextHandler());
-        this.loader.addHandler("json", new pc.JsonHandler());
-        this.loader.addHandler("audio", new pc.AudioHandler(this._audioManager));
-        this.loader.addHandler("script", new pc.ScriptHandler(this));
-        this.loader.addHandler("scene", new pc.SceneHandler(this));
-        this.loader.addHandler("cubemap", new pc.CubemapHandler(this.graphicsDevice, this.assets, this.loader));
-        this.loader.addHandler("html", new pc.HtmlHandler());
-        this.loader.addHandler("css", new pc.CssHandler());
-        this.loader.addHandler("shader", new pc.ShaderHandler());
-        this.loader.addHandler("hierarchy", new pc.HierarchyHandler(this));
-        this.loader.addHandler("scenesettings", new pc.SceneSettingsHandler(this));
-        this.loader.addHandler("folder", new pc.FolderHandler());
-        this.loader.addHandler("font", new pc.FontHandler(this.loader));
-        this.loader.addHandler("binary", new pc.BinaryHandler());
-        this.loader.addHandler("textureatlas", new pc.TextureAtlasHandler(this.loader));
-        this.loader.addHandler("sprite", new pc.SpriteHandler(this.assets, this.graphicsDevice));
-
-        new pc.RigidBodyComponentSystem(this);
-        new pc.CollisionComponentSystem(this);
-        new pc.AnimationComponentSystem(this);
-        new pc.ModelComponentSystem(this);
-        new pc.CameraComponentSystem(this);
-        new pc.LightComponentSystem(this);
-        if (pc.script.legacy) {
-            new pc.ScriptLegacyComponentSystem(this);
-        } else {
-            new pc.ScriptComponentSystem(this);
-        }
-        new pc.AudioSourceComponentSystem(this, this._audioManager);
-        new pc.SoundComponentSystem(this, this._audioManager);
-        new pc.AudioListenerComponentSystem(this, this._audioManager);
-        new pc.ParticleSystemComponentSystem(this);
-        new pc.ScreenComponentSystem(this);
-        new pc.ElementComponentSystem(this);
-        new pc.SpriteComponentSystem(this);
-        new pc.ZoneComponentSystem(this);
-
-        this._visibilityChangeHandler = this.onVisibilityChange.bind(this);
-
-        // Depending on browser add the correct visibiltychange event and store the name of the hidden attribute
-        // in this._hiddenAttr.
-        if (document.hidden !== undefined) {
-            this._hiddenAttr = 'hidden';
-            document.addEventListener('visibilitychange', this._visibilityChangeHandler, false);
-        } else if (document.mozHidden !== undefined) {
-            this._hiddenAttr = 'mozHidden';
-            document.addEventListener('mozvisibilitychange', this._visibilityChangeHandler, false);
-        } else if (document.msHidden !== undefined) {
-            this._hiddenAttr = 'msHidden';
-            document.addEventListener('msvisibilitychange', this._visibilityChangeHandler, false);
-        } else if (document.webkitHidden !== undefined) {
-            this._hiddenAttr = 'webkitHidden';
-            document.addEventListener('webkitvisibilitychange', this._visibilityChangeHandler, false);
-        }
-
-        // bind tick function to current scope
-        this.tick = makeTick(this);
-    };
-
-
-    Application._currentApplication = null;
-    Application._applications = {};
-    Application.getApplication = function (id) {
-        if (id) {
-            return Application._applications[id];
-        } else {
-            return Application._currentApplication;
-        }
-    };
-
-
-    // Mini-object used to measure progress of loading sets
-    var Progress = function (length) {
-        this.length = length;
-        this.count = 0;
-
-        this.inc = function () {
-            this.count++;
-        };
-
-        this.done = function () {
-            return (this.count === this.length);
-        };
-    };
-
-    Application.prototype = {
         /**
         * @function
         * @name pc.Application#configure
@@ -528,18 +502,18 @@ pc.extend(pc, function () {
         * @param {String} url The URL of the configuration file to load
         * @param {Function} callback The Function called when the configuration file is loaded and parsed
         */
-        configure: function (url, callback) {
-            var self = this;
-            pc.http.get(url, function (err, response) {
+        configure(url, callback) {
+            const self = this;
+            pc.http.get(url, (err, response) => {
                 if (err) {
                     callback(err);
                     return;
                 }
 
-                var props = response.application_properties;
-                var assets = response.assets;
+                const props = response.application_properties;
+                const assets = response.assets;
 
-                self._parseApplicationProperties(props, function (err) {
+                self._parseApplicationProperties(props, err => {
                     self._onVrChange(props.vr);
                     self._parseAssets(assets);
                     if (!err) {
@@ -549,7 +523,7 @@ pc.extend(pc, function () {
                     }
                 });
             });
-        },
+        }
 
         /**
         * @function
@@ -557,22 +531,22 @@ pc.extend(pc, function () {
         * @description Load all assets in the asset registry that are marked as 'preload'
         * @param {Function} callback Function called when all assets are loaded
         */
-        preload: function (callback) {
-            var self = this;
+        preload(callback) {
+            const self = this;
 
             self.fire("preload:start");
 
             // get list of assets to preload
-            var assets = this.assets.list({
+            const assets = this.assets.list({
                 preload: true
             });
 
-            var _assets = new Progress(assets.length);
+            const _assets = new Progress(assets.length);
 
-            var _done = false;
+            let _done = false;
 
             // check if all loading is done
-            var done = function () {
+            const done = () => {
                 // do not proceed if application destroyed
                 if (!self.graphicsDevice) {
                     return;
@@ -586,14 +560,12 @@ pc.extend(pc, function () {
             };
 
             // totals loading progress of assets
-            var total = assets.length;
-            var count = function () {
-                return _assets.count;
-            };
+            const total = assets.length;
+            const count = () => _assets.count;
 
-            var i;
+            let i;
             if (_assets.length) {
-                var onAssetLoad = function(asset) {
+                const onAssetLoad = asset => {
                     _assets.inc();
                     self.fire('preload:progress', count() / total);
 
@@ -601,7 +573,7 @@ pc.extend(pc, function () {
                         done();
                 };
 
-                var onAssetError = function(err, asset) {
+                const onAssetError = (err, asset) => {
                     _assets.inc();
                     self.fire('preload:progress', count() / total);
 
@@ -627,7 +599,7 @@ pc.extend(pc, function () {
             } else {
                 done();
             }
-        },
+        }
 
         /**
         * @function
@@ -647,29 +619,29 @@ pc.extend(pc, function () {
         *   }
         * });
         */
-        loadSceneHierarchy: function (url, callback) {
-            var self = this;
+        loadSceneHierarchy(url, callback) {
+            const self = this;
 
             // Because we need to load scripts before we instance the hierarchy (i.e. before we create script components)
             // Split loading into load and open
-            var handler = this.loader.getHandler("hierarchy");
+            const handler = this.loader.getHandler("hierarchy");
 
             // include asset prefix if present
             if (this.assets && this.assets.prefix && !pc.ABSOLUTE_URL.test(url)) {
                 url = pc.path.join(this.assets.prefix, url);
             }
 
-            handler.load(url, function (err, data) {
+            handler.load(url, (err, data) => {
                 if (err) {
                     if (callback) callback(err);
                     return;
                 }
 
                 // called after scripts are preloaded
-                var _loaded = function () {
+                const _loaded = () => {
 
                     self.systems.script.preloading = true;
-                    var entity = handler.open(url, data);
+                    const entity = handler.open(url, data);
                     self.systems.script.preloading = false;
 
                     // clear from cache because this data is modified by entity operations (e.g. destroy)
@@ -688,7 +660,7 @@ pc.extend(pc, function () {
                 // load priority and referenced scripts before opening scene
                 self._preloadScripts(data, _loaded);
             });
-        },
+        }
 
         /**
         * @function
@@ -706,13 +678,13 @@ pc.extend(pc, function () {
         *   }
         * });
         */
-        loadSceneSettings: function (url, callback) {
+        loadSceneSettings(url, callback) {
             // include asset prefix if present
             if (this.assets && this.assets.prefix && !pc.ABSOLUTE_URL.test(url)) {
                 url = pc.path.join(this.assets.prefix, url);
             }
 
-            this.loader.load(url, "scenesettings", function (err, settings) {
+            this.loader.load(url, "scenesettings", (err, settings) => {
                 if (!err) {
                     this.applySceneSettings(settings);
                     if (callback) {
@@ -724,25 +696,25 @@ pc.extend(pc, function () {
                         callback(err);
                     }
                 }
-            }.bind(this));
-        },
+            });
+        }
 
-        loadScene: function (url, callback) {
-            var self = this;
+        loadScene(url, callback) {
+            const self = this;
 
-            var handler = this.loader.getHandler("scene");
+            const handler = this.loader.getHandler("scene");
 
             // include asset prefix if present
             if (this.assets && this.assets.prefix && !pc.ABSOLUTE_URL.test(url)) {
                 url = pc.path.join(this.assets.prefix, url);
             }
 
-            handler.load(url, function (err, data) {
+            handler.load(url, (err, data) => {
                 if (!err) {
-                    var _loaded = function () {
+                    const _loaded = () => {
                         // parse and create scene
                         self.systems.script.preloading = true;
-                        var scene = handler.open(url, data);
+                        const scene = handler.open(url, data);
                         self.systems.script.preloading = false;
 
                         // clear scene from cache because we'll destroy it when we load another one
@@ -773,28 +745,29 @@ pc.extend(pc, function () {
                         callback(err);
                     }
                 }
-            }.bind(this));
-        },
+            });
+        }
 
-        _preloadScripts: function (sceneData, callback) {
+        _preloadScripts(sceneData, callback) {
             if (! pc.script.legacy) {
                 callback();
                 return;
             }
 
-            var self = this;
+            const self = this;
 
             self.systems.script.preloading = true;
 
-            var scripts = this._getScriptReferences(sceneData);
+            const scripts = this._getScriptReferences(sceneData);
 
-            var i = 0, l = scripts.length;
-            var progress = new Progress(l);
-            var scriptUrl;
-            var regex = /^http(s)?:\/\//;
+            let i = 0;
+            const l = scripts.length;
+            const progress = new Progress(l);
+            let scriptUrl;
+            const regex = /^http(s)?:\/\//;
 
             if (l) {
-                var onLoad = function (err, ScriptType) {
+                const onLoad = (err, ScriptType) => {
                     if (err)
                         console.error(err);
 
@@ -817,12 +790,12 @@ pc.extend(pc, function () {
                 self.systems.script.preloading = false;
                 callback();
             }
-        },
+        }
 
         // set application properties from data file
-        _parseApplicationProperties: function (props, callback) {
-            var i;
-            var len;
+        _parseApplicationProperties(props, callback) {
+            let i;
+            let len;
 
             // TODO: remove this temporary block after migrating properties
             if (! props.useDevicePixelRatio)
@@ -853,11 +826,11 @@ pc.extend(pc, function () {
 
             // set up layers
             if (props.layers && props.layerOrder) {
-                var composition = new pc.LayerComposition();
+                const composition = new pc.LayerComposition();
 
-                var layers = {};
-                for (var key in props.layers) {
-                    var data = props.layers[key];
+                const layers = {};
+                for (const key in props.layers) {
+                    const data = props.layers[key];
                     data.id = parseInt(key, 10);
                     // depth layer should only be enabled when needed
                     // by incrementing its ref counter
@@ -866,8 +839,8 @@ pc.extend(pc, function () {
                 }
 
                 for (i = 0, len = props.layerOrder.length; i<len; i++) {
-                    var sublayer = props.layerOrder[i];
-                    var layer = layers[sublayer.layer];
+                    const sublayer = props.layerOrder[i];
+                    const layer = layers[sublayer.layer];
                     if (! layer) continue;
 
                     if (sublayer.transparent) {
@@ -885,24 +858,24 @@ pc.extend(pc, function () {
             // add batch groups
             if (props.batchGroups) {
                 for (i = 0, len = props.batchGroups.length; i < len; i++) {
-                    var grp = props.batchGroups[i];
+                    const grp = props.batchGroups[i];
                     this.batcher.addGroup(grp.name, grp.dynamic, grp.maxAabbSize, grp.id, grp.layers);
                 }
 
             }
 
             this._loadLibraries(props.libraries, callback);
-        },
+        }
 
-        _loadLibraries: function (urls, callback) {
-            var len = urls.length;
-            var count = len;
-            var self = this;
+        _loadLibraries(urls, callback) {
+            const len = urls.length;
+            let count = len;
+            const self = this;
 
-            var regex = /^http(s)?:\/\//;
+            const regex = /^http(s)?:\/\//;
 
             if (len) {
-                var onLoad = function(err, script) {
+                const onLoad = (err, script) => {
                     count--;
                     if (err) {
                         callback(err);
@@ -912,8 +885,8 @@ pc.extend(pc, function () {
                     }
                 };
 
-                for (var i = 0; i < len; ++i) {
-                    var url = urls[i];
+                for (let i = 0; i < len; ++i) {
+                    let url = urls[i];
 
                     if (!regex.test(url.toLowerCase()) && self._scriptPrefix)
                         url = pc.path.join(self._scriptPrefix, url);
@@ -923,14 +896,14 @@ pc.extend(pc, function () {
             } else {
                 callback(null);
             }
-        },
+        }
 
         // insert assets into registry
-        _parseAssets: function (assets) {
-            var i, id;
-            var list = [ ];
+        _parseAssets(assets) {
+            let i, id;
+            const list = [ ];
 
-            var scriptsIndex = { };
+            const scriptsIndex = { };
 
             if (! pc.script.legacy) {
                 // add scripts in order of loading first
@@ -956,8 +929,8 @@ pc.extend(pc, function () {
             }
 
             for (i = 0; i < list.length; i++) {
-                var data = list[i];
-                var asset = new pc.Asset(data.name, data.type, data.file, data.data);
+                const data = list[i];
+                const asset = new pc.Asset(data.name, data.type, data.file, data.data);
                 asset.id = parseInt(data.id);
                 asset.preload = data.preload ? data.preload : false;
                 // tags
@@ -965,18 +938,18 @@ pc.extend(pc, function () {
                 // registry
                 this.assets.add(asset);
             }
-        },
+        }
 
-        _getScriptReferences: function (scene) {
-            var i, key;
+        _getScriptReferences(scene) {
+            let i, key;
 
-            var priorityScripts = [];
+            let priorityScripts = [];
             if (scene.settings.priority_scripts) {
                 priorityScripts = scene.settings.priority_scripts;
             }
 
-            var _scripts = [];
-            var _index = {};
+            const _scripts = [];
+            const _index = {};
 
             // first add priority scripts
             for (i = 0; i < priorityScripts.length; i++) {
@@ -985,13 +958,13 @@ pc.extend(pc, function () {
             }
 
             // then iterate hierarchy to get referenced scripts
-            var entities = scene.entities;
+            const entities = scene.entities;
             for (key in entities) {
                 if (!entities[key].components.script) {
                     continue;
                 }
 
-                var scripts = entities[key].components.script.scripts;
+                const scripts = entities[key].components.script.scripts;
                 for (i = 0; i < scripts.length; i++) {
                     if (_index[scripts[i].url])
                         continue;
@@ -1001,14 +974,14 @@ pc.extend(pc, function () {
             }
 
             return _scripts;
-        },
+        }
 
         /**
          * @function
          * @name pc.Application#start
          * @description Start the Application updating
          */
-        start: function () {
+        start() {
             this.fire("start", {
                 timestamp: pc.now(),
                 target: this
@@ -1025,7 +998,7 @@ pc.extend(pc, function () {
             this.fire("postinitialize");
 
             this.tick();
-        },
+        }
 
         /**
          * @function
@@ -1033,7 +1006,7 @@ pc.extend(pc, function () {
          * @description Application specific update method. Override this if you have a custom Application
          * @param {Number} dt The time delta since the last frame.
          */
-        update: function (dt) {
+        update(dt) {
             this.graphicsDevice.updateClientRect();
 
             if (this.vr) this.vr.poll();
@@ -1068,14 +1041,14 @@ pc.extend(pc, function () {
             // #ifdef PROFILER
             this.stats.frame.updateTime = pc.now() - this.stats.frame.updateStart;
             // #endif
-        },
+        }
 
         /**
          * @function
          * @name pc.Application#render
          * @description Application specific render method. Override this if you have a custom Application
          */
-        render: function () {
+        render() {
             // #ifdef PROFILER
             this.stats.frame.renderStart = pc.now();
             // #endif
@@ -1090,11 +1063,11 @@ pc.extend(pc, function () {
             // #ifdef PROFILER
             this.stats.frame.renderTime = pc.now() - this.stats.frame.renderStart;
             // #endif
-        },
+        }
 
-        _fillFrameStats: function(now, dt, ms) {
+        _fillFrameStats(now, dt, ms) {
             // Timing stats
-            var stats = this.stats.frame;
+            let stats = this.stats.frame;
             stats.dt = dt;
             stats.ms = ms;
             if (now > stats._timeToCountFrames) {
@@ -1113,7 +1086,7 @@ pc.extend(pc, function () {
             stats.shadowMapTime = this.renderer._shadowMapTime;
             stats.depthMapTime = this.renderer._depthMapTime;
             stats.forwardTime = this.renderer._forwardTime;
-            var prims = this.graphicsDevice._primsPerFrame;
+            const prims = this.graphicsDevice._primsPerFrame;
             stats.triangles = prims[pc.PRIMITIVE_TRIANGLES]/3 +
                 Math.max(prims[pc.PRIMITIVE_TRISTRIP]-2, 0) +
                 Math.max(prims[pc.PRIMITIVE_TRIFAN]-2, 0);
@@ -1123,7 +1096,7 @@ pc.extend(pc, function () {
             stats.morphTime = this.renderer._morphTime;
             stats.instancingTime = this.renderer._instancingTime;
             stats.otherPrimitives = 0;
-            for (var i=0; i<prims.length; i++) {
+            for (let i=0; i<prims.length; i++) {
                 if (i<pc.PRIMITIVE_TRIANGLES) {
                     stats.otherPrimitives += prims[i];
                 }
@@ -1169,7 +1142,7 @@ pc.extend(pc, function () {
             stats.frameTime = stats._frameTime;
             stats._updatesPerFrame = 0;
             stats._frameTime = 0;
-        },
+        }
 
         /**
         * @function
@@ -1184,10 +1157,10 @@ pc.extend(pc, function () {
         * @param {Number} [width] The width of the canvas (only used when mode is pc.FILLMODE_NONE).
         * @param {Number} [height] The height of the canvas (only used when mode is pc.FILLMODE_NONE).
         */
-        setCanvasFillMode: function (mode, width, height) {
+        setCanvasFillMode(mode, width, height) {
             this._fillMode = mode;
             this.resizeCanvas(width, height);
-        },
+        }
 
         /**
         * @function
@@ -1201,7 +1174,7 @@ pc.extend(pc, function () {
         * @param {Number} [width] The horizontal resolution, optional in AUTO mode, if not provided canvas clientWidth is used
         * @param {Number} [height] The vertical resolution, optional in AUTO mode, if not provided canvas clientHeight is used
         */
-        setCanvasResolution: function (mode, width, height) {
+        setCanvasResolution(mode, width, height) {
             this._resolutionMode = mode;
 
             // In AUTO mode the resolution is the same as the canvas size, unless specified
@@ -1211,7 +1184,7 @@ pc.extend(pc, function () {
             }
 
             this.graphicsDevice.resizeCanvas(width, height);
-        },
+        }
 
         /**
         * @function
@@ -1219,9 +1192,9 @@ pc.extend(pc, function () {
         * @description Returns true if the application is currently running fullscreen
         * @returns {Boolean} True if the application is running fullscreen
         */
-        isFullscreen: function () {
+        isFullscreen() {
             return !!document.fullscreenElement;
-        },
+        }
 
         /**
         * @function
@@ -1241,17 +1214,17 @@ pc.extend(pc, function () {
         *     });
         * }, false);
         */
-        enableFullscreen: function (element, success, error) {
+        enableFullscreen(element, success, error) {
             element = element || this.graphicsDevice.canvas;
 
             // success callback
-            var s = function () {
+            const s = () => {
                 success();
                 document.removeEventListener('fullscreenchange', s);
             };
 
             // error callback
-            var e = function () {
+            const e = () => {
                 error();
                 document.removeEventListener('fullscreenerror', e);
             };
@@ -1270,7 +1243,7 @@ pc.extend(pc, function () {
                 error();
             }
 
-        },
+        }
 
         /**
         * @function
@@ -1278,9 +1251,9 @@ pc.extend(pc, function () {
         * @description If application is currently displaying an element as fullscreen, then stop and return to normal.
         * @param {Function} [success] Function called when transition to normal mode is finished
         */
-        disableFullscreen: function (success) {
+        disableFullscreen(success) {
             // success callback
-            var s = function () {
+            const s = () => {
                 success();
                 document.removeEventListener('fullscreenchange', s);
             };
@@ -1290,7 +1263,7 @@ pc.extend(pc, function () {
             }
 
             document.exitFullscreen();
-        },
+        }
 
         /**
         * @function
@@ -1298,9 +1271,9 @@ pc.extend(pc, function () {
         * @description Queries the visibility of the window or tab in which the application is running.
         * @returns {Boolean} True if the application is not visible and false otherwise.
         */
-        isHidden: function () {
+        isHidden() {
             return document[this._hiddenAttr];
-        },
+        }
 
         /**
         * @private
@@ -1308,13 +1281,13 @@ pc.extend(pc, function () {
         * @name pc.Application#onVisibilityChange
         * @description Called when the visibility state of the current tab/window changes
         */
-        onVisibilityChange: function () {
+        onVisibilityChange() {
             if (this.isHidden()) {
                 this._audioManager.suspend();
             } else {
                 this._audioManager.resume();
             }
-        },
+        }
 
         /**
         * @function
@@ -1327,11 +1300,11 @@ pc.extend(pc, function () {
         * @param {Number} [height] The height of the canvas, only used in NONE mode
         * @returns {Object} A object containing the values calculated to use as width and height
         */
-        resizeCanvas: function (width, height) {
+        resizeCanvas(width, height) {
             if (!this._allowResize) return; // prevent resizing (e.g. if presenting in VR HMD)
 
-            var windowWidth = window.innerWidth;
-            var windowHeight = window.innerHeight;
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
 
             if (navigator.isCocoonJS) {
                 width = windowWidth;
@@ -1340,8 +1313,8 @@ pc.extend(pc, function () {
                 this.graphicsDevice.resizeCanvas(width, height);
             } else {
                 if (this._fillMode === pc.FILLMODE_KEEP_ASPECT) {
-                    var r = this.graphicsDevice.canvas.width/this.graphicsDevice.canvas.height;
-                    var winR = windowWidth / windowHeight;
+                    const r = this.graphicsDevice.canvas.width/this.graphicsDevice.canvas.height;
+                    const winR = windowWidth / windowHeight;
 
                     if (r > winR) {
                         width = windowWidth;
@@ -1357,8 +1330,8 @@ pc.extend(pc, function () {
                     // FILLMODE_NONE use width and height that are provided
                 }
 
-                this.graphicsDevice.canvas.style.width = width + 'px';
-                this.graphicsDevice.canvas.style.height = height + 'px';
+                this.graphicsDevice.canvas.style.width = `${width}px`;
+                this.graphicsDevice.canvas.style.height = `${height}px`;
 
                 // In AUTO mode the resolution is changed to match the canvas size
                 if (this._resolutionMode === pc.RESOLUTION_AUTO) {
@@ -1368,10 +1341,10 @@ pc.extend(pc, function () {
 
             // return the final values calculated for width and height
             return {
-                width: width,
-                height: height
+                width,
+                height
             };
-        },
+        }
 
         /**
         * @private
@@ -1380,17 +1353,17 @@ pc.extend(pc, function () {
         * Code libraries are passed into the constructor of the Application and the application won't start running or load packs until all libraries have
         * been loaded
         */
-        onLibrariesLoaded: function () {
+        onLibrariesLoaded() {
             this._librariesLoaded = true;
             this.systems.rigidbody.onLibraryLoaded();
             this.systems.collision.onLibraryLoaded();
-        },
+        }
 
-        applySceneSettings: function (settings) {
-            var asset;
+        applySceneSettings(settings) {
+            let asset;
 
             if (this.systems.rigidbody && typeof Ammo !== 'undefined') {
-                var gravity = settings.physics.gravity;
+                const gravity = settings.physics.gravity;
                 this.systems.rigidbody.setGravity(gravity[0], gravity[1], gravity[2]);
             }
 
@@ -1403,13 +1376,13 @@ pc.extend(pc, function () {
                     if (asset) {
                         this.setSkybox(asset);
                     } else {
-                        this.assets.once('add:' + settings.render.skybox, this.setSkybox, this);
+                        this.assets.once(`add:${settings.render.skybox}`, this.setSkybox, this);
                     }
                 } else {
                     this.setSkybox(null);
                 }
             }
-        },
+        }
 
         /**
         * @function
@@ -1417,7 +1390,7 @@ pc.extend(pc, function () {
         * @description Sets the skybox asset to current scene, and subscribes to asset load/change events
         * @param {pc.Asset} asset Asset of type `skybox` to be set to, or null to remove skybox
         */
-        setSkybox: function(asset) {
+        setSkybox(asset) {
             if (asset) {
                 if (this._skyboxLast === asset.id) {
                     if (this.scene.skyboxMip === 0 && ! asset.loadFaces) {
@@ -1429,15 +1402,15 @@ pc.extend(pc, function () {
                 }
 
                 if (this._skyboxLast) {
-                    this.assets.off('add:' + this._skyboxLast, this.setSkybox, this);
-                    this.assets.off('load:' + this._skyboxLast, this._onSkyboxChange, this);
-                    this.assets.off('remove:' + this._skyboxLast, this._skyboxRemove, this);
+                    this.assets.off(`add:${this._skyboxLast}`, this.setSkybox, this);
+                    this.assets.off(`load:${this._skyboxLast}`, this._onSkyboxChange, this);
+                    this.assets.off(`remove:${this._skyboxLast}`, this._skyboxRemove, this);
                 }
 
                 this._skyboxLast = asset.id;
 
-                this.assets.on('load:' + asset.id, this._onSkyboxChange, this);
-                this.assets.once('remove:' + asset.id, this._skyboxRemove, this);
+                this.assets.on(`load:${asset.id}`, this._onSkyboxChange, this);
+                this.assets.once(`remove:${asset.id}`, this._skyboxRemove, this);
 
                 if (asset.resource)
                     this.scene.setSkybox(asset.resources);
@@ -1451,9 +1424,9 @@ pc.extend(pc, function () {
                     id: this._skyboxLast
                 });
             }
-        },
+        }
 
-        _onVrChange: function (enabled) {
+        _onVrChange(enabled) {
             if (enabled) {
                 if (!this.vr) {
                     this.vr = new pc.VrManager(this);
@@ -1464,50 +1437,50 @@ pc.extend(pc, function () {
                     this.vr = null;
                 }
             }
-        },
+        }
 
-        _onSkyboxChange: function(asset) {
-            this.scene.setSkybox(asset.resources);
-        },
+        _onSkyboxChange({resources}) {
+            this.scene.setSkybox(resources);
+        }
 
-        _skyboxLoad: function(asset) {
+        _skyboxLoad(asset) {
             if (this.scene.skyboxMip === 0)
                 asset.loadFaces = true;
 
             this.assets.load(asset);
 
             this._onSkyboxChange(asset);
-        },
+        }
 
-        _skyboxRemove: function(asset) {
+        _skyboxRemove({id}) {
             if (! this._skyboxLast)
                 return;
 
-            this.assets.off('add:' + asset.id, this.setSkybox, this);
-            this.assets.off('load:' + asset.id, this._onSkyboxChange, this);
-            this.assets.off('remove:' + asset.id, this._skyboxRemove, this);
+            this.assets.off(`add:${id}`, this.setSkybox, this);
+            this.assets.off(`load:${id}`, this._onSkyboxChange, this);
+            this.assets.off(`remove:${id}`, this._skyboxRemove, this);
             this.scene.setSkybox(null);
             this._skyboxLast = null;
-        },
+        }
 
-        _firstBake: function() {
+        _firstBake() {
             this.lightmapper.bake(null, this.scene.lightmapMode);
-        },
+        }
 
-        _firstBatch: function() {
+        _firstBatch() {
             if (this.scene._needsStaticPrepare) {
                 this.renderer.prepareStaticMeshes(this.graphicsDevice, this.scene);
                 this.scene._needsStaticPrepare = false;
             }
             this.batcher.generate();
-        },
+        }
 
         /**
         * @function
         * @name pc.Application#destroy
         * @description Destroys application and removes all event listeners.
         */
-        destroy: function () {
+        destroy() {
             Application._applications[this.graphicsDevice.canvas.id] = null;
 
             if (Application._currentApplication === this) {
@@ -1565,8 +1538,8 @@ pc.extend(pc, function () {
             pc.ComponentSystem.destroy();
 
             // destroy all texture resources
-            var assets = this.assets.list();
-            for (var i = 0; i < assets.length; i++) {
+            const assets = this.assets.list();
+            for (let i = 0; i < assets.length; i++) {
                 assets[i].unload();
             }
 
@@ -1598,12 +1571,38 @@ pc.extend(pc, function () {
 
             pc.destroyPostEffectQuad();
         }
+    }
+
+
+    Application._currentApplication = null;
+    Application._applications = {};
+    Application.getApplication = id => {
+        if (id) {
+            return Application._applications[id];
+        } else {
+            return Application._currentApplication;
+        }
+    };
+
+
+    // Mini-object used to measure progress of loading sets
+    const Progress = function (length) {
+        this.length = length;
+        this.count = 0;
+
+        this.inc = function () {
+            this.count++;
+        };
+
+        this.done = function () {
+            return (this.count === this.length);
+        };
     };
 
     // create tick function to be wrapped in closure
-    var makeTick = function (_app) {
-        var app = _app;
-        return function (timestamp) {
+    var makeTick = _app => {
+        const app = _app;
+        return timestamp => {
             if (!app.graphicsDevice) {
                 return;
             }
@@ -1613,9 +1612,9 @@ pc.extend(pc, function () {
             // have current application pointer in pc
             pc.app = app;
 
-            var now = timestamp || pc.now();
-            var ms = now - (app._time || now);
-            var dt = ms / 1000.0;
+            const now = timestamp || pc.now();
+            const ms = now - (app._time || now);
+            let dt = ms / 1000.0;
             dt = pc.math.clamp(dt, 0, app.maxDeltaTime);
             dt *= app.timeScale;
 
@@ -1690,6 +1689,6 @@ pc.extend(pc, function () {
         */
         RESOLUTION_FIXED: 'FIXED',
 
-        Application: Application
+        Application
     };
-}());
+})());

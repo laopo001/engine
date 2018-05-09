@@ -1,5 +1,5 @@
-pc.extend(pc, function() {
-    var _schema = [
+pc.extend(pc, (() => {
+    const _schema = [
         'enabled',
         'autoPlay',
         'numParticles',
@@ -60,7 +60,7 @@ pc.extend(pc, function() {
      * @param {pc.Application} app The Application.
      * @extends pc.ComponentSystem
      */
-    var ParticleSystemComponentSystem = function ParticleSystemComponentSystem(app) {
+    let ParticleSystemComponentSystem = function ParticleSystemComponentSystem(app) {
         this.id = 'particlesystem';
         this.description = "Updates and renders particle system in the scene.";
         app.systems.add(this.id, this);
@@ -96,14 +96,14 @@ pc.extend(pc, function() {
 
     pc.extend(ParticleSystemComponentSystem.prototype, {
 
-        initializeComponentData: function(component, _data, properties) {
-            var data = {};
+        initializeComponentData(component, _data, properties) {
+            const data = {};
 
             properties = [];
-            var types = this.propertyTypes;
-            var type;
+            const types = this.propertyTypes;
+            let type;
 
-            for (var prop in _data) {
+            for (const prop in _data) {
                 if (_data.hasOwnProperty(prop)) {
                     properties.push(prop);
                     // duplicate input data as we are modifying it
@@ -137,15 +137,15 @@ pc.extend(pc, function() {
             ParticleSystemComponentSystem._super.initializeComponentData.call(this, component, data, properties);
         },
 
-        cloneComponent: function (entity, clone) {
-            var source = entity.particlesystem.data;
-            var schema = this.schema;
+        cloneComponent({particlesystem}, clone) {
+            const source = particlesystem.data;
+            const schema = this.schema;
 
-            var data = {};
+            const data = {};
 
-            for (var i = 0, len = schema.length; i < len; i++) {
-                var prop = schema[i];
-                var sourceProp = source[prop];
+            for (let i = 0, len = schema.length; i < len; i++) {
+                const prop = schema[i];
+                let sourceProp = source[prop];
                 if (sourceProp instanceof pc.Vec3 ||
                     sourceProp instanceof pc.Curve ||
                     sourceProp instanceof pc.CurveSet) {
@@ -164,27 +164,27 @@ pc.extend(pc, function() {
             return this.addComponent(clone, data);
         },
 
-        onUpdate: function(dt) {
-            var components = this.store;
-            var numSteps, i, j, c;
-            var stats = this.app.stats.particles;
+        onUpdate(dt) {
+            const components = this.store;
+            let numSteps, i, j, c;
+            const stats = this.app.stats.particles;
 
-            for (var id in components) {
+            for (const id in components) {
                 if (components.hasOwnProperty(id)) {
                     c = components[id];
-                    var entity = c.entity;
-                    var data = c.data;
+                    const entity = c.entity;
+                    const data = c.data;
 
                     if (data.enabled && entity.enabled) {
-                        var emitter = data.model.emitter;
+                        const emitter = data.model.emitter;
                         if (!emitter.meshInstance.visible) continue;
 
                         // Bake ambient and directional lighting into one ambient cube
                         // TODO: only do if lighting changed
                         // TODO: don't do for every emitter
                         if (emitter.lighting) {
-                            var layer, lightCube;
-                            var layers = data.layers;
+                            let layer, lightCube;
+                            const layers = data.layers;
                             for (i=0; i<layers.length; i++) {
                                 layer = this.app.scene.layers.getLayerById(layers[i]);
                                 if (! layer) continue;
@@ -198,10 +198,10 @@ pc.extend(pc, function() {
                                     lightCube[i * 3 + 1] = this.app.scene.ambientLight.data[1];
                                     lightCube[i * 3 + 2] = this.app.scene.ambientLight.data[2];
                                 }
-                                var dirs = layer._sortedLights[pc.LIGHTTYPE_DIRECTIONAL];
+                                const dirs = layer._sortedLights[pc.LIGHTTYPE_DIRECTIONAL];
                                 for (j = 0; j < dirs.length; j++) {
                                     for (c = 0; c < 6; c++) {
-                                        var weight = Math.max(emitter.lightCubeDir[c].dot(dirs[j]._direction), 0) * dirs[j]._intensity;
+                                        const weight = Math.max(emitter.lightCubeDir[c].dot(dirs[j]._direction), 0) * dirs[j]._intensity;
                                         lightCube[c * 3] += dirs[j]._color.data[0] * weight;
                                         lightCube[c * 3 + 1] += dirs[j]._color.data[1] * weight;
                                         lightCube[c * 3 + 2] += dirs[j]._color.data[2] * weight;
@@ -235,8 +235,8 @@ pc.extend(pc, function() {
             }
         },
 
-        onRemove: function(entity, component) {
-            var data = component.data;
+        onRemove(entity, component) {
+            const data = component.data;
             if (data.model) {
                 entity.removeChild(data.model.getGraph());
                 data.model = null;
@@ -250,6 +250,6 @@ pc.extend(pc, function() {
     });
 
     return {
-        ParticleSystemComponentSystem: ParticleSystemComponentSystem
+        ParticleSystemComponentSystem
     };
-}());
+})());

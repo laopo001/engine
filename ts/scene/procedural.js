@@ -11,22 +11,22 @@
  * var mesh = pc.createMesh(positions, normals, tangents, uvs, indices);
  */
 
-var primitiveUv1Padding = 4.0 / 64;
-var primitiveUv1PaddingScale = 1.0 - primitiveUv1Padding * 2;
+const primitiveUv1Padding = 4.0 / 64;
+const primitiveUv1PaddingScale = 1.0 - primitiveUv1Padding * 2;
 
-pc.calculateNormals = function (positions, indices) {
-    var triangleCount = indices.length / 3;
-    var vertexCount   = positions.length / 3;
-    var i1, i2, i3;
-    var i; // Loop counter
-    var p1 = new pc.Vec3();
-    var p2 = new pc.Vec3();
-    var p3 = new pc.Vec3();
-    var p1p2 = new pc.Vec3();
-    var p1p3 = new pc.Vec3();
-    var faceNormal = new pc.Vec3();
+pc.calculateNormals = (positions, indices) => {
+    const triangleCount = indices.length / 3;
+    const vertexCount   = positions.length / 3;
+    let i1, i2, i3;
+    let i; // Loop counter
+    const p1 = new pc.Vec3();
+    const p2 = new pc.Vec3();
+    const p3 = new pc.Vec3();
+    const p1p2 = new pc.Vec3();
+    const p1p3 = new pc.Vec3();
+    const faceNormal = new pc.Vec3();
 
-    var normals = [];
+    const normals = [];
 
     // Initialize the normal array to zero
     for (i = 0; i < positions.length; i++) {
@@ -60,10 +60,10 @@ pc.calculateNormals = function (positions, indices) {
 
     // Normalize all normals
     for (i = 0; i < vertexCount; i++) {
-        var nx = normals[i * 3];
-        var ny = normals[i * 3 + 1];
-        var nz = normals[i * 3 + 2];
-        var invLen = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+        const nx = normals[i * 3];
+        const ny = normals[i * 3 + 1];
+        const nz = normals[i * 3 + 2];
+        const invLen = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
         normals[i * 3] *= invLen;
         normals[i * 3 + 1] *= invLen;
         normals[i * 3 + 2] *= invLen;
@@ -86,25 +86,25 @@ pc.calculateNormals = function (positions, indices) {
  * var tangents = pc.calculateTangents(positions, normals, uvs, indices);
  * var mesh = pc.createMesh(positions, normals, tangents, uvs, indices);
  */
-pc.calculateTangents = function (positions, normals, uvs, indices) {
-    var triangleCount = indices.length / 3;
-    var vertexCount   = positions.length / 3;
-    var i1, i2, i3;
-    var x1, x2, y1, y2, z1, z2, s1, s2, t1, t2, r;
-    var sdir = new pc.Vec3();
-    var tdir = new pc.Vec3();
-    var v1   = new pc.Vec3();
-    var v2   = new pc.Vec3();
-    var v3   = new pc.Vec3();
-    var w1   = new pc.Vec2();
-    var w2   = new pc.Vec2();
-    var w3   = new pc.Vec2();
-    var i; // Loop counter
-    var tan1 = new Float32Array(vertexCount * 3);
-    var tan2 = new Float32Array(vertexCount * 3);
+pc.calculateTangents = (positions, normals, uvs, indices) => {
+    const triangleCount = indices.length / 3;
+    const vertexCount   = positions.length / 3;
+    let i1, i2, i3;
+    let x1, x2, y1, y2, z1, z2, s1, s2, t1, t2, r;
+    const sdir = new pc.Vec3();
+    const tdir = new pc.Vec3();
+    const v1   = new pc.Vec3();
+    const v2   = new pc.Vec3();
+    const v3   = new pc.Vec3();
+    const w1   = new pc.Vec2();
+    const w2   = new pc.Vec2();
+    const w3   = new pc.Vec2();
+    let i; // Loop counter
+    const tan1 = new Float32Array(vertexCount * 3);
+    const tan2 = new Float32Array(vertexCount * 3);
 
-    var tangents = [];
-    var area = 0.0;
+    const tangents = [];
+    let area = 0.0;
 
     for (i = 0; i < triangleCount; i++) {
         i1 = indices[i * 3];
@@ -171,8 +171,8 @@ pc.calculateTangents = function (positions, normals, uvs, indices) {
 
     t1 = new pc.Vec3();
     t2 = new pc.Vec3();
-    var n = new pc.Vec3();
-    var temp = new pc.Vec3();
+    const n = new pc.Vec3();
+    const temp = new pc.Vec3();
 
     for (i = 0; i < vertexCount; i++) {
         n.set(normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2]);
@@ -180,7 +180,7 @@ pc.calculateTangents = function (positions, normals, uvs, indices) {
         t2.set(tan2[i * 3], tan2[i * 3 + 1], tan2[i * 3 + 2]);
 
         // Gram-Schmidt orthogonalize
-        var ndott = n.dot(t1);
+        const ndott = n.dot(t1);
         temp.copy(n).scale(ndott);
         temp.sub2(t1, temp).normalize();
 
@@ -221,18 +221,18 @@ pc.calculateTangents = function (positions, normals, uvs, indices) {
  *         indices: treeIndices
  *     });
  */
-pc.createMesh = function (device, positions, opts) {
+pc.createMesh = (device, positions, opts) => {
     // Check the supplied options and provide defaults for unspecified ones
-    var normals      = opts && opts.normals !== undefined ? opts.normals : null;
-    var tangents     = opts && opts.tangents !== undefined ? opts.tangents : null;
-    var colors       = opts && opts.colors !== undefined ? opts.colors : null;
-    var uvs          = opts && opts.uvs !== undefined ? opts.uvs : null;
-    var uvs1         = opts && opts.uvs1 !== undefined ? opts.uvs1 : null;
-    var indices      = opts && opts.indices !== undefined ? opts.indices : null;
-    var blendIndices = opts && opts.blendIndices !== undefined ? opts.blendIndices : null;
-    var blendWeights = opts && opts.blendWeights !== undefined ? opts.blendWeights : null;
+    const normals      = opts && opts.normals !== undefined ? opts.normals : null;
+    const tangents     = opts && opts.tangents !== undefined ? opts.tangents : null;
+    const colors       = opts && opts.colors !== undefined ? opts.colors : null;
+    const uvs          = opts && opts.uvs !== undefined ? opts.uvs : null;
+    const uvs1         = opts && opts.uvs1 !== undefined ? opts.uvs1 : null;
+    const indices      = opts && opts.indices !== undefined ? opts.indices : null;
+    const blendIndices = opts && opts.blendIndices !== undefined ? opts.blendIndices : null;
+    const blendWeights = opts && opts.blendWeights !== undefined ? opts.blendWeights : null;
 
-    var vertexDesc = [
+    const vertexDesc = [
         { semantic: pc.SEMANTIC_POSITION, components: 3, type: pc.TYPE_FLOAT32 }
     ];
     if (normals !== null) {
@@ -257,15 +257,15 @@ pc.createMesh = function (device, positions, opts) {
         vertexDesc.push({ semantic: pc.SEMANTIC_BLENDWEIGHT, components: 2, type: pc.TYPE_FLOAT32 });
     }
 
-    var vertexFormat = new pc.VertexFormat(device, vertexDesc);
+    const vertexFormat = new pc.VertexFormat(device, vertexDesc);
 
     // Create the vertex buffer
-    var numVertices  = positions.length / 3;
-    var vertexBuffer = new pc.VertexBuffer(device, vertexFormat, numVertices);
+    const numVertices  = positions.length / 3;
+    const vertexBuffer = new pc.VertexBuffer(device, vertexFormat, numVertices);
 
     // Write the vertex data into the vertex buffer
-    var iterator = new pc.VertexIterator(vertexBuffer);
-    for (var i = 0; i < numVertices; i++) {
+    const iterator = new pc.VertexIterator(vertexBuffer);
+    for (let i = 0; i < numVertices; i++) {
         iterator.element[pc.SEMANTIC_POSITION].set(positions[i*3], positions[i*3+1], positions[i*3+2]);
         if (normals !== null) {
             iterator.element[pc.SEMANTIC_NORMAL].set(normals[i*3], normals[i*3+1], normals[i*3+2]);
@@ -293,21 +293,21 @@ pc.createMesh = function (device, positions, opts) {
     iterator.end();
 
     // Create the index buffer
-    var indexBuffer = null;
-    var indexed = (indices !== null);
+    let indexBuffer = null;
+    const indexed = (indices !== null);
     if (indexed) {
         indexBuffer = new pc.IndexBuffer(device, pc.INDEXFORMAT_UINT16, indices.length);
 
         // Read the indicies into the index buffer
-        var dst = new Uint16Array(indexBuffer.lock());
+        const dst = new Uint16Array(indexBuffer.lock());
         dst.set(indices);
         indexBuffer.unlock();
     }
 
-    var aabb = new pc.BoundingBox();
+    const aabb = new pc.BoundingBox();
     aabb.compute(positions);
 
-    var mesh = new pc.Mesh();
+    const mesh = new pc.Mesh();
     mesh.vertexBuffer = vertexBuffer;
     mesh.indexBuffer[0] = indexBuffer;
     mesh.primitive[0].type = pc.PRIMITIVE_TRIANGLES;
@@ -335,20 +335,20 @@ pc.createMesh = function (device, positions, opts) {
  * @param {Number} opts.sides The number of divisions around the tubular body of the torus ring (defaults to 30).
  * @returns {pc.Mesh} A new torus-shaped mesh.
  */
-pc.createTorus = function (device, opts) {
+pc.createTorus = (device, opts) => {
     // Check the supplied options and provide defaults for unspecified ones
-    var rc = opts && opts.tubeRadius !== undefined ? opts.tubeRadius : 0.2;
-    var rt = opts && opts.ringRadius !== undefined ? opts.ringRadius : 0.3;
-    var segments = opts && opts.segments !== undefined ? opts.segments : 30;
-    var sides = opts && opts.sides !== undefined ? opts.sides : 20;
+    const rc = opts && opts.tubeRadius !== undefined ? opts.tubeRadius : 0.2;
+    const rt = opts && opts.ringRadius !== undefined ? opts.ringRadius : 0.3;
+    const segments = opts && opts.segments !== undefined ? opts.segments : 30;
+    const sides = opts && opts.sides !== undefined ? opts.sides : 20;
 
     // Variable declarations
-    var i, j;
-    var x, y, z, nx, ny, nz, u, v;
-    var positions = [];
-    var normals = [];
-    var uvs = [];
-    var indices = [];
+    let i, j;
+    let x, y, z, nx, ny, nz, u, v;
+    const positions = [];
+    const normals = [];
+    const uvs = [];
+    const indices = [];
 
     for (i = 0; i <= sides; i++) {
         for (j = 0; j <= segments; j++) {
@@ -368,7 +368,7 @@ pc.createTorus = function (device, opts) {
             uvs.push(u, v);
 
             if ((i < sides) && (j < segments)) {
-                var first, second, third, fourth;
+                let first, second, third, fourth;
                 first   = ((i))     * (segments + 1) + ((j));
                 second  = ((i + 1)) * (segments + 1) + ((j));
                 third   = ((i))     * (segments + 1) + ((j + 1));
@@ -380,10 +380,10 @@ pc.createTorus = function (device, opts) {
         }
     }
 
-    var options = {
-        normals: normals,
-        uvs: uvs,
-        indices: indices
+    const options = {
+        normals,
+        uvs,
+        indices
     };
 
     if (pc.precalculatedTangents) {
@@ -393,23 +393,23 @@ pc.createTorus = function (device, opts) {
     return pc.createMesh(device, positions, options);
 };
 
-pc._createConeData = function (baseRadius, peakRadius, height, heightSegments, capSegments, roundedCaps) {
+pc._createConeData = (baseRadius, peakRadius, height, heightSegments, capSegments, roundedCaps) => {
     // Variable declarations
-    var i, j;
-    var x, y, z, u, v;
-    var pos = new pc.Vec3();
-    var bottomToTop = new pc.Vec3();
-    var norm = new pc.Vec3();
-    var top, bottom, tangent;
-    var positions = [];
-    var normals = [];
-    var uvs = [];
-    var uvs1 = [];
-    var indices = [];
-    var theta, cosTheta, sinTheta;
-    var phi, sinPhi, cosPhi;
-    var first, second, third, fourth;
-    var offset;
+    let i, j;
+    let x, y, z, u, v;
+    const pos = new pc.Vec3();
+    const bottomToTop = new pc.Vec3();
+    const norm = new pc.Vec3();
+    let top, bottom, tangent;
+    const positions = [];
+    const normals = [];
+    const uvs = [];
+    const uvs1 = [];
+    const indices = [];
+    let theta, cosTheta, sinTheta;
+    let phi, sinPhi, cosPhi;
+    let first, second, third, fourth;
+    let offset;
 
     // Define the body of the cone/cylinder
     if (height > 0) {
@@ -433,7 +433,7 @@ pc._createConeData = function (baseRadius, peakRadius, height, heightSegments, c
                 uvs.push(u, v);
 
                 // Pack UV1 to 1st third
-                var _v = v;
+                const _v = v;
                 v = u;
                 u = _v;
                 u /= 3;
@@ -455,10 +455,10 @@ pc._createConeData = function (baseRadius, peakRadius, height, heightSegments, c
     }
 
     if (roundedCaps) {
-        var lat, lon;
-        var latitudeBands = Math.floor(capSegments / 2);
-        var longitudeBands = capSegments;
-        var capOffset = height / 2;
+        let lat, lon;
+        const latitudeBands = Math.floor(capSegments / 2);
+        const longitudeBands = capSegments;
+        const capOffset = height / 2;
 
         // Generate top cap
         for (lat = 0; lat <= latitudeBands; lat++) {
@@ -606,11 +606,11 @@ pc._createConeData = function (baseRadius, peakRadius, height, heightSegments, c
     }
 
     return {
-        positions: positions,
-        normals: normals,
-        uvs: uvs,
-        uvs1: uvs1,
-        indices: indices
+        positions,
+        normals,
+        uvs,
+        uvs1,
+        indices
     };
 };
 
@@ -631,21 +631,21 @@ pc._createConeData = function (baseRadius, peakRadius, height, heightSegments, c
  * @param {Number} opts.capSegments The number of divisions around the tubular body of the cylinder (defaults to 20).
  * @returns {pc.Mesh} A new cylinder-shaped mesh.
  */
-pc.createCylinder = function (device, opts) {
+pc.createCylinder = (device, opts) => {
     // Check the supplied options and provide defaults for unspecified ones
     // #ifdef DEBUG
     if (opts && opts.hasOwnProperty('baseRadius') && !opts.hasOwnProperty('radius'))
         console.warn('DEPRECATED: "baseRadius" in arguments, use "radius" instead');
     // #endif
 
-    var radius = opts && (opts.radius || opts.baseRadius);
+    let radius = opts && (opts.radius || opts.baseRadius);
     radius = radius !== undefined ? radius : 0.5;
-    var height = opts && opts.height !== undefined ? opts.height : 1.0;
-    var heightSegments = opts && opts.heightSegments !== undefined ? opts.heightSegments : 5;
-    var capSegments = opts && opts.capSegments !== undefined ? opts.capSegments : 20;
+    const height = opts && opts.height !== undefined ? opts.height : 1.0;
+    const heightSegments = opts && opts.heightSegments !== undefined ? opts.heightSegments : 5;
+    const capSegments = opts && opts.capSegments !== undefined ? opts.capSegments : 20;
 
     // Create vertex data for a cone that has a base and peak radius that is the same (i.e. a cylinder)
-    var options = pc._createConeData(radius, radius, height, heightSegments, capSegments, false);
+    const options = pc._createConeData(radius, radius, height, heightSegments, capSegments, false);
 
     if (pc.precalculatedTangents) {
         options.tangents = pc.calculateTangents(options.positions, options.normals, options.uvs, options.indices);
@@ -671,15 +671,15 @@ pc.createCylinder = function (device, opts) {
  * @param {Number} opts.sides The number of divisions around the tubular body of the capsule (defaults to 20).
  * @returns {pc.Mesh} A new cylinder-shaped mesh.
  */
-pc.createCapsule = function (device, opts) {
+pc.createCapsule = (device, opts) => {
     // Check the supplied options and provide defaults for unspecified ones
-    var radius = opts && opts.radius !== undefined ? opts.radius : 0.3;
-    var height = opts && opts.height !== undefined ? opts.height : 1.0;
-    var heightSegments = opts && opts.heightSegments !== undefined ? opts.heightSegments : 1;
-    var sides = opts && opts.sides !== undefined ? opts.sides : 20;
+    const radius = opts && opts.radius !== undefined ? opts.radius : 0.3;
+    const height = opts && opts.height !== undefined ? opts.height : 1.0;
+    const heightSegments = opts && opts.heightSegments !== undefined ? opts.heightSegments : 1;
+    const sides = opts && opts.sides !== undefined ? opts.sides : 20;
 
     // Create vertex data for a cone that has a base and peak radius that is the same (i.e. a cylinder)
-    var options = pc._createConeData(radius, radius, height - 2 * radius, heightSegments, sides, true);
+    const options = pc._createConeData(radius, radius, height - 2 * radius, heightSegments, sides, true);
 
     if (pc.precalculatedTangents) {
         options.tangents = pc.calculateTangents(options.positions, options.normals, options.uvs, options.indices);
@@ -706,15 +706,15 @@ pc.createCapsule = function (device, opts) {
  * @param {Number} opts.capSegments The number of divisions around the tubular body of the cone (defaults to 18).
  * @returns {pc.Mesh} A new cone-shaped mesh.
  */
-pc.createCone = function (device, opts) {
+pc.createCone = (device, opts) => {
     // Check the supplied options and provide defaults for unspecified ones
-    var baseRadius = opts && opts.baseRadius !== undefined ? opts.baseRadius : 0.5;
-    var peakRadius = opts && opts.peakRadius !== undefined ? opts.peakRadius : 0.0;
-    var height = opts && opts.height !== undefined ? opts.height : 1.0;
-    var heightSegments = opts && opts.heightSegments !== undefined ? opts.heightSegments : 5;
-    var capSegments = opts && opts.capSegments !== undefined ? opts.capSegments : 18;
+    const baseRadius = opts && opts.baseRadius !== undefined ? opts.baseRadius : 0.5;
+    const peakRadius = opts && opts.peakRadius !== undefined ? opts.peakRadius : 0.0;
+    const height = opts && opts.height !== undefined ? opts.height : 1.0;
+    const heightSegments = opts && opts.heightSegments !== undefined ? opts.heightSegments : 5;
+    const capSegments = opts && opts.capSegments !== undefined ? opts.capSegments : 18;
 
-    var options = pc._createConeData(baseRadius, peakRadius, height, heightSegments, capSegments, false);
+    const options = pc._createConeData(baseRadius, peakRadius, height, heightSegments, capSegments, false);
 
     if (pc.precalculatedTangents) {
         options.tangents = pc.calculateTangents(options.positions, options.normals, options.uvs, options.indices);
@@ -738,21 +738,21 @@ pc.createCone = function (device, opts) {
  * @param {Number} opts.segments The number of divisions along the longitudinal and latitudinal axes of the sphere (defaults to 16).
  * @returns {pc.Mesh} A new sphere-shaped mesh.
  */
-pc.createSphere = function (device, opts) {
+pc.createSphere = (device, opts) => {
     // Check the supplied options and provide defaults for unspecified ones
-    var radius = opts && opts.radius !== undefined ? opts.radius : 0.5;
-    var latitudeBands = opts && opts.latitudeBands !== undefined ? opts.latitudeBands : 16;
-    var longitudeBands = opts && opts.longitudeBands !== undefined ? opts.longitudeBands : 16;
+    const radius = opts && opts.radius !== undefined ? opts.radius : 0.5;
+    const latitudeBands = opts && opts.latitudeBands !== undefined ? opts.latitudeBands : 16;
+    const longitudeBands = opts && opts.longitudeBands !== undefined ? opts.longitudeBands : 16;
 
     // Variable declarations
-    var lon, lat;
-    var theta, sinTheta, cosTheta, phi, sinPhi, cosPhi;
-    var first, second;
-    var x, y, z, u, v;
-    var positions = [];
-    var normals = [];
-    var uvs = [];
-    var indices = [];
+    let lon, lat;
+    let theta, sinTheta, cosTheta, phi, sinPhi, cosPhi;
+    let first, second;
+    let x, y, z, u, v;
+    const positions = [];
+    const normals = [];
+    const uvs = [];
+    const indices = [];
 
     for (lat = 0; lat <= latitudeBands; lat++) {
         theta = lat * Math.PI / latitudeBands;
@@ -787,11 +787,11 @@ pc.createSphere = function (device, opts) {
         }
     }
 
-    var options = {
-        normals: normals,
-        uvs: uvs,
+    const options = {
+        normals,
+        uvs,
         uvs1: uvs, // UV1 = UV0 for sphere
-        indices: indices
+        indices
     };
 
     if (pc.precalculatedTangents) {
@@ -818,19 +818,19 @@ pc.createSphere = function (device, opts) {
  * @param {Number} opts.lengthSegments The number of divisions along the Z axis of the plane (defaults to 5).
  * @returns {pc.Mesh} A new plane-shaped mesh.
  */
-pc.createPlane = function (device, opts) {
+pc.createPlane = (device, opts) => {
     // Check the supplied options and provide defaults for unspecified ones
-    var he = opts && opts.halfExtents !== undefined ? opts.halfExtents : new pc.Vec2(0.5, 0.5);
-    var ws = opts && opts.widthSegments !== undefined ? opts.widthSegments : 5;
-    var ls = opts && opts.lengthSegments !== undefined ? opts.lengthSegments : 5;
+    const he = opts && opts.halfExtents !== undefined ? opts.halfExtents : new pc.Vec2(0.5, 0.5);
+    const ws = opts && opts.widthSegments !== undefined ? opts.widthSegments : 5;
+    const ls = opts && opts.lengthSegments !== undefined ? opts.lengthSegments : 5;
 
     // Variable declarations
-    var i, j;
-    var x, y, z, u, v;
-    var positions = [];
-    var normals = [];
-    var uvs = [];
-    var indices = [];
+    let i, j;
+    let x, y, z, u, v;
+    const positions = [];
+    const normals = [];
+    const uvs = [];
+    const indices = [];
 
     // Generate plane as follows (assigned UVs denoted at corners):
     // (0,1)x---------x(1,1)
@@ -841,7 +841,7 @@ pc.createPlane = function (device, opts) {
     //      |    Z    |
     // (0,0)x---------x(1,0)
     //         width
-    var vcounter = 0;
+    let vcounter = 0;
 
     for (i = 0; i <= ws; i++) {
         for (j = 0; j <= ls; j++) {
@@ -864,11 +864,11 @@ pc.createPlane = function (device, opts) {
         }
     }
 
-    var options = {
-        normals: normals,
-        uvs: uvs,
+    const options = {
+        normals,
+        uvs,
         uvs1: uvs, // UV1 = UV0 for plane
-        indices: indices
+        indices
     };
 
     if (pc.precalculatedTangents) {
@@ -895,14 +895,14 @@ pc.createPlane = function (device, opts) {
  * @param {Number} opts.heightSegments The number of divisions along the Y axis of the box (defaults to 1).
  * @returns {pc.Mesh} A new box-shaped mesh.
  */
-pc.createBox = function (device, opts) {
+pc.createBox = (device, opts) => {
     // Check the supplied options and provide defaults for unspecified ones
-    var he = opts && opts.halfExtents !== undefined ? opts.halfExtents : new pc.Vec3(0.5, 0.5, 0.5);
-    var ws = opts && opts.widthSegments !== undefined ? opts.widthSegments : 1;
-    var ls = opts && opts.lengthSegments !== undefined ? opts.lengthSegments : 1;
-    var hs = opts && opts.heightSegments !== undefined ? opts.heightSegments : 1;
+    const he = opts && opts.halfExtents !== undefined ? opts.halfExtents : new pc.Vec3(0.5, 0.5, 0.5);
+    const ws = opts && opts.widthSegments !== undefined ? opts.widthSegments : 1;
+    const ls = opts && opts.lengthSegments !== undefined ? opts.lengthSegments : 1;
+    const hs = opts && opts.heightSegments !== undefined ? opts.heightSegments : 1;
 
-    var corners = [
+    const corners = [
         new pc.Vec3(-he.x, -he.y,  he.z),
         new pc.Vec3( he.x, -he.y,  he.z),
         new pc.Vec3( he.x,  he.y,  he.z),
@@ -913,7 +913,7 @@ pc.createBox = function (device, opts) {
         new pc.Vec3( he.x,  he.y, -he.z)
     ];
 
-    var faceAxes = [
+    const faceAxes = [
         [ 0, 1, 3 ], // FRONT
         [ 4, 5, 7 ], // BACK
         [ 3, 2, 6 ], // TOP
@@ -922,7 +922,7 @@ pc.createBox = function (device, opts) {
         [ 5, 0, 6 ]  // LEFT
     ];
 
-    var faceNormals = [
+    const faceNormals = [
         [  0,  0,  1 ], // FRONT
         [  0,  0, -1 ], // BACK
         [  0,  1,  0 ], // TOP
@@ -931,7 +931,7 @@ pc.createBox = function (device, opts) {
         [ -1,  0,  0 ]  // LEFT
     ];
 
-    var sides = {
+    const sides = {
         FRONT: 0,
         BACK: 1,
         TOP: 2,
@@ -940,24 +940,24 @@ pc.createBox = function (device, opts) {
         LEFT: 5
     };
 
-    var positions = [];
-    var normals = [];
-    var uvs = [];
-    var uvs1 = [];
-    var indices = [];
-    var vcounter = 0;
+    const positions = [];
+    const normals = [];
+    const uvs = [];
+    const uvs1 = [];
+    const indices = [];
+    let vcounter = 0;
 
-    var generateFace = function (side, uSegments, vSegments) {
-        var u, v;
-        var i, j;
-        var offset = positions.length / 3;
+    const generateFace = (side, uSegments, vSegments) => {
+        let u, v;
+        let i, j;
+        const offset = positions.length / 3;
 
         for (i = 0; i <= uSegments; i++) {
             for (j = 0; j <= vSegments; j++) {
-                var temp1 = new pc.Vec3();
-                var temp2 = new pc.Vec3();
-                var temp3 = new pc.Vec3();
-                var r = new pc.Vec3();
+                const temp1 = new pc.Vec3();
+                const temp2 = new pc.Vec3();
+                const temp3 = new pc.Vec3();
+                const r = new pc.Vec3();
                 temp1.lerp(corners[faceAxes[side][0]], corners[faceAxes[side][1]], i / uSegments);
                 temp2.lerp(corners[faceAxes[side][0]], corners[faceAxes[side][2]], j / vSegments);
                 temp3.sub2(temp2, corners[faceAxes[side][0]]);
@@ -996,11 +996,11 @@ pc.createBox = function (device, opts) {
     generateFace(sides.RIGHT, ls, hs);
     generateFace(sides.LEFT, ls, hs);
 
-    var options = {
-        normals: normals,
-        uvs: uvs,
-        uvs1: uvs1,
-        indices: indices
+    const options = {
+        normals,
+        uvs,
+        uvs1,
+        indices
     };
 
     if (pc.precalculatedTangents) {

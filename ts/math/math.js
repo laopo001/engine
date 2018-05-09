@@ -40,7 +40,7 @@ pc.math = {
      * @param {Number} max Max value
      * @returns {Number} The clamped value
      */
-    clamp: function(value, min, max) {
+    clamp(value, min, max) {
         if (value >= max) return max;
         if (value <= min) return min;
         return value;
@@ -56,8 +56,8 @@ pc.math = {
      * // Set bytes to [0x11, 0x22, 0x33]
      * var bytes = pc.math.intToBytes24(0x112233);
      */
-    intToBytes24: function (i) {
-        var r, g, b;
+    intToBytes24(i) {
+        let r, g, b;
 
         r = (i >> 16) & 0xff;
         g = (i >> 8) & 0xff;
@@ -76,8 +76,8 @@ pc.math = {
      * // Set bytes to [0x11, 0x22, 0x33, 0x44]
      * var bytes = pc.math.intToBytes32(0x11223344);
      */
-    intToBytes32: function (i) {
-        var r, g, b, a;
+    intToBytes32(i) {
+        let r, g, b, a;
 
         r = (i >> 24) & 0xff;
         g = (i >> 16) & 0xff;
@@ -102,7 +102,7 @@ pc.math = {
      * @param {Number} b A single byte (0-255)
      * @returns {Number} A single unsigned 24 bit Number.
      */
-    bytesToInt24: function (r, g, b) {
+    bytesToInt24(r, g, b) {
         if (r.length) {
             b = r[2];
             g = r[1];
@@ -127,7 +127,7 @@ pc.math = {
      * @param {Number} b A single byte (0-255)
      * @param {Number} a A single byte (0-255)
      */
-    bytesToInt32: function (r, g, b, a) {
+    bytesToInt32(r, g, b, a) {
         if (r.length) {
             a = r[3];
             b = r[2];
@@ -152,7 +152,7 @@ pc.math = {
      * a is returned. When alpha is 1, b is returned. Between 0 and 1, a linear interpolation between
      * a and b is returned. alpha is clamped between 0 and 1.
      */
-    lerp: function (a, b, alpha) {
+    lerp(a, b, alpha) {
         return a + (b - a) * pc.math.clamp(alpha, 0, 1);
     },
 
@@ -168,7 +168,7 @@ pc.math = {
      * a is returned. When alpha is 1, b is returned. Between 0 and 1, a linear interpolation between
      * a and b is returned. alpha is clamped between 0 and 1.
      */
-    lerpAngle: function (a, b, alpha) {
+    lerpAngle(a, b, alpha) {
         if (b - a > 180 ) {
             b -= 360;
         }
@@ -185,7 +185,7 @@ pc.math = {
      * @param {Number} x Number to check for power-of-two property.
      * @returns {Boolean} true if power-of-two and false otherwise.
      */
-    powerOfTwo: function (x) {
+    powerOfTwo(x) {
         return ((x !== 0) && !(x & (x - 1)));
     },
 
@@ -196,7 +196,7 @@ pc.math = {
      * @param {Number} val The value for which to calculate the next power of 2.
      * @returns {Number} The next power of 2.
      */
-    nextPowerOfTwo: function(val) {
+    nextPowerOfTwo(val) {
         val--;
         val = (val >> 1) | val;
         val = (val >> 2) | val;
@@ -216,8 +216,8 @@ pc.math = {
      * @param {Number} max Upper bound for range.
      * @returns {Number} Pseudo-random number between the supplied range.
      */
-    random: function (min, max) {
-        var diff = max - min;
+    random(min, max) {
+        const diff = max - min;
         return Math.random() * diff + min;
     },
 
@@ -236,7 +236,7 @@ pc.math = {
      * @param {Number} x The value to interpolate.
      * @returns {Number} The smoothly interpolated value clamped between zero and one.
      */
-    smoothstep: function (min, max, x) {
+    smoothstep(min, max, x) {
         if (x <= min) return 0;
         if (x >= max) return 1;
 
@@ -256,7 +256,7 @@ pc.math = {
      * @param {Number} x The value to interpolate.
      * @returns {Number} The smoothly interpolated value clamped between zero and one.
      */
-    smootherstep: function (min, max, x) {
+    smootherstep(min, max, x) {
         if (x <= min) return 0;
         if (x >= max) return 1;
 
@@ -271,8 +271,6 @@ pc.math.bytesToInt = pc.math.bytesToInt32;
 
 // IE doesn't have native log2
 if (!Math.log2) {
-    Math.log2 = function(x) {
-        return Math.log(x) * pc.math.INV_LOG2;
-    };
+    Math.log2 = x => Math.log(x) * pc.math.INV_LOG2;
 }
 

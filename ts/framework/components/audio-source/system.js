@@ -1,5 +1,5 @@
-pc.extend(pc, function () {
-    var _schema = [
+pc.extend(pc, (() => {
+    const _schema = [
         'enabled',
         'assets',
         'volume',
@@ -25,10 +25,10 @@ pc.extend(pc, function () {
      * @param {pc.SoundManager} manager A sound manager instance.
      * @extends pc.ComponentSystem
      */
-    var AudioSourceComponentSystem = function (app, manager) {
+    let AudioSourceComponentSystem = function({systems}, manager) {
         this.id = "audiosource";
         this.description = "Specifies audio assets that can be played at the position of the Entity.";
-        app.systems.add(this.id, this);
+        systems.add(this.id, this);
 
         this.ComponentType = pc.AudioSourceComponent;
         this.DataType = pc.AudioSourceComponentData;
@@ -49,24 +49,25 @@ pc.extend(pc, function () {
     pc.Component._buildAccessors(pc.AudioSourceComponent.prototype, _schema);
 
     pc.extend(AudioSourceComponentSystem.prototype, {
-        initializeComponentData: function (component, data, properties) {
+        initializeComponentData(component, data, properties) {
             properties = ['activate', 'volume', 'pitch', 'loop', '3d', 'minDistance', 'maxDistance', 'rollOffFactor', 'distanceModel', 'enabled', 'assets'];
             AudioSourceComponentSystem._super.initializeComponentData.call(this, component, data, properties);
 
             component.paused = !(component.enabled && component.activate);
         },
 
-        onInitialize: function(root) {
-            if (root.audiosource &&
-                root.enabled &&
-                root.audiosource.enabled &&
-                root.audiosource.activate) {
+        onInitialize({audiosource, enabled, _children}) {
+            if (audiosource &&
+                enabled &&
+                audiosource.enabled &&
+                audiosource.activate) {
 
-                root.audiosource.play(root.audiosource.currentSource);
+                audiosource.play(audiosource.currentSource);
             }
 
-            var children = root._children;
-            var i, len = children.length;
+            const children = _children;
+            let i;
+            const len = children.length;
             for (i = 0; i < len; i++) {
                 if (children[i] instanceof pc.Entity) {
                     this.onInitialize(children[i]);
@@ -76,25 +77,25 @@ pc.extend(pc, function () {
             this.initialized = true;
         },
 
-        onUpdate: function(dt) {
-            var components = this.store;
+        onUpdate(dt) {
+            const components = this.store;
 
-            for (var id in components) {
+            for (const id in components) {
                 if (components.hasOwnProperty(id)) {
-                    var component = components[id];
-                    var entity = component.entity;
-                    var componentData = component.data;
+                    const component = components[id];
+                    const entity = component.entity;
+                    const componentData = component.data;
 
                     // Update channel position if this is a 3d sound
                     if (componentData.enabled && entity.enabled && componentData.channel instanceof pc.Channel3d) {
-                        var pos = entity.getPosition();
+                        const pos = entity.getPosition();
                         componentData.channel.setPosition(pos);
                     }
                 }
             }
         },
 
-        onRemove: function (entity, data) {
+        onRemove(entity, data) {
             if (data.channel) {
                 data.channel.stop();
                 data.channel = null;
@@ -109,12 +110,12 @@ pc.extend(pc, function () {
          * have their volume multiplied by this value.
          * @param {Number} volume The value to set the volume to. Valid from 0 to 1.
          */
-        setVolume: function (volume) {
+        setVolume(volume) {
             this.manager.setVolume(volume);
         }
     });
 
     return {
-        AudioSourceComponentSystem: AudioSourceComponentSystem
+        AudioSourceComponentSystem
     };
-}());
+})());

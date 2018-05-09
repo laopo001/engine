@@ -1,10 +1,10 @@
-pc.extend(pc, function () {
-    var ZoneComponentData = function () {
+pc.extend(pc, (() => {
+    let ZoneComponentData = function () {
         this.enabled = true;
     };
     ZoneComponentData = pc.inherits(ZoneComponentData, pc.ComponentData);
 
     return {
-        ZoneComponentData: ZoneComponentData
+        ZoneComponentData
     };
-}());
+})());

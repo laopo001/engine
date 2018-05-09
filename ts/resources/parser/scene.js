@@ -1,15 +1,13 @@
-pc.extend(pc, function () {
-    'use strict';
+pc.extend(pc, (() => {
+    class SceneParser {
+        constructor(app) {
+            this._app = app;
+        }
 
-    var SceneParser = function (app) {
-        this._app = app;
-    };
-
-    SceneParser.prototype = {
-        parse: function (data) {
-            var entities = {};
-            var id, i;
-            var parent = null;
+        parse(data) {
+            const entities = {};
+            let id, i;
+            let parent = null;
 
             // instantiate entities
             for (id in data.entities) {
@@ -21,10 +19,10 @@ pc.extend(pc, function () {
 
             // put entities into hierarchy
             for (id in data.entities) {
-                var l = data.entities[id].children.length;
+                const l = data.entities[id].children.length;
                 for (i = 0; i < l; i++) {
                     // pop resource id off the end of the array
-                    var resource_id = data.entities[id].children[i];
+                    const resource_id = data.entities[id].children[i];
                     if (entities[resource_id]) {
                         // push entity on the front of the array
                         entities[id].addChild(entities[resource_id]);
@@ -35,14 +33,14 @@ pc.extend(pc, function () {
             this._openComponentData(parent, data.entities);
 
             return parent;
-        },
+        }
 
-        _createEntity: function (data) {
-            var entity = new pc.Entity();
+        _createEntity(data) {
+            const entity = new pc.Entity();
 
-            var p = data.position;
-            var r = data.rotation;
-            var s = data.scale;
+            const p = data.position;
+            const r = data.rotation;
+            const s = data.scale;
 
             entity.name = data.name;
             entity._guid = data.resource_id;
@@ -54,44 +52,45 @@ pc.extend(pc, function () {
             entity.template = data.template;
 
             if (data.tags) {
-                for (var i = 0; i < data.tags.length; i++) {
+                for (let i = 0; i < data.tags.length; i++) {
                     entity.tags.add(data.tags[i]);
                 }
             }
 
             if (data.labels) {
-                data.labels.forEach(function (label) {
+                data.labels.forEach(label => {
                     entity.addLabel(label);
                 });
             }
 
             return entity;
-        },
+        }
 
-        _openComponentData: function (entity, entities) {
+        _openComponentData(entity, entities) {
             // Create Components in order
-            var systems = this._app.systems.list();
-            var i, len = systems.length;
-            var edata = entities[entity._guid];
+            const systems = this._app.systems.list();
+            let i;
+            const len = systems.length;
+            const edata = entities[entity._guid];
             for (i = 0; i < len; i++) {
-                var componentData = edata.components[systems[i].id];
+                const componentData = edata.components[systems[i].id];
                 if (componentData) {
                     this._app.systems[systems[i].id].addComponent(entity, componentData);
                 }
             }
 
             // Open all children and add them to the node
-            var length = edata.children.length;
-            var children = entity._children;
+            const length = edata.children.length;
+            const children = entity._children;
             for (i = 0; i < length; i++) {
                 children[i] = this._openComponentData(children[i], entities);
             }
 
             return entity;
         }
-    };
+    }
 
     return {
-        SceneParser: SceneParser
+        SceneParser
     };
-}());
+})());

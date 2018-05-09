@@ -1,32 +1,30 @@
-pc.extend(pc, function () {
-    'use strict';
+pc.extend(pc, (() => {
+    class ScopeId {
+        constructor(name) {
+            // Set the name
+            this.name = name;
 
-    var ScopeId = function (name) {
-        // Set the name
-        this.name = name;
+            // Set the default value
+            this.value = null;
 
-        // Set the default value
-        this.value = null;
+            // Create the version object
+            this.versionObject = new pc.VersionedObject();
+        }
 
-        // Create the version object
-        this.versionObject = new pc.VersionedObject();
-    };
-
-    ScopeId.prototype = {
-        setValue: function(value) {
+        setValue(value) {
             // Set the new value
             this.value = value;
 
             // Increment the revision
             this.versionObject.increment();
-        },
+        }
 
-        getValue: function(value) {
+        getValue(value) {
             return this.value;
         }
-    };
+    }
 
     return {
-        ScopeId: ScopeId
+        ScopeId
     };
-}());
+})());

@@ -1,11 +1,11 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
      * @constructor
      * @name pc.ComponentSystemRegistry
      * @classdesc Store, access and delete instances of the various ComponentSystems
      * @description Create a new ComponentSystemRegistry
      */
-    var ComponentSystemRegistry = function () {
+    const ComponentSystemRegistry = () => {
     };
 
     ComponentSystemRegistry.prototype = {
@@ -17,7 +17,7 @@ pc.extend(pc, function () {
          * @param {Object} name The name of the Component
          * @param {Object} system The {pc.ComponentSystem} instance
          */
-        add: function (name, system) {
+        add(name, system) {
             if (!this[name]) {
                 this[name] = system;
                 system.name = name;
@@ -32,7 +32,7 @@ pc.extend(pc, function () {
          * @description Remove a Component type
          * @param {Object} name The name of the Component remove
          */
-        remove: function(name) {
+        remove(name) {
             if (!this[name]) {
                 throw new Error(pc.string.format("No ComponentSystem named '{0}' registered", name));
             }
@@ -48,17 +48,17 @@ pc.extend(pc, function () {
          * is the order in which the ComponentSystems must be initialized.
          * @returns {pc.ComponentSystem[]} An array of component systems.
          */
-        list: function () {
-            var list = Object.keys(this);
-            var defaultPriority = 1;
-            var priorities = {
+        list() {
+            const list = Object.keys(this);
+            const defaultPriority = 1;
+            const priorities = {
                 'collisionrect': 0.5,
                 'collisioncircle': 0.5
             };
 
-            list.sort(function (a, b) {
-                var pa = priorities[a] || defaultPriority;
-                var pb = priorities[b] || defaultPriority;
+            list.sort((a, b) => {
+                const pa = priorities[a] || defaultPriority;
+                const pb = priorities[b] || defaultPriority;
 
                 if (pa < pb) {
                     return -1;
@@ -74,9 +74,9 @@ pc.extend(pc, function () {
             }, this);
         },
 
-        getComponentSystemOrder: function () {
-            var index;
-            var names = Object.keys(this);
+        getComponentSystemOrder() {
+            let index;
+            const names = Object.keys(this);
 
             index = names.indexOf('collisionrect');
             names.splice(index, 1);
@@ -91,6 +91,6 @@ pc.extend(pc, function () {
     };
 
     return {
-        ComponentSystemRegistry: ComponentSystemRegistry
+        ComponentSystemRegistry
     };
-}());
+})());

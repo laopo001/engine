@@ -1,8 +1,8 @@
-pc.extend(pc, function () {
-    var tmpVecA = new pc.Vec3();
-    var tmpVecB = new pc.Vec3();
-    var tmpVecC = new pc.Vec3();
-    var tmpVecD = new pc.Vec3();
+pc.extend(pc, (() => {
+    const tmpVecA = new pc.Vec3();
+    const tmpVecB = new pc.Vec3();
+    const tmpVecC = new pc.Vec3();
+    const tmpVecD = new pc.Vec3();
 
     /**
      * @constructor
@@ -15,25 +15,25 @@ pc.extend(pc, function () {
      * @param {pc.Vec3} [center] The world space coordinate marking the center of the sphere. The constructor takes a reference of this parameter.
      * @param {Number} [radius] The radius of the bounding sphere. Defaults to 0.5.
      */
-    function BoundingSphere(center, radius) {
-        this.center = center || new pc.Vec3(0, 0, 0);
-        this.radius = radius === undefined ? 0.5 : radius;
-    }
+    class BoundingSphere {
+        constructor(center, radius) {
+            this.center = center || new pc.Vec3(0, 0, 0);
+            this.radius = radius === undefined ? 0.5 : radius;
+        }
 
-    BoundingSphere.prototype = {
-        containsPoint: function(point) {
-            var lenSq = tmpVecA.sub2(point, this.center).lengthSq();
-            var r = this.radius;
+        containsPoint(point) {
+            const lenSq = tmpVecA.sub2(point, this.center).lengthSq();
+            const r = this.radius;
             return lenSq < r * r;
-        },
+        }
 
-        compute: function (vertices) {
-            var i;
-            var numVerts = vertices.length / 3;
+        compute(vertices) {
+            let i;
+            const numVerts = vertices.length / 3;
 
-            var vertex = tmpVecA;
-            var avgVertex = tmpVecB;
-            var sum = tmpVecC;
+            const vertex = tmpVecA;
+            const avgVertex = tmpVecB;
+            const sum = tmpVecC;
 
             // FIRST PASS:
             // Find the "average vertex", which is the sphere's center...
@@ -57,8 +57,8 @@ pc.extend(pc, function () {
 
             // SECOND PASS:
             // Find the maximum (squared) distance of all vertices to the center...
-            var maxDistSq = 0;
-            var centerToVert = tmpVecD;
+            let maxDistSq = 0;
+            const centerToVert = tmpVecD;
 
             for (i = 0; i < numVerts; i++) {
                 vertex.set(vertices[ i * 3 ], vertices[ i * 3 + 1 ], vertices[ i * 3 + 2 ]);
@@ -68,7 +68,7 @@ pc.extend(pc, function () {
             }
 
             this.radius = Math.sqrt(maxDistSq);
-        },
+        }
 
         /**
          * @function
@@ -78,29 +78,29 @@ pc.extend(pc, function () {
          * @param {pc.Vec3} [point] If there is an intersection, the intersection point will be copied into here.
          * @returns {Boolean} True if there is an intersection.
          */
-        intersectsRay: function (ray, point) {
-            var m = tmpVecA.copy(ray.origin).sub(this.center);
-            var b = m.dot(tmpVecB.copy(ray.direction).normalize());
-            var c = m.dot(m) - this.radius * this.radius;
+        intersectsRay({origin, direction}, point) {
+            const m = tmpVecA.copy(origin).sub(this.center);
+            const b = m.dot(tmpVecB.copy(direction).normalize());
+            const c = m.dot(m) - this.radius * this.radius;
 
             // exit if ray's origin outside of sphere (c > 0) and ray pointing away from s (b > 0)
             if (c > 0 && b > 0)
                 return null;
 
-            var discr = b * b - c;
+            const discr = b * b - c;
             // a negative discriminant corresponds to ray missing sphere
             if (discr < 0)
                 return false;
 
             // ray intersects sphere, compute smallest t value of intersection
-            var t = Math.abs(-b - Math.sqrt(discr));
+            const t = Math.abs(-b - Math.sqrt(discr));
 
             // if t is negative, ray started inside sphere so clamp t to zero
             if (point)
-                point.copy(ray.direction).scale(t).add(ray.origin);
+                point.copy(direction).scale(t).add(origin);
 
             return true;
-        },
+        }
 
         /**
          * @function
@@ -109,18 +109,18 @@ pc.extend(pc, function () {
          * @param {pc.BoundingSphere} sphere Bounding Sphere to test.
          * @returns {Boolean} true if the Bounding Sphere is overlapping, enveloping, or inside this Bounding Sphere and false otherwise.
          */
-        intersectsBoundingSphere: function (sphere) {
-            tmpVecA.sub2(sphere.center, this.center);
-            var totalRadius = sphere.radius + this.radius;
+        intersectsBoundingSphere({center, radius}) {
+            tmpVecA.sub2(center, this.center);
+            const totalRadius = radius + this.radius;
             if (tmpVecA.lengthSq() <= totalRadius * totalRadius) {
                 return true;
             }
 
             return false;
         }
-    };
+    }
 
     return {
-        BoundingSphere: BoundingSphere
+        BoundingSphere
     };
-}());
+})());

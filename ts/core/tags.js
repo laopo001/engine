@@ -1,27 +1,27 @@
-pc.extend(pc, (function() {
-    var TagsCache = function(key) {
-        this._index = { };
-        this._key = key || null;
-    };
+pc.extend(pc, ((() => {
+    class TagsCache {
+        constructor(key) {
+            this._index = { };
+            this._key = key || null;
+        }
 
-    TagsCache.prototype = {
-        addItem: function(item) {
-            var tags = item.tags._list;
+        addItem(item) {
+            const tags = item.tags._list;
 
-            for (var i = 0; i < tags.length; i++)
+            for (let i = 0; i < tags.length; i++)
                 this.add(tags[i], item);
-        },
+        }
 
-        removeItem: function(item) {
-            var tags = item.tags._list;
+        removeItem(item) {
+            const tags = item.tags._list;
 
-            for (var i = 0; i < tags.length; i++)
+            for (let i = 0; i < tags.length; i++)
                 this.remove(tags[i], item);
-        },
+        }
 
-        add: function(tag, item) {
+        add(tag, item) {
             // already in cache
-            if (this._index[tag] && this._index[tag].list.indexOf(item) !== -1)
+            if (this._index[tag] && this._index[tag].list.includes(item))
                 return;
 
             // create index for tag
@@ -40,9 +40,9 @@ pc.extend(pc, (function() {
             // add to index keys
             if (this._key)
                 this._index[tag].keys[item[this._key]] = item;
-        },
+        }
 
-        remove: function(tag, item) {
+        remove(tag, item) {
             // no index created for that tag
             if (! this._index[tag])
                 return;
@@ -55,7 +55,7 @@ pc.extend(pc, (function() {
             }
 
             // by position in list
-            var ind = this._index[tag].indexOf(item);
+            const ind = this._index[tag].indexOf(item);
             if (ind === -1)
                 return;
 
@@ -69,18 +69,16 @@ pc.extend(pc, (function() {
             // if index empty, remove it
             if (this._index[tag].list.length === 0)
                 delete this._index[tag];
-        },
+        }
 
-        find: function(args) {
-            var self = this;
-            var index = { };
-            var items = [ ];
-            var i, n, t;
-            var item, tag, tags, tagsRest, missingIndex;
+        find(args) {
+            const self = this;
+            const index = { };
+            const items = [ ];
+            let i, n, t;
+            let item, tag, tags, tagsRest, missingIndex;
 
-            var sort = function(a, b) {
-                return self._index[a].list.length - self._index[b].list.length;
-            };
+            const sort = (a, b) => self._index[a].list.length - self._index[b].list.length;
 
             for (i = 0; i < args.length; i++) {
                 tag = args[i];
@@ -113,7 +111,7 @@ pc.extend(pc, (function() {
 
                         for (n = 0; n < this._index[tags[0]].list.length; n++) {
                             item = this._index[tags[0]].list[n];
-                            if ((this._key ? ! index[item[this._key]] : (items.indexOf(item) === -1)) && item.tags.has(tagsRest)) {
+                            if ((this._key ? ! index[item[this._key]] : (!items.includes(item))) && item.tags.has(tagsRest)) {
                                 if (this._key)
                                     index[item[this._key]] = true;
                                 items.push(item);
@@ -133,7 +131,7 @@ pc.extend(pc, (function() {
                                 index[item[this._key]] = true;
                                 items.push(item);
                             }
-                        } else if (items.indexOf(item) === -1) {
+                        } else if (!items.includes(item)) {
                             items.push(item);
                         }
                     }
@@ -142,8 +140,7 @@ pc.extend(pc, (function() {
 
             return items;
         }
-    };
-
+    }
 
     /**
     * @name pc.Tags
@@ -175,15 +172,15 @@ pc.extend(pc, (function() {
      * It will fire once on bulk changes, while `add`/`remove` will fire on each tag operation
     */
 
-    var Tags = function(parent) {
-        this._index = { };
-        this._list = [ ];
-        this._parent = parent;
+    class Tags {
+        constructor(parent) {
+            this._index = { };
+            this._list = [ ];
+            this._parent = parent;
 
-        pc.events.attach(this);
-    };
+            pc.events.attach(this);
+        }
 
-    Tags.prototype = {
         /**
         * @function
         * @name pc.Tags#add
@@ -197,14 +194,14 @@ pc.extend(pc, (function() {
         * @example
         * tags.add([ 'level-2', 'mob' ]);
         */
-        add: function() {
-            var changed = false;
-            var tags = this._processArguments(arguments, true);
+        add(...args) {
+            let changed = false;
+            const tags = this._processArguments(args, true);
 
             if (! tags.length)
                 return changed;
 
-            for (var i = 0; i < tags.length; i++) {
+            for (let i = 0; i < tags.length; i++) {
                 if (this._index[tags[i]])
                     continue;
 
@@ -220,8 +217,7 @@ pc.extend(pc, (function() {
                 this.fire('change', this._parent);
 
             return changed;
-        },
-
+        }
 
         /**
         * @function
@@ -236,18 +232,18 @@ pc.extend(pc, (function() {
         * @example
         * tags.remove([ 'level-2', 'mob' ]);
         */
-        remove: function() {
-            var changed = false;
+        remove(...args) {
+            let changed = false;
 
             if (! this._list.length)
                 return changed;
 
-            var tags = this._processArguments(arguments, true);
+            const tags = this._processArguments(args, true);
 
             if (! tags.length)
                 return changed;
 
-            for (var i = 0; i < tags.length; i++) {
+            for (let i = 0; i < tags.length; i++) {
                 if (! this._index[tags[i]])
                     continue;
 
@@ -263,8 +259,7 @@ pc.extend(pc, (function() {
                 this.fire('change', this._parent);
 
             return changed;
-        },
-
+        }
 
         /**
         * @function
@@ -273,20 +268,19 @@ pc.extend(pc, (function() {
         * @example
         * tags.clear();
         */
-        clear: function() {
+        clear() {
             if (! this._list.length)
                 return;
 
-            var tags = this._list.slice(0);
+            const tags = this._list.slice(0);
             this._list = [ ];
             this._index = { };
 
-            for (var i = 0; i < tags.length; i++)
+            for (let i = 0; i < tags.length; i++)
                 this.fire('remove', tags[i], this._parent);
 
             this.fire('change', this._parent);
-        },
-
+        }
 
         /**
         * @function
@@ -307,28 +301,27 @@ pc.extend(pc, (function() {
         * @example
         * tags.has([ 'ui', 'settings' ], [ 'ui', 'levels' ]); // (ui AND settings) OR (ui AND levels)
         */
-        has: function() {
+        has(...args) {
             if (! this._list.length)
                 return false;
 
-            return this._has(this._processArguments(arguments));
-        },
+            return this._has(this._processArguments(args));
+        }
 
-
-        _has: function(tags) {
+        _has(tags) {
             if (! this._list.length || ! tags.length)
                 return false;
 
-            for (var i = 0; i < tags.length; i++) {
+            for (let i = 0; i < tags.length; i++) {
                 if (tags[i].length === 1) {
                     // single occurance
                     if (this._index[tags[i][0]])
                         return true;
                 } else {
                     // combined occurance
-                    var multiple = true;
+                    let multiple = true;
 
-                    for (var t = 0; t < tags[i].length; t++) {
+                    for (let t = 0; t < tags[i].length; t++) {
                         if (this._index[tags[i][t]])
                             continue;
 
@@ -342,8 +335,7 @@ pc.extend(pc, (function() {
             }
 
             return false;
-        },
-
+        }
 
         /**
         * @function
@@ -351,24 +343,23 @@ pc.extend(pc, (function() {
         * @description Returns immutable array of tags
         * @returns {String[]} copy of tags array
         */
-        list: function() {
+        list() {
             return this._list.slice(0);
-        },
+        }
 
-
-        _processArguments: function(args, flat) {
-            var tags = [ ];
-            var tmp = [ ];
+        _processArguments(args, flat) {
+            const tags = [ ];
+            let tmp = [ ];
 
             if (! args || ! args.length)
                 return tags;
 
-            for (var i = 0; i < args.length; i++) {
+            for (let i = 0; i < args.length; i++) {
                 if (args[i] instanceof Array) {
                     if (! flat)
                         tmp = [ ];
 
-                    for (var t = 0; t < args[i].length; t++) {
+                    for (let t = 0; t < args[i].length; t++) {
                         if (typeof(args[i][t]) !== 'string')
                             continue;
 
@@ -392,24 +383,22 @@ pc.extend(pc, (function() {
 
             return tags;
         }
-    };
 
-    /**
-     * @field
-     * @readonly
-     * @type Number
-     * @name pc.Tags#size
-     * @description Number of tags in set
-     */
-    Object.defineProperty(Tags.prototype, 'size', {
-        get: function () {
+        /**
+         * @field
+         * @readonly
+         * @type Number
+         * @name pc.Tags#size
+         * @description Number of tags in set
+         */
+        get size() {
             return this._list.length;
         }
-    });
+    }
 
 
     return {
-        TagsCache: TagsCache,
-        Tags: Tags
+        TagsCache,
+        Tags
     };
-}()));
+})()));

@@ -1,6 +1,4 @@
-pc.extend(pc, function () {
-    'use strict';
-
+pc.extend(pc, (() => {
     /**
      * @constructor
      * @name pc.TransformFeedback
@@ -65,43 +63,30 @@ pc.extend(pc, function () {
      * @param {pc.VertexBuffer} inputBuffer The input vertex buffer
      * @param {Number} [usage] The optional usage type of the output vertex buffer (see pc.BUFFER_*). pc.BUFFER_GPUDYNAMIC is recommended for continuous update, and is the default value.
      */
-    var TransformFeedback = function (inputBuffer, usage) {
-        usage = usage || pc.BUFFER_GPUDYNAMIC;
-        this.device = inputBuffer.device;
-        var gl = this.device.gl;
+    class TransformFeedback {
+        constructor(inputBuffer, usage) {
+            usage = usage || pc.BUFFER_GPUDYNAMIC;
+            this.device = inputBuffer.device;
+            const gl = this.device.gl;
 
-        this._inputBuffer = inputBuffer;
-        if (usage === pc.BUFFER_GPUDYNAMIC && inputBuffer.usage !== usage) {
-            // have to recreate input buffer with other usage
-            gl.bindBuffer(gl.ARRAY_BUFFER, inputBuffer.bufferId);
-            gl.bufferData(gl.ARRAY_BUFFER, inputBuffer.storage, gl.DYNAMIC_COPY);
+            this._inputBuffer = inputBuffer;
+            if (usage === pc.BUFFER_GPUDYNAMIC && inputBuffer.usage !== usage) {
+                // have to recreate input buffer with other usage
+                gl.bindBuffer(gl.ARRAY_BUFFER, inputBuffer.bufferId);
+                gl.bufferData(gl.ARRAY_BUFFER, inputBuffer.storage, gl.DYNAMIC_COPY);
+            }
+
+            this._outputBuffer = new pc.VertexBuffer(inputBuffer.device, inputBuffer.format, inputBuffer.numVertices, usage, inputBuffer.storage);
         }
 
-        this._outputBuffer = new pc.VertexBuffer(inputBuffer.device, inputBuffer.format, inputBuffer.numVertices, usage, inputBuffer.storage);
-    };
-
-    /**
-     * @function
-     * @name pc.TransformFeedback#createShader
-     * @description Creates a transform feedback ready vertex shader from code.
-     * @param {pc.GraphicsDevice} graphicsDevice The graphics device used by the renderer.
-     * @param {String} vsCode Vertex shader code. Should contain output variables starting with "out_".
-     * @param {String} name Unique name for caching the shader.
-     * @returns {pc.Shader} A shader to use in the process() function.
-     */
-    TransformFeedback.createShader = function (graphicsDevice, vsCode, name) {
-        return pc.shaderChunks.createShaderFromCode(graphicsDevice, vsCode, null, name, true);
-    };
-
-    TransformFeedback.prototype = {
         /**
          * @function
          * @name pc.TransformFeedback#destroy
          * @description Destroys the transform feedback helper object
          */
-        destroy: function () {
+        destroy() {
             this._outputBuffer.destroy();
-        },
+        }
 
         /**
          * @function
@@ -110,10 +95,10 @@ pc.extend(pc, function () {
          * @param {pc.Shader} shader A vertex shader to run. Should be created with pc.TransformFeedback.createShader.
          * @param {Boolean} [swap] Swap input/output buffer data. Useful for continuous buffer processing. Default is true.
          */
-        process: function (shader, swap) {
+        process(shader, swap) {
             if (swap === undefined) swap = true;
 
-            var device = this.device;
+            const device = this.device;
             device.setRenderTarget(null);
             device.updateBegin();
             device.setVertexBuffer(this._inputBuffer, 0);
@@ -132,38 +117,45 @@ pc.extend(pc, function () {
 
             // swap buffers
             if (swap) {
-                var tmp = this._inputBuffer.bufferId;
+                const tmp = this._inputBuffer.bufferId;
                 this._inputBuffer.bufferId = this._outputBuffer.bufferId;
                 this._outputBuffer.bufferId = tmp;
             }
         }
-    };
 
-    /**
-     * @readonly
-     * @name pc.TransformFeedback#inputBuffer
-     * @type pc.VertexBuffer
-     * @description The current input buffer
-     */
-    Object.defineProperty(TransformFeedback.prototype, 'inputBuffer', {
-        get: function () {
+        /**
+         * @readonly
+         * @name pc.TransformFeedback#inputBuffer
+         * @type pc.VertexBuffer
+         * @description The current input buffer
+         */
+        get inputBuffer() {
             return this._inputBuffer;
         }
-    });
 
-    /**
-     * @readonly
-     * @name pc.TransformFeedback#outputBuffer
-     * @type pc.VertexBuffer
-     * @description The current output buffer
-     */
-    Object.defineProperty(TransformFeedback.prototype, 'outputBuffer', {
-        get: function () {
+        /**
+         * @readonly
+         * @name pc.TransformFeedback#outputBuffer
+         * @type pc.VertexBuffer
+         * @description The current output buffer
+         */
+        get outputBuffer() {
             return this._outputBuffer;
         }
-    });
+    }
+
+    /**
+     * @function
+     * @name pc.TransformFeedback#createShader
+     * @description Creates a transform feedback ready vertex shader from code.
+     * @param {pc.GraphicsDevice} graphicsDevice The graphics device used by the renderer.
+     * @param {String} vsCode Vertex shader code. Should contain output variables starting with "out_".
+     * @param {String} name Unique name for caching the shader.
+     * @returns {pc.Shader} A shader to use in the process() function.
+     */
+    TransformFeedback.createShader = (graphicsDevice, vsCode, name) => pc.shaderChunks.createShaderFromCode(graphicsDevice, vsCode, null, name, true);
 
     return {
-        TransformFeedback: TransformFeedback
+        TransformFeedback
     };
-}());
+})());

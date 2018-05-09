@@ -1,5 +1,5 @@
-pc.extend(pc, function() {
-    var AnimationComponentData = function () {
+pc.extend(pc, (() => {
+    let AnimationComponentData = function () {
         // Serialized
         this.assets = [ ];
         this.speed = 1.0;
@@ -23,6 +23,6 @@ pc.extend(pc, function() {
     AnimationComponentData = pc.inherits(AnimationComponentData, pc.ComponentData);
 
     return {
-        AnimationComponentData: AnimationComponentData
+        AnimationComponentData
     };
-}());
+})());

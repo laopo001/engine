@@ -1,8 +1,8 @@
-pc.extend(pc, function () {
-    var tmpRay = new pc.Ray();
-    var tmpVec3 = new pc.Vec3();
-    var tmpSphere = new pc.BoundingSphere();
-    var tmpMat4 = new pc.Mat4();
+pc.extend(pc, (() => {
+    const tmpRay = new pc.Ray();
+    const tmpVec3 = new pc.Vec3();
+    const tmpSphere = new pc.BoundingSphere();
+    const tmpMat4 = new pc.Mat4();
 
     /**
      * @constructor
@@ -13,15 +13,15 @@ pc.extend(pc, function () {
      * @param {pc.Mat4} [worldTransform] Transform that has the orientation and position of the box. Scale is assumed to be one.
      * @param {pc.Vec3} [halfExtents] Half the distance across the box in each local axis. The constructor takes a reference of this parameter.
      */
-    var OrientedBox = function OrientedBox(worldTransform, halfExtents) {
-        this.halfExtents = halfExtents || new pc.Vec3(0.5, 0.5, 0.5);
+    class OrientedBox {
+        constructor(worldTransform, halfExtents) {
+            this.halfExtents = halfExtents || new pc.Vec3(0.5, 0.5, 0.5);
 
-        worldTransform = worldTransform || tmpMat4.setIdentity();
-        this._modelTransform = worldTransform.clone().invert();
-        this._aabb = new pc.BoundingBox(new pc.Vec3(), this.halfExtents);
-    };
+            worldTransform = worldTransform || tmpMat4.setIdentity();
+            this._modelTransform = worldTransform.clone().invert();
+            this._aabb = new pc.BoundingBox(new pc.Vec3(), this.halfExtents);
+        }
 
-    OrientedBox.prototype = {
         /**
          * @function
          * @name pc.OrientedBox#intersectsRay
@@ -30,18 +30,18 @@ pc.extend(pc, function () {
          * @param {pc.Vec3} [point] If there is an intersection, the intersection point will be copied into here.
          * @returns {Boolean} True if there is an intersection.
          */
-        intersectsRay: function (ray, point) {
-            this._modelTransform.transformPoint(ray.origin, tmpRay.origin);
-            this._modelTransform.transformVector(ray.direction, tmpRay.direction);
+        intersectsRay({origin, direction}, point) {
+            this._modelTransform.transformPoint(origin, tmpRay.origin);
+            this._modelTransform.transformVector(direction, tmpRay.direction);
 
             if (point) {
-                var result = this._aabb._intersectsRay(tmpRay, point);
+                const result = this._aabb._intersectsRay(tmpRay, point);
                 tmpMat4.copy(this._modelTransform).invert().transformPoint(point, point);
                 return result;
             } else {
                 return this._aabb._fastIntersectsRay(tmpRay);
             }
-        },
+        }
 
         /**
          * @function
@@ -50,10 +50,10 @@ pc.extend(pc, function () {
          * @param {pc.Vec3} point Point to test.
          * @returns {Boolean} true if the point is inside the OBB and false otherwise.
          */
-        containsPoint: function (point) {
+        containsPoint(point) {
             this._modelTransform.transformPoint(point, tmpVec3);
             return this._aabb.containsPoint(tmpVec3);
-        },
+        }
 
         /**
          * @function
@@ -62,9 +62,9 @@ pc.extend(pc, function () {
          * @param {pc.BoundingSphere} sphere Bounding Sphere to test.
          * @returns {Boolean} true if the Bounding Sphere is overlapping, enveloping or inside this OBB and false otherwise.
          */
-        intersectsBoundingSphere: function (sphere) {
-            this._modelTransform.transformPoint(sphere.center, tmpSphere.center);
-            tmpSphere.radius = sphere.radius;
+        intersectsBoundingSphere({center, radius}) {
+            this._modelTransform.transformPoint(center, tmpSphere.center);
+            tmpSphere.radius = radius;
 
             if (this._aabb.intersectsBoundingSphere(tmpSphere)) {
                 return true;
@@ -72,15 +72,13 @@ pc.extend(pc, function () {
 
             return false;
         }
-    };
 
-    Object.defineProperty(OrientedBox.prototype, 'worldTransform', {
-        set: function (value) {
+        set worldTransform(value) {
             this._modelTransform.copy(value).invert();
         }
-    });
+    }
 
     return {
-        OrientedBox: OrientedBox
+        OrientedBox
     };
-}());
+})());

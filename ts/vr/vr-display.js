@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
      * @constructor
      * @name pc.VrDisplay
@@ -16,114 +16,114 @@ pc.extend(pc, function () {
      * @property {VRDisplayCapabilities} capabilities Returns the <a href="https://w3c.github.io/webvr/#interface-vrdisplaycapabilities" target="_blank">VRDisplayCapabilities</a> object from the VRDisplay.
      * This can be used to determine what features are available on this display.
      */
-    var VrDisplay = function (app, display) {
-        var self = this;
+    class VrDisplay {
+        constructor(app, display) {
+            const self = this;
 
-        this._app = app;
-        this._device = app.graphicsDevice;
+            this._app = app;
+            this._device = app.graphicsDevice;
 
-        this.id = display.displayId;
+            this.id = display.displayId;
 
-        this._frameData = null;
-        if (window.VRFrameData) {
-            this._frameData = new window.VRFrameData();
-        }
-        this.display = display;
-
-        this._camera = null; // camera component
-
-        this.sitToStandInv = new pc.Mat4();
-
-        this.leftView = new pc.Mat4();
-        this.leftProj = new pc.Mat4();
-        this.leftViewInv = new pc.Mat4();
-        this.leftPos = new pc.Vec3();
-
-        this.rightView = new pc.Mat4();
-        this.rightProj = new pc.Mat4();
-        this.rightViewInv = new pc.Mat4();
-        this.rightPos = new pc.Vec3();
-
-        this.combinedPos = new pc.Vec3();
-        this.combinedView = new pc.Mat4();
-        this.combinedProj = new pc.Mat4();
-        this.combinedViewInv = new pc.Mat4();
-        this.combinedFov = 0;
-        this.combinedAspect = 0;
-
-        this.presenting = false;
-
-        self._presentChange = function (event) {
-            var display;
-            // handle various events formats
-            if (event.display) {
-                // this is the official spec event format
-                display = event.display;
-            } else if (event.detail && event.detail.display) {
-                // webvr-polyfill uses this
-                display = event.detail.display;
-            } else if (event.detail && event.detail.vrdisplay) {
-                // this was used in the webvr emulation chrome extension
-                display = event.detail.vrdisplay;
-            } else {
-                // final catch all is to use this display as Firefox Nightly (54.0a1)
-                // does not include the display within the event data
-                display = self.display;
+            this._frameData = null;
+            if (window.VRFrameData) {
+                this._frameData = new window.VRFrameData();
             }
+            this.display = display;
 
-            // check if event refers to this display
-            if (display === self.display) {
-                self.presenting = (self.display && self.display.isPresenting);
+            this._camera = null; // camera component
 
-                if (self.presenting) {
-                    var leftEye = self.display.getEyeParameters("left");
-                    var rightEye = self.display.getEyeParameters("right");
-                    var w = Math.max(leftEye.renderWidth, rightEye.renderWidth) * 2;
-                    var h = Math.max(leftEye.renderHeight, rightEye.renderHeight);
-                    // set canvas resolution to the display resolution
-                    self._app.graphicsDevice.setResolution(w,h);
-                    // prevent window resizing from resizing it
-                    self._app._allowResize = false;
+            this.sitToStandInv = new pc.Mat4();
+
+            this.leftView = new pc.Mat4();
+            this.leftProj = new pc.Mat4();
+            this.leftViewInv = new pc.Mat4();
+            this.leftPos = new pc.Vec3();
+
+            this.rightView = new pc.Mat4();
+            this.rightProj = new pc.Mat4();
+            this.rightViewInv = new pc.Mat4();
+            this.rightPos = new pc.Vec3();
+
+            this.combinedPos = new pc.Vec3();
+            this.combinedView = new pc.Mat4();
+            this.combinedProj = new pc.Mat4();
+            this.combinedViewInv = new pc.Mat4();
+            this.combinedFov = 0;
+            this.combinedAspect = 0;
+
+            this.presenting = false;
+
+            self._presentChange = event => {
+                let display;
+                // handle various events formats
+                if (event.display) {
+                    // this is the official spec event format
+                    display = event.display;
+                } else if (event.detail && event.detail.display) {
+                    // webvr-polyfill uses this
+                    display = event.detail.display;
+                } else if (event.detail && event.detail.vrdisplay) {
+                    // this was used in the webvr emulation chrome extension
+                    display = event.detail.vrdisplay;
                 } else {
-                    // restore original resolution
-                    self._app.setCanvasResolution(pc.RESOLUTION_AUTO);
-                    self._app._allowResize = true;
+                    // final catch all is to use this display as Firefox Nightly (54.0a1)
+                    // does not include the display within the event data
+                    display = self.display;
                 }
 
-                self.fire('beforepresentchange', self); // fire internal event for camera component
-                self.fire('presentchange', self);
-            }
-        };
-        window.addEventListener('vrdisplaypresentchange', self._presentChange, false);
+                // check if event refers to this display
+                if (display === self.display) {
+                    self.presenting = (self.display && self.display.isPresenting);
 
-        pc.events.attach(this);
-    };
+                    if (self.presenting) {
+                        const leftEye = self.display.getEyeParameters("left");
+                        const rightEye = self.display.getEyeParameters("right");
+                        const w = Math.max(leftEye.renderWidth, rightEye.renderWidth) * 2;
+                        const h = Math.max(leftEye.renderHeight, rightEye.renderHeight);
+                        // set canvas resolution to the display resolution
+                        self._app.graphicsDevice.setResolution(w,h);
+                        // prevent window resizing from resizing it
+                        self._app._allowResize = false;
+                    } else {
+                        // restore original resolution
+                        self._app.setCanvasResolution(pc.RESOLUTION_AUTO);
+                        self._app._allowResize = true;
+                    }
 
-    VrDisplay.prototype = {
+                    self.fire('beforepresentchange', self); // fire internal event for camera component
+                    self.fire('presentchange', self);
+                }
+            };
+            window.addEventListener('vrdisplaypresentchange', self._presentChange, false);
+
+            pc.events.attach(this);
+        }
+
         /**
         * @function
         * @name pc.VrDisplay#destroy
         * @description Destroy this display object
         */
-        destroy: function () {
+        destroy() {
             window.removeEventListener('vrdisplaypresentchange', self._presentChange);
             if (this._camera) this._camera.vrDisplay = null;
             this._camera = null;
-        },
+        }
 
         /**
         * @function
         * @name pc.VrDisplay#poll
         * @description Called once per frame to update the current status from the display. Usually called by {@link pc.VrManager}.
         */
-        poll: function () {
+        poll() {
             if (this.display) {
                 this.display.getFrameData(this._frameData);
 
                 this.leftProj.data = this._frameData.leftProjectionMatrix;
                 this.rightProj.data = this._frameData.rightProjectionMatrix;
 
-                var stage = this.display.stageParameters;
+                const stage = this.display.stageParameters;
                 if (stage) {
 
                     this.sitToStandInv.set(stage.sittingToStandingTransform).invert();
@@ -143,12 +143,12 @@ pc.extend(pc, function () {
                 // Camera is offset backwards to cover both frustums
 
                 // Extract widest frustum plane and calculate fov
-                var nx = this.leftProj.data[3] + this.leftProj.data[0];
-                var nz = this.leftProj.data[11] + this.leftProj.data[8];
-                var l = 1.0 / Math.sqrt(nx*nx + nz*nz);
+                let nx = this.leftProj.data[3] + this.leftProj.data[0];
+                let nz = this.leftProj.data[11] + this.leftProj.data[8];
+                let l = 1.0 / Math.sqrt(nx*nx + nz*nz);
                 nx *= l;
                 nz *= l;
-                var maxFov = -Math.atan2(nz,nx);
+                let maxFov = -Math.atan2(nz,nx);
 
                 nx = this.rightProj.data[3] + this.rightProj.data[0];
                 nz = this.rightProj.data[11] + this.rightProj.data[8];
@@ -160,24 +160,24 @@ pc.extend(pc, function () {
 
                 this.combinedFov = maxFov;
 
-                var aspect = this.rightProj.data[5] / this.rightProj.data[0];
+                const aspect = this.rightProj.data[5] / this.rightProj.data[0];
                 this.combinedAspect = aspect;
 
-                var view = this.combinedView;
+                const view = this.combinedView;
                 view.copy(this.leftView);
                 view.invert();
                 this.leftViewInv.copy(view);
-                var pos = this.combinedPos.data;
+                const pos = this.combinedPos.data;
                 pos[0] = this.leftPos.data[0] = view.data[12];
                 pos[1] = this.leftPos.data[1] = view.data[13];
                 pos[2] = this.leftPos.data[2] = view.data[14];
                 view.copy(this.rightView);
                 view.invert();
                 this.rightViewInv.copy(view);
-                var deltaX = pos[0] - view.data[12];
-                var deltaY = pos[1] - view.data[13];
-                var deltaZ = pos[2] - view.data[14];
-                var dist = Math.sqrt(deltaX*deltaX + deltaY*deltaY + deltaZ*deltaZ);
+                const deltaX = pos[0] - view.data[12];
+                const deltaY = pos[1] - view.data[13];
+                const deltaZ = pos[2] - view.data[14];
+                const dist = Math.sqrt(deltaX*deltaX + deltaY*deltaY + deltaZ*deltaZ);
                 this.rightPos.data[0] = view.data[12];
                 this.rightPos.data[1] = view.data[13];
                 this.rightPos.data[2] = view.data[14];
@@ -187,13 +187,13 @@ pc.extend(pc, function () {
                 pos[0] *= 0.5; // middle pos
                 pos[1] *= 0.5;
                 pos[2] *= 0.5;
-                var b = Math.PI * 0.5;
-                var c = maxFov * 0.5;
-                var a = Math.PI - (b + c);
-                var offset = dist * 0.5 * ( Math.sin(a) );// / Math.sin(b) ); // equals 1
-                var fwdX = view.data[8];
-                var fwdY = view.data[9];
-                var fwdZ = view.data[10];
+                const b = Math.PI * 0.5;
+                const c = maxFov * 0.5;
+                const a = Math.PI - (b + c);
+                const offset = dist * 0.5 * ( Math.sin(a) );// / Math.sin(b) ); // equals 1
+                const fwdX = view.data[8];
+                const fwdY = view.data[9];
+                const fwdZ = view.data[10];
                 view.data[12] = pos[0] + fwdX * offset; // our forward goes backwards so + instead of -
                 view.data[13] = pos[1] + fwdY * offset;
                 view.data[14] = pos[2] + fwdZ * offset;
@@ -207,7 +207,7 @@ pc.extend(pc, function () {
                                                  this.display.depthFar + offset,
                                                  true);
             }
-        },
+        }
 
         /**
         * @function
@@ -216,7 +216,7 @@ pc.extend(pc, function () {
         * @param {Function} callback Called when the request is completed. Callback takes a single argument (err) that is the error message return
         * if presenting fails, or null if the call succeeds. Usually called by {@link pc.CameraComponent#enterVr}.
         */
-        requestPresent: function (callback) {
+        requestPresent(callback) {
             if (!this.display) {
                 if (callback) callback(new Error("No VrDisplay to requestPresent"));
                 return;
@@ -227,12 +227,12 @@ pc.extend(pc, function () {
                 return;
             }
 
-            this.display.requestPresent([{source: this._device.canvas}]).then(function () {
+            this.display.requestPresent([{source: this._device.canvas}]).then(() => {
                 if (callback) callback();
-            }, function (err) {
+            }, err => {
                 if (callback) callback(err);
             });
-        },
+        }
 
         /**
         * @function
@@ -241,7 +241,7 @@ pc.extend(pc, function () {
         * @param {Function} callback Called when the request is completed. Callback takes a single argument (err) that is the error message return
         * if presenting fails, or null if the call succeeds. Usually called by {@link pc.CameraComponent#exitVr}.
         */
-        exitPresent: function (callback) {
+        exitPresent(callback) {
             if (!this.display) {
                 if (callback) callback(new Error("No VrDisplay to exitPresent"));
             }
@@ -251,12 +251,12 @@ pc.extend(pc, function () {
                 return;
             }
 
-            this.display.exitPresent().then(function () {
+            this.display.exitPresent().then(() => {
                 if (callback) callback();
-            }, function () {
+            }, () => {
                 if (callback) callback(new Error("exitPresent failed"));
             });
-        },
+        }
 
         /**
         * @function
@@ -264,27 +264,27 @@ pc.extend(pc, function () {
         * @description Used in the main application loop instead of the regular `window.requestAnimationFrame`. Usually only called from inside {@link pc.Application}
         * @param {Function} fn Function called when it is time to update the frame.
         */
-        requestAnimationFrame: function (fn) {
+        requestAnimationFrame(fn) {
             if (this.display) this.display.requestAnimationFrame(fn);
-        },
+        }
 
         /**
         * @function
         * @name pc.VrDisplay#submitFrame
         * @description Called when animation update is complete and the frame is ready to be sent to the display. Usually only called from inside {@link pc.Application}.
         */
-        submitFrame: function () {
+        submitFrame() {
             if (this.display) this.display.submitFrame();
-        },
+        }
 
         /**
         * @function
         * @name pc.VrDisplay#reset
         * @description Called to reset the pose of the pc.VrDisplay. Treating its current pose as the origin/zero. This should only be called in 'sitting' experiences.
         */
-        reset: function () {
+        reset() {
             if (this.display) this.display.resetPose();
-        },
+        }
 
         /**
         * @function
@@ -294,12 +294,12 @@ pc.extend(pc, function () {
         * @param {Number} n The near depth distance
         * @param {Number} f The far depth distance
         */
-        setClipPlanes: function (n, f) {
+        setClipPlanes(n, f) {
             if (this.display) {
                 this.display.depthNear = n;
                 this.display.depthFar = f;
             }
-        },
+        }
 
         /**
         * @function
@@ -307,19 +307,17 @@ pc.extend(pc, function () {
         * @description Return the current frame data that is updated during polling.
         * @returns {VRFrameData} The frame data object
         */
-        getFrameData: function () {
+        getFrameData() {
             if (this.display) return this._frameData;
         }
-    };
 
-    Object.defineProperty(VrDisplay.prototype, "capabilities" ,{
-        get: function () {
+        get capabilities() {
             if (this.display) return this.display.capabilities;
             return {};
         }
-    });
+    }
 
     return {
-        VrDisplay: VrDisplay
+        VrDisplay
     };
-}());
+})());

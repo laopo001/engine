@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
      * @name pc.platform
      * @namespace
@@ -8,7 +8,7 @@ pc.extend(pc, function () {
      *     // touch is supported
      * }
      */
-    var platform = {
+    const platform = {
         /**
          * @name pc.platform.desktop
          * @description is it a desktop or laptop device
@@ -64,7 +64,7 @@ pc.extend(pc, function () {
         touch: false
     };
 
-    var ua = navigator.userAgent;
+    const ua = navigator.userAgent;
 
     if (/(windows|mac os|linux|cros)/i.test(ua))
         platform.desktop = true;
@@ -94,6 +94,6 @@ pc.extend(pc, function () {
     platform.gamepads = 'getGamepads' in navigator;
 
     return {
-        platform: platform
+        platform
     };
-}());
+})());

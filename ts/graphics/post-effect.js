@@ -1,7 +1,6 @@
-pc.extend(pc, function () {
-
+pc.extend(pc, (() => {
     // Primitive for drawFullscreenQuad
-    var primitive = {
+    const primitive = {
         type: pc.PRIMITIVE_TRISTRIP,
         base: 0,
         count: 4,
@@ -17,15 +16,15 @@ pc.extend(pc, function () {
      * @description Creates new PostEffect
      * @param {pc.GraphicsDevice} graphicsDevice The graphics device of the application
      */
-    var PostEffect = function (graphicsDevice) {
-        this.device = graphicsDevice;
-        this.shader = null;
-        this.depthMap = null;
-        this.vertexBuffer = pc.createFullscreenQuad(graphicsDevice);
-        this.needsDepthBuffer = false;
-    };
+    class PostEffect {
+        constructor(graphicsDevice) {
+            this.device = graphicsDevice;
+            this.shader = null;
+            this.depthMap = null;
+            this.vertexBuffer = pc.createFullscreenQuad(graphicsDevice);
+            this.needsDepthBuffer = false;
+        }
 
-    PostEffect.prototype = {
         /**
          * @function
          * @name pc.PostEffect#render
@@ -35,21 +34,21 @@ pc.extend(pc, function () {
          * @param {pc.RenderTarget} outputTarget The output render target. If null then this will be the screen.
          * @param {pc.Vec4} rect (Optional) The rect of the current camera. If not specified then it will default to [0,0,1,1]
          */
-        render: function (inputTarget, outputTarget, rect) {
+        render(inputTarget, outputTarget, rect) {
         }
-    };
+    }
 
     function createFullscreenQuad (device) {
         // Create the vertex format
-        var vertexFormat = new pc.VertexFormat(device, [
+        const vertexFormat = new pc.VertexFormat(device, [
             { semantic: pc.SEMANTIC_POSITION, components: 2, type: pc.TYPE_FLOAT32 }
         ]);
 
         // Create a vertex buffer
-        var vertexBuffer = new pc.VertexBuffer(device, vertexFormat, 4);
+        const vertexBuffer = new pc.VertexBuffer(device, vertexFormat, 4);
 
         // Fill the vertex buffer
-        var iterator = new pc.VertexIterator(vertexBuffer);
+        const iterator = new pc.VertexIterator(vertexBuffer);
         iterator.element[pc.SEMANTIC_POSITION].set(-1.0, -1.0);
         iterator.next();
         iterator.element[pc.SEMANTIC_POSITION].set(1.0, -1.0);
@@ -65,10 +64,10 @@ pc.extend(pc, function () {
     function drawFullscreenQuad (device, target, vertexBuffer, shader, rect) {
         device.setRenderTarget(target);
         device.updateBegin();
-        var w = (target !== null) ? target.width : device.width;
-        var h = (target !== null) ? target.height : device.height;
-        var x = 0;
-        var y = 0;
+        let w = (target !== null) ? target.width : device.width;
+        let h = (target !== null) ? target.height : device.height;
+        let x = 0;
+        let y = 0;
 
         if (rect) {
             x = rect.x * w;
@@ -80,14 +79,14 @@ pc.extend(pc, function () {
         device.setViewport(x, y, w, h);
         device.setScissor(x, y, w, h);
 
-        var oldBlending = device.getBlending();
-        var oldDepthTest = device.getDepthTest();
-        var oldDepthWrite = device.getDepthWrite();
-        var oldCullMode = device.getCullMode();
-        var oldWR = device.writeRed;
-        var oldWG = device.writeGreen;
-        var oldWB = device.writeBlue;
-        var oldWA = device.writeAlpha;
+        const oldBlending = device.getBlending();
+        const oldDepthTest = device.getDepthTest();
+        const oldDepthWrite = device.getDepthWrite();
+        const oldCullMode = device.getCullMode();
+        const oldWR = device.writeRed;
+        const oldWG = device.writeGreen;
+        const oldWB = device.writeBlue;
+        const oldWA = device.writeAlpha;
         device.setBlending(false);
         device.setDepthTest(false);
         device.setDepthWrite(false);
@@ -105,8 +104,8 @@ pc.extend(pc, function () {
     }
 
     return {
-        PostEffect: PostEffect,
-        createFullscreenQuad: createFullscreenQuad,
-        drawFullscreenQuad: drawFullscreenQuad
+        PostEffect,
+        createFullscreenQuad,
+        drawFullscreenQuad
     };
-}());
+})());

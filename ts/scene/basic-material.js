@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
 
     /**
      * @constructor
@@ -21,7 +21,7 @@ pc.extend(pc, function () {
      *
      * @extends pc.Material
      */
-    var BasicMaterial = function () {
+    let BasicMaterial = function () {
         this.color = new pc.Color(1, 1, 1, 1);
         this.colorMap = null;
         this.vertexColors = false;
@@ -39,8 +39,8 @@ pc.extend(pc, function () {
          * where only the references are copied.
          * @returns {pc.BasicMaterial} A cloned Basic material.
          */
-        clone: function () {
-            var clone = new pc.BasicMaterial();
+        clone() {
+            const clone = new pc.BasicMaterial();
 
             pc.Material.prototype._cloneInternal.call(this, clone);
 
@@ -52,7 +52,7 @@ pc.extend(pc, function () {
             return clone;
         },
 
-        update: function () {
+        update() {
             this.clearParameters();
 
             this.setParameter('uColor', this.color.data);
@@ -61,19 +61,19 @@ pc.extend(pc, function () {
             }
         },
 
-        updateShader: function (device, scene, objDefs, staticLightList, pass, sortedLights) {
-            var options = {
+        updateShader(device, scene, objDefs, staticLightList, pass, sortedLights) {
+            const options = {
                 skin: !!this.meshInstances[0].skinInstance,
                 vertexColors: this.vertexColors,
                 diffuseMap: this.colorMap,
-                pass: pass
+                pass
             };
-            var library = device.getProgramLibrary();
+            const library = device.getProgramLibrary();
             this.shader = library.getProgram('basic', options);
         }
     });
 
     return {
-        BasicMaterial: BasicMaterial
+        BasicMaterial
     };
-}());
+})());

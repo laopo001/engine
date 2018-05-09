@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
      * @component
      * @constructor
@@ -66,7 +66,7 @@ pc.extend(pc, function () {
      * @property {pc.Model} model The model that is added to the scene graph for the mesh collision volume.
      * @extends pc.Component
      */
-    var CollisionComponent = function CollisionComponent (system, entity) {
+    let CollisionComponent = function CollisionComponent (system, entity) {
         this.on('set_type', this.onSetType, this);
         this.on('set_halfExtents', this.onSetHalfExtents, this);
         this.on('set_radius', this.onSetRadius, this);
@@ -117,39 +117,39 @@ pc.extend(pc, function () {
 
     pc.extend(CollisionComponent.prototype, {
 
-        onSetType: function (name, oldValue, newValue) {
+        onSetType(name, oldValue, newValue) {
             if (oldValue !== newValue) {
                 this.system.changeType(this, oldValue, newValue);
             }
         },
 
-        onSetHalfExtents: function (name, oldValue, newValue) {
+        onSetHalfExtents(name, oldValue, newValue) {
             if (this.data.initialized && this.data.type === 'box') {
                 this.system.recreatePhysicalShapes(this);
             }
         },
 
-        onSetRadius: function (name, oldValue, newValue) {
+        onSetRadius(name, oldValue, newValue) {
             if (this.data.initialized && (this.data.type === 'sphere' || this.data.type === 'capsule' || this.data.type === 'cylinder')) {
                 this.system.recreatePhysicalShapes(this);
             }
         },
 
-        onSetHeight: function (name, oldValue, newValue) {
+        onSetHeight(name, oldValue, newValue) {
             if (this.data.initialized && (this.data.type === 'capsule' || this.data.type === 'cylinder')) {
                 this.system.recreatePhysicalShapes(this);
             }
         },
 
-        onSetAxis: function (name, oldValue, newValue) {
+        onSetAxis(name, oldValue, newValue) {
             if (this.data.initialized && (this.data.type === 'capsule' || this.data.type === 'cylinder')) {
                 this.system.recreatePhysicalShapes(this);
             }
         },
 
-        onSetAsset: function (name, oldValue, newValue) {
-            var asset;
-            var assets = this.system.app.assets;
+        onSetAsset(name, oldValue, newValue) {
+            let asset;
+            const assets = this.system.app.assets;
 
             if (oldValue) {
                 // Remove old listeners
@@ -182,7 +182,7 @@ pc.extend(pc, function () {
             }
         },
 
-        onSetModel: function (name, oldValue, newValue) {
+        onSetModel(name, oldValue, newValue) {
             if (this.data.initialized && this.data.type === 'mesh') {
                 // recreate physical shapes skipping loading the model
                 // from the 'asset' as the model passed in newValue might
@@ -191,18 +191,18 @@ pc.extend(pc, function () {
             }
         },
 
-        onAssetRemoved: function (asset) {
+        onAssetRemoved(asset) {
             asset.off('remove', this.onAssetRemoved, this);
             if (this.data.asset === asset.id) {
                 this.asset = null;
             }
         },
 
-        onEnable: function () {
+        onEnable() {
             CollisionComponent._super.onEnable.call(this);
 
             if (this.data.type === 'mesh' && this.data.asset && this.data.initialized) {
-                var asset = this.system.app.assets.get(this.data.asset);
+                const asset = this.system.app.assets.get(this.data.asset);
                 // recreate the collision shape if the model asset is not loaded
                 // or the shape does not exist
                 if (asset && (!asset.resource || !this.data.shape)) {
@@ -220,7 +220,7 @@ pc.extend(pc, function () {
             }
         },
 
-        onDisable: function () {
+        onDisable() {
             CollisionComponent._super.onDisable.call(this);
 
             if (this.entity.trigger) {
@@ -232,6 +232,6 @@ pc.extend(pc, function () {
     });
 
     return {
-        CollisionComponent: CollisionComponent
+        CollisionComponent
     };
-}());
+})());

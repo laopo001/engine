@@ -1,21 +1,21 @@
 // Shim the Fullscreen API
-(function () {
+((() => {
     if (typeof document === 'undefined') {
         // Not running in a browser
         return;
     }
 
     // Events
-    var fullscreenchange = function (event) {
-        var e = document.createEvent('CustomEvent');
+    const fullscreenchange = ({target}) => {
+        const e = document.createEvent('CustomEvent');
         e.initCustomEvent('fullscreenchange', true, false, null);
-        event.target.dispatchEvent(e);
+        target.dispatchEvent(e);
     };
 
-    var fullscreenerror = function (event) {
-        var e = document.createEvent('CustomEvent');
+    const fullscreenerror = ({target}) => {
+        const e = document.createEvent('CustomEvent');
         e.initCustomEvent('fullscreenerror', true, false, null);
-        event.target.dispatchEvent(e);
+        target.dispatchEvent(e);
     };
 
     document.addEventListener('webkitfullscreenchange', fullscreenchange, false);
@@ -40,7 +40,7 @@
         Object.defineProperty(document, 'fullscreenElement', {
             enumerable: true,
             configurable: false,
-            get: function () {
+            get() {
                 return document.webkitCurrentFullScreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
             }
         });
@@ -50,9 +50,9 @@
         Object.defineProperty(document, 'fullscreenEnabled', {
             enumerable: true,
             configurable: false,
-            get: function () {
+            get() {
                 return document.webkitFullscreenEnabled || document.mozFullScreenEnabled || document.msFullscreenEnabled;
             }
         });
     }
-}());
+})());
