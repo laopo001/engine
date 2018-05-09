@@ -1,4 +1,4 @@
-pc.extend(pc, (() => ({
+namespace pc {
     /**
      * @private
      * @function
@@ -14,7 +14,7 @@ pc.extend(pc, (() => ({
      * @param {String} [options.fragment] The fragment section, after the # (e.g. http://example.com#<b>fragment/data</b>)
      * @returns {String} A URI string
      */
-    createURI(options) {
+    export function createURI(options) {
         let s = "";
         if ((options.authority || options.scheme) && (options.host || options.hostpath)) {
             throw new Error("Can't have 'scheme' or 'authority' and 'host' or 'hostpath' option");
@@ -55,7 +55,7 @@ pc.extend(pc, (() => ({
         }
 
         return s;
-    },
+    }
 
     /**
      * @private
@@ -65,39 +65,47 @@ pc.extend(pc, (() => ({
      * @classdesc A URI object
      * @param {String} uri URI string
      */
-    URI(uri) {
+    export class URI {
+        scheme: any;
+        authority: any;
+        path: any;
+        query: any;
+        fragment: any;
+        constructor(uri) {
+            const re = /^(([^:\/?#]+):)?(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/, result = uri.match(re);
+
+            /**
+             * @name pc.URI#scheme
+             * @description The scheme. (e.g. http)
+             */
+            this.scheme = result[2];
+
+            /**
+             * @name pc.URI#authority
+             * @description The authority. (e.g. www.example.com)
+             */
+            this.authority = result[4];
+
+            /**
+             * @name pc.URI#path
+             * @description The path. (e.g. /users/example)
+             */
+            this.path = result[5];
+
+            /**
+             * @name pc.URI#query
+             * @description The query, the section after a ?. (e.g. search=value)
+             */
+            this.query = result[7];
+
+            /**
+             * @name pc.URI#fragment
+             * @description The fragment, the section after a #
+             */
+            this.fragment = result[9];
+        }
         // See http://tools.ietf.org/html/rfc2396#appendix-B for details of RegExp
-        const re = /^(([^:\/?#]+):)?(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/, result = uri.match(re);
 
-        /**
-         * @name pc.URI#scheme
-         * @description The scheme. (e.g. http)
-         */
-        this.scheme = result[2];
-
-        /**
-         * @name pc.URI#authority
-         * @description The authority. (e.g. www.example.com)
-         */
-        this.authority = result[4];
-
-        /**
-         * @name pc.URI#path
-         * @description The path. (e.g. /users/example)
-         */
-        this.path = result[5];
-
-        /**
-         * @name pc.URI#query
-         * @description The query, the section after a ?. (e.g. search=value)
-         */
-        this.query = result[7];
-
-        /**
-         * @name pc.URI#fragment
-         * @description The fragment, the section after a #
-         */
-        this.fragment = result[9];
 
         /**
          * @function
@@ -105,7 +113,7 @@ pc.extend(pc, (() => ({
          * @description Convert URI back to string
          * @returns {String} The URI as a string.
          */
-        this.toString = function () {
+        toString() {
             let s = "";
 
             if (this.scheme) {
@@ -142,7 +150,7 @@ pc.extend(pc, (() => ({
          * console.log(q.b); // logs "2"
          * console.log(q.c); // logs "3"
          */
-        this.getQuery = function () {
+        getQuery() {
             let vars;
             let pair;
             const result = {};
@@ -169,7 +177,7 @@ pc.extend(pc, (() => ({
          * uri.setQuery({"a":1,"b":2});
          * console.log(uri.toString()); // logs "http://example.com?a=1&b=2
          */
-        this.setQuery = function (params) {
+        setQuery(params) {
             let q = "";
             for (const key in params) {
                 if (params.hasOwnProperty(key)) {
@@ -183,4 +191,5 @@ pc.extend(pc, (() => ({
             this.query = q;
         };
     }
-}))());
+
+}

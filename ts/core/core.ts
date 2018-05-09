@@ -12,13 +12,14 @@
  * PROFILER BUILD
 // #endif
  */
-export const code = {
-    version: "__CURRENT_SDK_VERSION__",
-    // revision: "__REVISION__",
-    // config: {},
-    // common: {},
-    // apps: {}, // Storage for the applications using the PlayCanvas Engine
-    // data: {}, // Storage for exported entity data
+namespace pc {
+
+    export const version = "__CURRENT_SDK_VERSION__";
+    export const revision = "__REVISION__";
+    export const config = {}
+    export const common = {}
+    export const apps = {} // Storage for the applications using the PlayCanvas Engine
+    export const data = {} // Storage for exported entity data
 
     /**
      * @private
@@ -26,20 +27,20 @@ export const code = {
      * @name pc.unpack
      * @description Copy a set of common PlayCanvas functions/classes/namespaces into the global namespace
      */
-    unpack() {
+    export function unpack() {
         console.warn("pc.unpack has been deprecated and will be removed shortly. Please update your code.");
-    },
+    }
 
     /**
-     * @function
-     * @private
-     * @name pc.makeArray
-     * @description Convert an array-like object into a normal array.
-     * For example, this is useful for converting the arguments object into an array.
-     * @param {Object} arr The array to convert
-     * @returns {Array} An array
-     */
-    makeArray(arr) {
+    * @function
+    * @private
+    * @name pc.makeArray
+    * @description Convert an array-like object into a normal array.
+    * For example, this is useful for converting the arguments object into an array.
+    * @param {Object} arr The array to convert
+    * @returns {Array} An array
+    */
+    export function makeArray(arr) {
         let i;
         const ret = [];
         const length = arr.length;
@@ -49,17 +50,16 @@ export const code = {
         }
 
         return ret;
-    },
-
+    }
     /**
-     * @private
-     * @function
-     * @name pc.type
-     * @description Extended typeof() function, returns the type of the object.
-     * @param {Object} obj The object to get the type of
-     * @returns {String} The type string: "null", "undefined", "number", "string", "boolean", "array", "object", "function", "date", "regexp" or "float32array"
-     */
-    type(obj) {
+    * @private
+    * @function
+    * @name pc.type
+    * @description Extended typeof() function, returns the type of the object.
+    * @param {Object} obj The object to get the type of
+    * @returns {String} The type string: "null", "undefined", "number", "string", "boolean", "array", "object", "function", "date", "regexp" or "float32array"
+    */
+    export function type(obj) {
         if (obj === null) {
             return "null";
         }
@@ -71,43 +71,7 @@ export const code = {
         }
 
         return _typeLookup[Object.prototype.toString.call(obj)];
-    },
-
-    /**
-     * @private
-     * @function
-     * @name pc.extend
-     * @description Merge the contents of two objects into a single object
-     * @param {Object} target The target object of the merge
-     * @param {Object} ex The object that is merged with target
-     * @returns {Object} The target object
-     * @example
-     * var A = {a: function() {console.log(this.a}};
-     * var B = {b: function() {console.log(this.b}};
-     *
-     * pc.extend(A,B);
-     * A.a();
-     * // logs "a"
-     * A.b();
-     * // logs "b"
-     */
-    extend(target, ex) {
-        let prop, copy;
-
-        for (prop in ex) {
-            copy = ex[prop];
-            if (pc.type(copy) == "object") {
-                target[prop] = pc.extend({}, copy);
-            } else if (pc.type(copy) == "array") {
-                target[prop] = pc.extend([], copy);
-            } else {
-                target[prop] = copy;
-            }
-        }
-
-        return target;
-    },
-
+    }
 
     /**
      * @private
@@ -117,26 +81,25 @@ export const code = {
      * @param {Object} o The Object to test
      * @returns {Boolean} True if the Object is not undefined
      */
-    isDefined(o) {
+    export function isDefined(o) {
         let a;
         return (o !== a);
     }
-};
 
-/**
- * @private
- * @name pc._typeLookup
- * @function
- * @description Create look up table for types
- */
-var _typeLookup = (() => {
-    const result = {};
-    const names = ["Array", "Object", "Function", "Date", "RegExp", "Float32Array"];
+    /**
+     * @private
+     * @name pc._typeLookup
+     * @function
+     * @description Create look up table for types
+     */
+    var _typeLookup = (() => {
+        const result = {};
+        const names = ["Array", "Object", "Function", "Date", "RegExp", "Float32Array"];
 
-    for (let i = 0; i < names.length; i++)
-        result[`[object ${names[i]}]`] = names[i].toLowerCase();
+        for (let i = 0; i < names.length; i++)
+            result[`[object ${names[i]}]`] = names[i].toLowerCase();
 
-    return result;
-})();
+        return result;
+    })();
 
-
+}

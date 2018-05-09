@@ -1,5 +1,8 @@
-pc.extend(pc, ((() => {
-    class AllocatePool {
+namespace pc {
+    export class AllocatePool {
+        _constructor: any;
+        _pool: any[];
+        _count: number;
         constructor(constructor, size) {
             this._constructor = constructor;
             this._pool = [];
@@ -18,7 +21,7 @@ pc.extend(pc, ((() => {
 
         allocate() {
             if (this._count >= this._pool.length) {
-                this._resize(this._pool.length*2);
+                this._resize(this._pool.length * 2);
             }
             return this._pool[this._count++];
         }
@@ -28,7 +31,4 @@ pc.extend(pc, ((() => {
         }
     }
 
-    return {
-        AllocatePool
-    };
-})()));
+}

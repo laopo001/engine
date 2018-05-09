@@ -1,10 +1,11 @@
-/**
- * @namespace
- * @name pc.string
- * @description Extended String API
- */
-pc.string = function () {
-    return {
+namespace pc {
+    /**
+     * @namespace
+     * @name pc.string
+     * @description Extended String API
+     */
+    export const string = {
+
         /**
          * @name pc.string.ASCII_LOWERCASE
          * @description All lowercase letters
@@ -24,7 +25,7 @@ pc.string = function () {
          * @description All ASCII letters
          * @type String
          */
-        ASCII_LETTERS: this.ASCII_LOWERCASE + this.ASCII_UPPERCASE,
+        ASCII_LETTERS: "abcdefghijklmnopqrstuvwxyz" + "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
         /**
          * @function
          * @name pc.string.format
@@ -112,5 +113,6 @@ pc.string = function () {
             return false;
         }
     };
-}();
 
+
+}
