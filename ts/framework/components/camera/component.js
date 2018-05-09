@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
      * @component
      * @constructor
@@ -64,113 +64,107 @@ pc.extend(pc, function () {
      * @property {Array} layers An array of layer IDs ({@link pc.Layer#id}) to which this camera should belong.
      * Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
      */
-    var CameraComponent = function CameraComponent(system, entity) {
-        // Bind event to update hierarchy if camera node changes
-        this.on("set_aspectRatioMode", this.onSetAspectRatioMode, this);
-        this.on("set_aspectRatio", this.onSetAspectRatio, this);
-        this.on("set_camera", this.onSetCamera, this);
-        this.on("set_clearColor", this.onSetClearColor, this);
-        this.on("set_fov", this.onSetFov, this);
-        this.on("set_orthoHeight", this.onSetOrthoHeight, this);
-        this.on("set_nearClip", this.onSetNearClip, this);
-        this.on("set_farClip", this.onSetFarClip, this);
-        this.on("set_projection", this.onSetProjection, this);
-        this.on("set_priority", this.onSetPriority, this);
-        this.on("set_clearColorBuffer", this.updateClearFlags, this);
-        this.on("set_clearDepthBuffer", this.updateClearFlags, this);
-        this.on("set_clearStencilBuffer", this.updateClearFlags, this);
-        this.on("set_renderTarget", this.onSetRenderTarget, this);
-        this.on("set_rect", this.onSetRect, this);
-        this.on("set_scissorRect", this.onSetScissorRect, this);
-        this.on("set_horizontalFov", this.onSetHorizontalFov, this);
-        this.on("set_frustumCulling", this.onSetFrustumCulling, this);
-        this.on("set_calculateTransform", this.onSetCalculateTransform, this);
-        this.on("set_calculateProjection", this.onSetCalculateProjection, this);
-        this.on("set_cullFaces", this.onSetCullFaces, this);
-        this.on("set_flipFaces", this.onSetFlipFaces, this);
-        this.on("set_layers", this.onSetLayers, this);
-    };
-    CameraComponent = pc.inherits(CameraComponent, pc.Component);
+    class CameraComponent {
+        constructor(system, entity) {
+            // Bind event to update hierarchy if camera node changes
+            this.on("set_aspectRatioMode", this.onSetAspectRatioMode, this);
+            this.on("set_aspectRatio", this.onSetAspectRatio, this);
+            this.on("set_camera", this.onSetCamera, this);
+            this.on("set_clearColor", this.onSetClearColor, this);
+            this.on("set_fov", this.onSetFov, this);
+            this.on("set_orthoHeight", this.onSetOrthoHeight, this);
+            this.on("set_nearClip", this.onSetNearClip, this);
+            this.on("set_farClip", this.onSetFarClip, this);
+            this.on("set_projection", this.onSetProjection, this);
+            this.on("set_priority", this.onSetPriority, this);
+            this.on("set_clearColorBuffer", this.updateClearFlags, this);
+            this.on("set_clearDepthBuffer", this.updateClearFlags, this);
+            this.on("set_clearStencilBuffer", this.updateClearFlags, this);
+            this.on("set_renderTarget", this.onSetRenderTarget, this);
+            this.on("set_rect", this.onSetRect, this);
+            this.on("set_scissorRect", this.onSetScissorRect, this);
+            this.on("set_horizontalFov", this.onSetHorizontalFov, this);
+            this.on("set_frustumCulling", this.onSetFrustumCulling, this);
+            this.on("set_calculateTransform", this.onSetCalculateTransform, this);
+            this.on("set_calculateProjection", this.onSetCalculateProjection, this);
+            this.on("set_cullFaces", this.onSetCullFaces, this);
+            this.on("set_flipFaces", this.onSetFlipFaces, this);
+            this.on("set_layers", this.onSetLayers, this);
+        }
 
-    /**
-     * @readonly
-     * @name pc.CameraComponent#projectionMatrix
-     * @type pc.Mat4
-     * @description Queries the camera's projection matrix.
-     */
-    Object.defineProperty(CameraComponent.prototype, "projectionMatrix", {
-        get: function() {
+        /**
+         * @readonly
+         * @name pc.CameraComponent#projectionMatrix
+         * @type pc.Mat4
+         * @description Queries the camera's projection matrix.
+         */
+        get projectionMatrix() {
             return this.data.camera.getProjectionMatrix();
         }
-    });
 
-    /**
-     * @readonly
-     * @name pc.CameraComponent#viewMatrix
-     * @type pc.Mat4
-     * @description Queries the camera's view matrix.
-     */
-    Object.defineProperty(CameraComponent.prototype, "viewMatrix", {
-        get: function() {
-            var wtm = this.data.camera._node.getWorldTransform();
+        /**
+         * @readonly
+         * @name pc.CameraComponent#viewMatrix
+         * @type pc.Mat4
+         * @description Queries the camera's view matrix.
+         */
+        get viewMatrix() {
+            const wtm = this.data.camera._node.getWorldTransform();
             return wtm.clone().invert();
         }
-    });
 
-    /**
-     * @readonly
-     * @name pc.CameraComponent#frustum
-     * @type pc.Frustum
-     * @description Queries the camera's frustum shape.
-     */
-    Object.defineProperty(CameraComponent.prototype, "frustum", {
-        get: function() {
+        /**
+         * @readonly
+         * @name pc.CameraComponent#frustum
+         * @type pc.Frustum
+         * @description Queries the camera's frustum shape.
+         */
+        get frustum() {
             return this.data.camera.frustum;
         }
-    });
 
-    /**
-     * @name pc.CameraComponent#vrDisplay
-     * @type pc.VrDisplay
-     * @description The {@link pc.VrDisplay} that the camera is current displaying to. This is set automatically by calls to {@link pc.CameraComponent#enterVr}
-     * or {@link pc.CameraComponent#exitVr}. Setting this property to a display directly enables the camera to use the transformation information
-     * from a display without rendering stereo to it, e.g. for "magic window" style experiences.
-     * @example
-     * // enable magic window style interface
-     * var display = this.app.vr.display;
-     * if (display) {
-     *     this.entity.camera.vrDisplay = display;
-     * }
-     *
-     * var camera = this.entity.camera;
-     * camera.enterVr(function (err) {
-     * if (err) { return; }
-     *     var display = camera.vrDisplay; // access presenting pc.VrDisplay
-     * });
-     */
-    Object.defineProperty(CameraComponent.prototype, "vrDisplay", {
-        get: function () {
+        /**
+         * @name pc.CameraComponent#vrDisplay
+         * @type pc.VrDisplay
+         * @description The {@link pc.VrDisplay} that the camera is current displaying to. This is set automatically by calls to {@link pc.CameraComponent#enterVr}
+         * or {@link pc.CameraComponent#exitVr}. Setting this property to a display directly enables the camera to use the transformation information
+         * from a display without rendering stereo to it, e.g. for "magic window" style experiences.
+         * @example
+         * // enable magic window style interface
+         * var display = this.app.vr.display;
+         * if (display) {
+         *     this.entity.camera.vrDisplay = display;
+         * }
+         *
+         * var camera = this.entity.camera;
+         * camera.enterVr(function (err) {
+         * if (err) { return; }
+         *     var display = camera.vrDisplay; // access presenting pc.VrDisplay
+         * });
+         */
+        get vrDisplay() {
             return this.data.camera.vrDisplay;
-        },
-        set: function (value) {
+        }
+
+        set vrDisplay(value) {
             this.data.camera.vrDisplay = value;
             if (value) {
                 value._camera = this.data.camera;
             }
         }
-    });
 
-    /**
-     * @readonly
-     * @name pc.CameraComponent#node
-     * @type pc.GraphNode
-     * @description Queries the camera's GraphNode. Can be used to get position and rotation.
-     */
-    Object.defineProperty(CameraComponent.prototype, "node", {
-        get: function() {
+        /**
+         * @readonly
+         * @name pc.CameraComponent#node
+         * @type pc.GraphNode
+         * @description Queries the camera's GraphNode. Can be used to get position and rotation.
+         */
+        get node() {
             return this.data.camera._node;
         }
-    });
+    }
+
+    CameraComponent = pc.inherits(CameraComponent, pc.Component);
 
     pc.extend(CameraComponent.prototype, {
         /**
@@ -192,8 +186,8 @@ pc.extend(pc, function () {
          * });
          * @returns {pc.Vec3} The world space coordinate.
          */
-        screenToWorld: function (screenx, screeny, cameraz, worldCoord) {
-            var device = this.system.app.graphicsDevice;
+        screenToWorld(screenx, screeny, cameraz, worldCoord) {
+            const device = this.system.app.graphicsDevice;
             return this.data.camera.screenToWorld(screenx, screeny, cameraz, device.clientRect.width, device.clientRect.height, worldCoord);
         },
 
@@ -205,20 +199,20 @@ pc.extend(pc, function () {
          * @param {pc.Vec3} [screenCoord] 3D vector to receive screen coordinate result.
          * @returns {pc.Vec3} The screen space coordinate.
          */
-        worldToScreen: function (worldCoord, screenCoord) {
-            var device = this.system.app.graphicsDevice;
+        worldToScreen(worldCoord, screenCoord) {
+            const device = this.system.app.graphicsDevice;
             return this.data.camera.worldToScreen(worldCoord, device.clientRect.width, device.clientRect.height, screenCoord);
         },
 
-        onSetAspectRatioMode: function (name, oldValue, newValue) {
+        onSetAspectRatioMode(name, oldValue, newValue) {
             this.data.camera.aspectRatioMode = newValue;
         },
 
-        onSetAspectRatio: function (name, oldValue, newValue) {
+        onSetAspectRatio(name, oldValue, newValue) {
             this.data.camera.aspectRatio = newValue;
         },
 
-        onSetCamera: function (name, oldValue, newValue) {
+        onSetCamera(name, oldValue, newValue) {
             // remove old camera node from hierarchy and add new one
             if (oldValue) {
                 oldValue._node = null;
@@ -226,71 +220,71 @@ pc.extend(pc, function () {
             newValue._node = this.entity;
         },
 
-        onSetClearColor: function (name, oldValue, newValue) {
-            this.data.camera.clearColor[0] = newValue.data[0];
-            this.data.camera.clearColor[1] = newValue.data[1];
-            this.data.camera.clearColor[2] = newValue.data[2];
-            this.data.camera.clearColor[3] = newValue.data[3];
+        onSetClearColor(name, oldValue, {data}) {
+            this.data.camera.clearColor[0] = data[0];
+            this.data.camera.clearColor[1] = data[1];
+            this.data.camera.clearColor[2] = data[2];
+            this.data.camera.clearColor[3] = data[3];
         },
 
-        onSetFov: function (name, oldValue, newValue) {
+        onSetFov(name, oldValue, newValue) {
             this.data.camera.fov = newValue;
         },
 
-        onSetOrthoHeight: function (name, oldValue, newValue) {
+        onSetOrthoHeight(name, oldValue, newValue) {
             this.data.camera.orthoHeight = newValue;
         },
 
-        onSetNearClip: function (name, oldValue, newValue) {
+        onSetNearClip(name, oldValue, newValue) {
             this.data.camera.nearClip = newValue;
         },
 
-        onSetFarClip: function (name, oldValue, newValue) {
+        onSetFarClip(name, oldValue, newValue) {
             this.data.camera.farClip = newValue;
         },
 
-        onSetHorizontalFov: function (name, oldValue, newValue) {
+        onSetHorizontalFov(name, oldValue, newValue) {
             this.data.camera.horizontalFov = newValue;
         },
 
-        onSetFrustumCulling: function (name, oldValue, newValue) {
+        onSetFrustumCulling(name, oldValue, newValue) {
             this.data.camera.frustumCulling = newValue;
         },
 
-        onSetCalculateTransform: function (name, oldValue, newValue) {
+        onSetCalculateTransform(name, oldValue, newValue) {
             this._calculateTransform = newValue;
             this.camera.overrideCalculateTransform = !!newValue;
         },
 
-        onSetCalculateProjection: function (name, oldValue, newValue) {
+        onSetCalculateProjection(name, oldValue, newValue) {
             this._calculateProjection = newValue;
             this.camera._projMatDirty = true;
             this.camera.overrideCalculateProjection = !!newValue;
         },
 
-        onSetCullFaces: function (name, oldValue, newValue) {
+        onSetCullFaces(name, oldValue, newValue) {
             this.camera._cullFaces = newValue;
         },
 
-        onSetFlipFaces: function (name, oldValue, newValue) {
+        onSetFlipFaces(name, oldValue, newValue) {
             this.camera._flipFaces = newValue;
         },
 
-        onSetProjection: function (name, oldValue, newValue) {
+        onSetProjection(name, oldValue, newValue) {
             this.data.camera.projection = newValue;
         },
 
-        onSetPriority: function (name, oldValue, newValue) {
-            var layer;
-            for (var i=0; i<this.layers.length; i++) {
+        onSetPriority(name, oldValue, newValue) {
+            let layer;
+            for (let i=0; i<this.layers.length; i++) {
                 layer = this.system.app.scene.layers.getLayerById(this.layers[i]);
                 if (!layer) continue;
                 layer._sortCameras();
             }
         },
 
-        onSetLayers: function (name, oldValue, newValue) {
-            var i, layer;
+        onSetLayers(name, oldValue, newValue) {
+            let i, layer;
             for (i=0; i<oldValue.length; i++) {
                 layer = this.system.app.scene.layers.getLayerById(oldValue[i]);
                 if (!layer) continue;
@@ -304,25 +298,25 @@ pc.extend(pc, function () {
             }
         },
 
-        addCameraToLayers: function() {
-            var layer;
-            for (var i=0; i<this.layers.length; i++) {
+        addCameraToLayers() {
+            let layer;
+            for (let i=0; i<this.layers.length; i++) {
                 layer = this.system.app.scene.layers.getLayerById(this.layers[i]);
                 if (!layer) continue;
                 layer.addCamera(this);
             }
         },
 
-        removeCameraFromLayers: function() {
-            var layer;
-            for (var i=0; i<this.layers.length; i++) {
+        removeCameraFromLayers() {
+            let layer;
+            for (let i=0; i<this.layers.length; i++) {
                 layer = this.system.app.scene.layers.getLayerById(this.layers[i]);
                 if (!layer) continue;
                 layer.removeCamera(this);
             }
         },
 
-        onLayersChanged: function(oldComp, newComp) {
+        onLayersChanged(oldComp, newComp) {
             this.addCameraToLayers();
             oldComp.off("add", this.onLayerAdded, this);
             oldComp.off("remove", this.onLayerRemoved, this);
@@ -330,20 +324,20 @@ pc.extend(pc, function () {
             newComp.on("remove", this.onLayerRemoved, this);
         },
 
-        onLayerAdded: function(layer) {
-            var index = this.layers.indexOf(layer.id);
+        onLayerAdded(layer) {
+            const index = this.layers.indexOf(layer.id);
             if (index < 0) return;
             layer.addCamera(this);
         },
 
-        onLayerRemoved: function(layer) {
-            var index = this.layers.indexOf(layer.id);
+        onLayerRemoved(layer) {
+            const index = this.layers.indexOf(layer.id);
             if (index < 0) return;
             layer.removeCamera(this);
         },
 
-        updateClearFlags: function () {
-            var flags = 0;
+        updateClearFlags() {
+            let flags = 0;
 
             if (this.clearColorBuffer)
                 flags = flags | pc.CLEARFLAG_COLOR;
@@ -357,19 +351,19 @@ pc.extend(pc, function () {
             this.data.camera.clearFlags = flags;
         },
 
-        onSetRenderTarget: function (name, oldValue, newValue) {
+        onSetRenderTarget(name, oldValue, newValue) {
             this.data.camera.renderTarget = newValue;
         },
 
-        onSetRect: function (name, oldValue, newValue) {
-            this.data.camera.setRect(newValue.data[0], newValue.data[1], newValue.data[2], newValue.data[3]);
+        onSetRect(name, oldValue, {data}) {
+            this.data.camera.setRect(data[0], data[1], data[2], data[3]);
         },
 
-        onSetScissorRect: function (name, oldValue, newValue) {
-            this.data.camera.setScissorRect(newValue.data[0], newValue.data[1], newValue.data[2], newValue.data[3]);
+        onSetScissorRect(name, oldValue, {data}) {
+            this.data.camera.setScissorRect(data[0], data[1], data[2], data[3]);
         },
 
-        onEnable: function () {
+        onEnable() {
             CameraComponent._super.onEnable.call(this);
             this.system.addCamera(this);
 
@@ -386,7 +380,7 @@ pc.extend(pc, function () {
             this.postEffects.enable();
         },
 
-        onDisable: function () {
+        onDisable() {
             CameraComponent._super.onDisable.call(this);
             this.postEffects.disable();
 
@@ -408,9 +402,9 @@ pc.extend(pc, function () {
          * @param {pc.RenderTarget} [rt] Optional render target. If unspecified, the backbuffer is assumed.
          * @returns {Number} The aspect ratio of the render target (or backbuffer).
          */
-        calculateAspectRatio: function (rt) {
-            var src = rt ? rt : this.system.app.graphicsDevice;
-            var rect = this.rect;
+        calculateAspectRatio(rt) {
+            const src = rt ? rt : this.system.app.graphicsDevice;
+            const rect = this.rect;
             return (src.width * rect.z) / (src.height * rect.w);
         },
 
@@ -421,7 +415,7 @@ pc.extend(pc, function () {
          * @description Start rendering the frame for this camera.
          * @param {pc.RenderTarget} rt Render target to which rendering will be performed. Will affect camera's aspect ratio, if aspectRatioMode is pc.ASPECT_AUTO.
          */
-        frameBegin: function (rt) {
+        frameBegin(rt) {
             if (this.aspectRatioMode === pc.ASPECT_AUTO) {
                 this.aspectRatio = this.calculateAspectRatio(rt);
             }
@@ -434,7 +428,7 @@ pc.extend(pc, function () {
          * @name pc.CameraComponent#frameEnd
          * @description End rendering the frame for this camera
          */
-        frameEnd: function () {
+        frameEnd() {
             this.data.isRendering = false;
         },
 
@@ -457,7 +451,7 @@ pc.extend(pc, function () {
          *     }
          * });
          */
-        enterVr: function (display, callback) {
+        enterVr(display, callback) {
             if ((display instanceof Function) && ! callback) {
                 callback = display;
                 display = null;
@@ -473,17 +467,17 @@ pc.extend(pc, function () {
             }
 
             if (display) {
-                var self = this;
+                const self = this;
                 if (display.capabilities.canPresent) {
                     // try and present
-                    display.requestPresent(function (err) {
+                    display.requestPresent(err => {
                         if (!err) {
                             self.vrDisplay = display;
                             // camera component uses internal 'before' event
                             // this means display nulled before anyone other
                             // code gets to update
-                            self.vrDisplay.once('beforepresentchange', function (display) {
-                                if (!display.presenting) {
+                            self.vrDisplay.once('beforepresentchange', ({presenting}) => {
+                                if (!presenting) {
                                     self.vrDisplay = null;
                                 }
                             });
@@ -515,10 +509,10 @@ pc.extend(pc, function () {
          *     }
          * });
          */
-        exitVr: function (callback) {
+        exitVr(callback) {
             if (this.vrDisplay) {
                 if (this.vrDisplay.capabilities.canPresent) {
-                    var display = this.vrDisplay;
+                    const display = this.vrDisplay;
                     this.vrDisplay = null;
                     display.exitPresent(callback);
                 } else {
@@ -532,6 +526,6 @@ pc.extend(pc, function () {
     });
 
     return {
-        CameraComponent: CameraComponent
+        CameraComponent
     };
-}());
+})());

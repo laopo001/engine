@@ -1,23 +1,23 @@
 // Mr F
-pc.extend(pc, function() {
-    var particleVerts = [
+pc.extend(pc, (() => {
+    const particleVerts = [
         [-1, -1],
         [1, -1],
         [1, 1],
         [-1, 1]
     ];
 
-    var _createTexture = function(device, width, height, pixelData, format, mult8Bit, filter) {
+    const _createTexture = (device, width, height, pixelData, format, mult8Bit, filter) => {
         if (!format) format = pc.PIXELFORMAT_RGBA32F;
 
-        var mipFilter = pc.FILTER_NEAREST;
+        let mipFilter = pc.FILTER_NEAREST;
         if (filter && format === pc.PIXELFORMAT_R8_G8_B8_A8)
             mipFilter = pc.FILTER_LINEAR;
 
-        var texture = new pc.Texture(device, {
-            width: width,
-            height: height,
-            format: format,
+        const texture = new pc.Texture(device, {
+            width,
+            height,
+            format,
             cubemap: false,
             mipmaps: false,
             minFilter: mipFilter,
@@ -26,11 +26,11 @@ pc.extend(pc, function() {
             addressV: pc.ADDRESS_CLAMP_TO_EDGE
         });
 
-        var pixels = texture.lock();
+        const pixels = texture.lock();
 
         if (format === pc.PIXELFORMAT_R8_G8_B8_A8) {
-            var temp = new Uint8Array(pixelData.length);
-            for (var i = 0; i < pixelData.length; i++) {
+            const temp = new Uint8Array(pixelData.length);
+            for (let i = 0; i < pixelData.length; i++) {
                 temp[i] = pixelData[i] * mult8Bit * 255;
             }
             pixelData = temp;
@@ -52,38 +52,38 @@ pc.extend(pc, function() {
         return x - y * Math.floor(x / y);
     }
 
-    var default0Curve = new pc.Curve([0, 0, 1, 0]);
-    var default1Curve = new pc.Curve([0, 1, 1, 1]);
-    var default0Curve3 = new pc.CurveSet([0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 1, 0]);
-    var default1Curve3 = new pc.CurveSet([0, 1, 1, 1], [0, 1, 1, 1], [0, 1, 1, 1]);
+    const default0Curve = new pc.Curve([0, 0, 1, 0]);
+    const default1Curve = new pc.Curve([0, 1, 1, 1]);
+    const default0Curve3 = new pc.CurveSet([0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 1, 0]);
+    const default1Curve3 = new pc.CurveSet([0, 1, 1, 1], [0, 1, 1, 1], [0, 1, 1, 1]);
 
-    var particleTexHeight = 2;
-    var particleTexChannels = 4;
+    let particleTexHeight = 2;
+    const particleTexChannels = 4;
 
-    var velocityVec = new pc.Vec3();
-    var localVelocityVec = new pc.Vec3();
-    var velocityVec2 = new pc.Vec3();
-    var localVelocityVec2 = new pc.Vec3();
-    var rndFactor3Vec = new pc.Vec3();
-    var particlePosPrev = new pc.Vec3();
-    var particlePos = new pc.Vec3();
-    var particleFinalPos = new pc.Vec3();
-    var moveDirVec = new pc.Vec3();
-    var rotMat = new pc.Mat4();
-    var spawnMatrix3 = new pc.Mat3();
-    var emitterMatrix3 = new pc.Mat3();
-    var uniformScale = 1;
-    var nonUniformScale;
-    var spawnMatrix = new pc.Mat4();
-    var randomPos = new pc.Vec3();
-    var randomPosTformed = new pc.Vec3();
-    var tmpVec3 = new pc.Vec3();
-    var velocityV = new pc.Vec3();
-    var bMin = new pc.Vec3();
-    var bMax = new pc.Vec3();
+    const velocityVec = new pc.Vec3();
+    const localVelocityVec = new pc.Vec3();
+    const velocityVec2 = new pc.Vec3();
+    const localVelocityVec2 = new pc.Vec3();
+    const rndFactor3Vec = new pc.Vec3();
+    const particlePosPrev = new pc.Vec3();
+    const particlePos = new pc.Vec3();
+    const particleFinalPos = new pc.Vec3();
+    const moveDirVec = new pc.Vec3();
+    const rotMat = new pc.Mat4();
+    const spawnMatrix3 = new pc.Mat3();
+    const emitterMatrix3 = new pc.Mat3();
+    let uniformScale = 1;
+    let nonUniformScale;
+    const spawnMatrix = new pc.Mat4();
+    const randomPos = new pc.Vec3();
+    const randomPosTformed = new pc.Vec3();
+    const tmpVec3 = new pc.Vec3();
+    const velocityV = new pc.Vec3();
+    const bMin = new pc.Vec3();
+    const bMax = new pc.Vec3();
 
-    var setPropertyTarget;
-    var setPropertyOptions;
+    let setPropertyTarget;
+    let setPropertyOptions;
 
     function setProperty(pName, defaultVal) {
         if (setPropertyOptions[pName] !== undefined && setPropertyOptions[pName] !== null) {
@@ -94,14 +94,14 @@ pc.extend(pc, function() {
     }
 
     function pack3NFloats(a, b, c) {
-        var packed = ((a * 255) << 16) | ((b * 255) << 8) | (c * 255);
+        const packed = ((a * 255) << 16) | ((b * 255) << 8) | (c * 255);
         return (packed) / (1 << 24);
     }
 
     function packTextureXYZ_NXYZ(qXYZ, qXYZ2) {
-        var num = qXYZ.length / 3;
-        var colors = new Array(num * 4);
-        for (var i = 0; i < num; i++) {
+        const num = qXYZ.length / 3;
+        const colors = new Array(num * 4);
+        for (let i = 0; i < num; i++) {
             colors[i * 4] = qXYZ[i * 3];
             colors[i * 4 + 1] = qXYZ[i * 3 + 1];
             colors[i * 4 + 2] = qXYZ[i * 3 + 2];
@@ -112,8 +112,8 @@ pc.extend(pc, function() {
     }
 
     function packTextureRGBA(qRGB, qA) {
-        var colors = new Array(qA.length * 4);
-        for (var i = 0; i < qA.length; i++) {
+        const colors = new Array(qA.length * 4);
+        for (let i = 0; i < qA.length; i++) {
             colors[i * 4] = qRGB[i * 3];
             colors[i * 4 + 1] = qRGB[i * 3 + 1];
             colors[i * 4 + 2] = qRGB[i * 3 + 2];
@@ -124,8 +124,8 @@ pc.extend(pc, function() {
     }
 
     function packTexture5Floats(qA, qB, qC, qD, qE) {
-        var colors = new Array(qA.length * 4);
-        for (var i = 0; i < qA.length; i++) {
+        const colors = new Array(qA.length * 4);
+        for (let i = 0; i < qA.length; i++) {
             colors[i * 4] = qA[i];
             colors[i * 4 + 1] = qB[i];
             colors[i * 4 + 2] = 0;
@@ -135,284 +135,224 @@ pc.extend(pc, function() {
         return colors;
     }
 
-    function syncToCpu(device, targ) {
-        var tex = targ._colorBuffer;
-        var pixels = new Uint8Array(tex.width * tex.height * 4);
-        var gl = device.gl;
-        device.setFramebuffer(targ._glFrameBuffer);
+    function syncToCpu(device, {_colorBuffer, _glFrameBuffer}) {
+        const tex = _colorBuffer;
+        const pixels = new Uint8Array(tex.width * tex.height * 4);
+        const gl = device.gl;
+        device.setFramebuffer(_glFrameBuffer);
         gl.readPixels(0, 0, tex.width, tex.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
         if (!tex._levels) tex._levels = [];
         tex._levels[0] = pixels;
     }
 
-    var ParticleEmitter = function (graphicsDevice, options) {
-        this.graphicsDevice = graphicsDevice;
-        var gd = graphicsDevice;
-        var precision = 32;
-        this.precision = precision;
+    class ParticleEmitter {
+        constructor(graphicsDevice, options) {
+            this.graphicsDevice = graphicsDevice;
+            const gd = graphicsDevice;
+            const precision = 32;
+            this.precision = precision;
 
-        this._addTimeTime = 0;
+            this._addTimeTime = 0;
 
 
-        if (!ParticleEmitter.DEFAULT_PARAM_TEXTURE) {
-            // 1x1 white opaque
-            //defaultParamTex = _createTexture(gd, 1, 1, [1,1,1,1], pc.PIXELFORMAT_R8_G8_B8_A8, 1.0);
+            if (!ParticleEmitter.DEFAULT_PARAM_TEXTURE) {
+                // 1x1 white opaque
+                //defaultParamTex = _createTexture(gd, 1, 1, [1,1,1,1], pc.PIXELFORMAT_R8_G8_B8_A8, 1.0);
 
-            // white radial gradient
-            var resolution = 16;
-            var centerPoint = resolution * 0.5 + 0.5;
-            var dtex = new Float32Array(resolution * resolution * 4);
-            var x, y, xgrad, ygrad, p, c;
-            for (y = 0; y < resolution; y++) {
-                for (x = 0; x < resolution; x++) {
-                    xgrad = (x + 1) - centerPoint;
-                    ygrad = (y + 1) - centerPoint;
-                    c = saturate((1 - saturate(Math.sqrt(xgrad * xgrad + ygrad * ygrad) / resolution)) - 0.5);
-                    p = y * resolution + x;
-                    dtex[p * 4] =     1;
-                    dtex[p * 4 + 1] = 1;
-                    dtex[p * 4 + 2] = 1;
-                    dtex[p * 4 + 3] = c;
+                // white radial gradient
+                const resolution = 16;
+                const centerPoint = resolution * 0.5 + 0.5;
+                const dtex = new Float32Array(resolution * resolution * 4);
+                let x, y, xgrad, ygrad, p, c;
+                for (y = 0; y < resolution; y++) {
+                    for (x = 0; x < resolution; x++) {
+                        xgrad = (x + 1) - centerPoint;
+                        ygrad = (y + 1) - centerPoint;
+                        c = saturate((1 - saturate(Math.sqrt(xgrad * xgrad + ygrad * ygrad) / resolution)) - 0.5);
+                        p = y * resolution + x;
+                        dtex[p * 4] =     1;
+                        dtex[p * 4 + 1] = 1;
+                        dtex[p * 4 + 2] = 1;
+                        dtex[p * 4 + 3] = c;
+                    }
                 }
+                ParticleEmitter.DEFAULT_PARAM_TEXTURE = _createTexture(gd, resolution, resolution, dtex, pc.PIXELFORMAT_R8_G8_B8_A8, 1.0, true);
+                ParticleEmitter.DEFAULT_PARAM_TEXTURE.minFilter = pc.FILTER_LINEAR;
+                ParticleEmitter.DEFAULT_PARAM_TEXTURE.magFilter = pc.FILTER_LINEAR;
             }
-            ParticleEmitter.DEFAULT_PARAM_TEXTURE = _createTexture(gd, resolution, resolution, dtex, pc.PIXELFORMAT_R8_G8_B8_A8, 1.0, true);
-            ParticleEmitter.DEFAULT_PARAM_TEXTURE.minFilter = pc.FILTER_LINEAR;
-            ParticleEmitter.DEFAULT_PARAM_TEXTURE.magFilter = pc.FILTER_LINEAR;
-        }
 
-        // Global system parameters
-        setPropertyTarget = this;
-        setPropertyOptions = options;
-        setProperty("numParticles", 1);                          // Amount of particles allocated (max particles = max GL texture width at this moment)
+            // Global system parameters
+            setPropertyTarget = this;
+            setPropertyOptions = options;
+            setProperty("numParticles", 1);                          // Amount of particles allocated (max particles = max GL texture width at this moment)
 
-        if (this.numParticles > graphicsDevice.maxTextureSize) {
-            console.warn("WARNING: can't create more than " + graphicsDevice.maxTextureSize + " particles on this device.");
-            this.numParticles = graphicsDevice.maxTextureSize;
-        }
-
-        setProperty("rate", 1);                                  // Emission rate
-        setProperty("rate2", this.rate);
-        setProperty("lifetime", 50);                             // Particle lifetime
-        setProperty("emitterExtents", new pc.Vec3(0, 0, 0));        // Spawn point divergence
-        setProperty("emitterRadius", 0);
-        setProperty("emitterShape", pc.EMITTERSHAPE_BOX);
-        setProperty("initialVelocity", 1);
-        setProperty("wrap", false);
-        setProperty("localSpace", false);
-        setProperty("wrapBounds", null);
-        setProperty("colorMap", ParticleEmitter.DEFAULT_PARAM_TEXTURE);
-        setProperty("normalMap", null);
-        setProperty("loop", true);
-        setProperty("preWarm", false);
-        setProperty("sort", pc.PARTICLESORT_NONE); // Sorting mode: 0 = none, 1 = by distance, 2 = by life, 3 = by -life;  Forces CPU mode if not 0
-        setProperty("mode", pc.PARTICLEMODE_GPU);
-        setProperty("scene", null);
-        setProperty("lighting", false);
-        setProperty("halfLambert", false);
-        setProperty("intensity", 1.0);
-        setProperty("stretch", 0.0);
-        setProperty("alignToMotion", false);
-        setProperty("depthSoftening", 0);
-        setProperty("mesh", null);                               // Mesh to be used as particle. Vertex buffer is supposed to hold vertex position in first 3 floats of each vertex
-                                                                 // Leave undefined to use simple quads
-        setProperty("depthWrite", false);
-        setProperty("noFog", false);
-        setProperty("blendType", pc.BLEND_NORMAL);
-        setProperty("node", null);
-        setProperty("startAngle", 0);
-        setProperty("startAngle2", this.startAngle);
-
-        setProperty("animTilesX", 1);
-        setProperty("animTilesY", 1);
-        setProperty("animNumFrames", 1);
-        setProperty("animSpeed", 1);
-        setProperty("animLoop", true);
-
-        this.frameRandom = new pc.Vec3(0, 0, 0);
-
-        // Time-dependent parameters
-        setProperty("colorGraph", default1Curve3);
-        setProperty("colorGraph2", this.colorGraph);
-
-        setProperty("scaleGraph", default1Curve);
-        setProperty("scaleGraph2", this.scaleGraph);
-
-        setProperty("alphaGraph", default1Curve);
-        setProperty("alphaGraph2", this.alphaGraph);
-
-        setProperty("localVelocityGraph", default0Curve3);
-        setProperty("localVelocityGraph2", this.localVelocityGraph);
-
-        setProperty("velocityGraph", default0Curve3);
-        setProperty("velocityGraph2", this.velocityGraph);
-
-        setProperty("rotationSpeedGraph", default0Curve);
-        setProperty("rotationSpeedGraph2", this.rotationSpeedGraph);
-
-        // Particle updater constants
-        this.constantParticleTexIN = gd.scope.resolve("particleTexIN");
-        this.constantParticleTexOUT = gd.scope.resolve("particleTexOUT");
-        this.constantEmitterPos = gd.scope.resolve("emitterPos");
-        this.constantEmitterScale = gd.scope.resolve("emitterScale");
-        this.constantSpawnBounds = gd.scope.resolve("spawnBounds");
-        this.constantSpawnBoundsSphere = gd.scope.resolve("spawnBoundsSphere");
-        this.constantInitialVelocity = gd.scope.resolve("initialVelocity");
-        this.constantFrameRandom = gd.scope.resolve("frameRandom");
-        this.constantDelta = gd.scope.resolve("delta");
-        this.constantRate = gd.scope.resolve("rate");
-        this.constantRateDiv = gd.scope.resolve("rateDiv");
-        this.constantLifetime = gd.scope.resolve("lifetime");
-        this.constantLightCube = gd.scope.resolve("lightCube[0]");
-        this.constantGraphSampleSize = gd.scope.resolve("graphSampleSize");
-        this.constantGraphNumSamples = gd.scope.resolve("graphNumSamples");
-        this.constantInternalTex0 = gd.scope.resolve("internalTex0");
-        this.constantInternalTex1 = gd.scope.resolve("internalTex1");
-        this.constantInternalTex2 = gd.scope.resolve("internalTex2");
-        this.constantEmitterMatrix = gd.scope.resolve("emitterMatrix");
-        this.constantNumParticles = gd.scope.resolve("numParticles");
-        this.constantNumParticlesPot = gd.scope.resolve("numParticlesPot");
-        this.constantLocalVelocityDivMult = gd.scope.resolve("localVelocityDivMult");
-        this.constantVelocityDivMult = gd.scope.resolve("velocityDivMult");
-        this.constantRotSpeedDivMult = gd.scope.resolve("rotSpeedDivMult");
-        this.constantSeed = gd.scope.resolve("seed");
-        this.constantStartAngle = gd.scope.resolve("startAngle");
-        this.constantStartAngle2 = gd.scope.resolve("startAngle2");
-        this.constantOutBoundsMul = gd.scope.resolve("outBoundsMul");
-        this.constantOutBoundsAdd = gd.scope.resolve("outBoundsAdd");
-        this.constantInBoundsSize = gd.scope.resolve("inBoundsSize");
-        this.constantInBoundsCenter = gd.scope.resolve("inBoundsCenter");
-        this.constantMaxVel = gd.scope.resolve("maxVel");
-
-        this.lightCube = new Float32Array(6 * 3);
-        this.lightCubeDir = new Array(6);
-        this.lightCubeDir[0] = new pc.Vec3(-1, 0, 0);
-        this.lightCubeDir[1] = new pc.Vec3(1, 0, 0);
-        this.lightCubeDir[2] = new pc.Vec3(0, -1, 0);
-        this.lightCubeDir[3] = new pc.Vec3(0, 1, 0);
-        this.lightCubeDir[4] = new pc.Vec3(0, 0, -1);
-        this.lightCubeDir[5] = new pc.Vec3(0, 0, 1);
-
-        this.animParams = new pc.Vec4();
-
-        this.internalTex0 = null;
-        this.internalTex1 = null;
-        this.internalTex2 = null;
-        this.internalTex3 = null;
-
-        this.vbToSort = null;
-        this.vbOld = null;
-        this.particleDistance = null;
-
-        this.camera = null;
-
-        this.swapTex = false;
-        this.useMesh = true;
-        this.useCpu = false;
-
-        this.pack8 = true;
-        this.localBounds = new pc.BoundingBox();
-        this.worldBoundsNoTrail = new pc.BoundingBox();
-        this.worldBoundsTrail = [new pc.BoundingBox(), new pc.BoundingBox()];
-        this.worldBounds = new pc.BoundingBox();
-        this.worldBoundsSize = new pc.Vec3();
-        this.prevWorldBoundsSize = new pc.Vec3();
-        this.prevWorldBoundsCenter = new pc.Vec3();
-        this.worldBoundsMul = new pc.Vec3();
-        this.worldBoundsAdd = new pc.Vec3();
-        this.timeToSwitchBounds = 0;
-        //this.prevPos = new pc.Vec3();
-
-        this.shaderParticleUpdateRespawn = null;
-        this.shaderParticleUpdateNoRespawn = null;
-        this.shaderParticleUpdateOnStop = null;
-
-        this.numParticleVerts = 0;
-        this.numParticleIndices = 0;
-
-        this.material = null;
-        this.meshInstance = null;
-
-        this.seed = 0;
-
-        this.fixedTimeStep = 1.0 / 60;
-        this.maxSubSteps = 10;
-        this.simTime = 0;
-        this.simTimeTotal = 0;
-
-        this.beenReset = false;
-
-        this._layer = null;
-
-        this.rebuild();
-    };
-
-    function calcEndTime(emitter) {
-        var interval = (Math.max(emitter.rate, emitter.rate2) * emitter.numParticles + emitter.lifetime);
-        return Date.now() + interval * 1000;
-    }
-
-    function subGraph(A, B) {
-        var r = new Float32Array(A.length);
-        for (var i=0; i<A.length; i++) {
-            r[i] = A[i] - B[i];
-        }
-        return r;
-    }
-
-    function maxUnsignedGraphValue(A, outUMax) {
-        var i, j;
-        var chans = outUMax.length;
-        var values = A.length / chans;
-        for (i=0; i<values; i++) {
-            for (j=0; j<chans; j++) {
-                var a = Math.abs(A[i * chans + j]);
-                outUMax[j] = Math.max(outUMax[j], a);
+            if (this.numParticles > graphicsDevice.maxTextureSize) {
+                console.warn(`WARNING: can't create more than ${graphicsDevice.maxTextureSize} particles on this device.`);
+                this.numParticles = graphicsDevice.maxTextureSize;
             }
+
+            setProperty("rate", 1);                                  // Emission rate
+            setProperty("rate2", this.rate);
+            setProperty("lifetime", 50);                             // Particle lifetime
+            setProperty("emitterExtents", new pc.Vec3(0, 0, 0));        // Spawn point divergence
+            setProperty("emitterRadius", 0);
+            setProperty("emitterShape", pc.EMITTERSHAPE_BOX);
+            setProperty("initialVelocity", 1);
+            setProperty("wrap", false);
+            setProperty("localSpace", false);
+            setProperty("wrapBounds", null);
+            setProperty("colorMap", ParticleEmitter.DEFAULT_PARAM_TEXTURE);
+            setProperty("normalMap", null);
+            setProperty("loop", true);
+            setProperty("preWarm", false);
+            setProperty("sort", pc.PARTICLESORT_NONE); // Sorting mode: 0 = none, 1 = by distance, 2 = by life, 3 = by -life;  Forces CPU mode if not 0
+            setProperty("mode", pc.PARTICLEMODE_GPU);
+            setProperty("scene", null);
+            setProperty("lighting", false);
+            setProperty("halfLambert", false);
+            setProperty("intensity", 1.0);
+            setProperty("stretch", 0.0);
+            setProperty("alignToMotion", false);
+            setProperty("depthSoftening", 0);
+            setProperty("mesh", null);                               // Mesh to be used as particle. Vertex buffer is supposed to hold vertex position in first 3 floats of each vertex
+                                                                     // Leave undefined to use simple quads
+            setProperty("depthWrite", false);
+            setProperty("noFog", false);
+            setProperty("blendType", pc.BLEND_NORMAL);
+            setProperty("node", null);
+            setProperty("startAngle", 0);
+            setProperty("startAngle2", this.startAngle);
+
+            setProperty("animTilesX", 1);
+            setProperty("animTilesY", 1);
+            setProperty("animNumFrames", 1);
+            setProperty("animSpeed", 1);
+            setProperty("animLoop", true);
+
+            this.frameRandom = new pc.Vec3(0, 0, 0);
+
+            // Time-dependent parameters
+            setProperty("colorGraph", default1Curve3);
+            setProperty("colorGraph2", this.colorGraph);
+
+            setProperty("scaleGraph", default1Curve);
+            setProperty("scaleGraph2", this.scaleGraph);
+
+            setProperty("alphaGraph", default1Curve);
+            setProperty("alphaGraph2", this.alphaGraph);
+
+            setProperty("localVelocityGraph", default0Curve3);
+            setProperty("localVelocityGraph2", this.localVelocityGraph);
+
+            setProperty("velocityGraph", default0Curve3);
+            setProperty("velocityGraph2", this.velocityGraph);
+
+            setProperty("rotationSpeedGraph", default0Curve);
+            setProperty("rotationSpeedGraph2", this.rotationSpeedGraph);
+
+            // Particle updater constants
+            this.constantParticleTexIN = gd.scope.resolve("particleTexIN");
+            this.constantParticleTexOUT = gd.scope.resolve("particleTexOUT");
+            this.constantEmitterPos = gd.scope.resolve("emitterPos");
+            this.constantEmitterScale = gd.scope.resolve("emitterScale");
+            this.constantSpawnBounds = gd.scope.resolve("spawnBounds");
+            this.constantSpawnBoundsSphere = gd.scope.resolve("spawnBoundsSphere");
+            this.constantInitialVelocity = gd.scope.resolve("initialVelocity");
+            this.constantFrameRandom = gd.scope.resolve("frameRandom");
+            this.constantDelta = gd.scope.resolve("delta");
+            this.constantRate = gd.scope.resolve("rate");
+            this.constantRateDiv = gd.scope.resolve("rateDiv");
+            this.constantLifetime = gd.scope.resolve("lifetime");
+            this.constantLightCube = gd.scope.resolve("lightCube[0]");
+            this.constantGraphSampleSize = gd.scope.resolve("graphSampleSize");
+            this.constantGraphNumSamples = gd.scope.resolve("graphNumSamples");
+            this.constantInternalTex0 = gd.scope.resolve("internalTex0");
+            this.constantInternalTex1 = gd.scope.resolve("internalTex1");
+            this.constantInternalTex2 = gd.scope.resolve("internalTex2");
+            this.constantEmitterMatrix = gd.scope.resolve("emitterMatrix");
+            this.constantNumParticles = gd.scope.resolve("numParticles");
+            this.constantNumParticlesPot = gd.scope.resolve("numParticlesPot");
+            this.constantLocalVelocityDivMult = gd.scope.resolve("localVelocityDivMult");
+            this.constantVelocityDivMult = gd.scope.resolve("velocityDivMult");
+            this.constantRotSpeedDivMult = gd.scope.resolve("rotSpeedDivMult");
+            this.constantSeed = gd.scope.resolve("seed");
+            this.constantStartAngle = gd.scope.resolve("startAngle");
+            this.constantStartAngle2 = gd.scope.resolve("startAngle2");
+            this.constantOutBoundsMul = gd.scope.resolve("outBoundsMul");
+            this.constantOutBoundsAdd = gd.scope.resolve("outBoundsAdd");
+            this.constantInBoundsSize = gd.scope.resolve("inBoundsSize");
+            this.constantInBoundsCenter = gd.scope.resolve("inBoundsCenter");
+            this.constantMaxVel = gd.scope.resolve("maxVel");
+
+            this.lightCube = new Float32Array(6 * 3);
+            this.lightCubeDir = new Array(6);
+            this.lightCubeDir[0] = new pc.Vec3(-1, 0, 0);
+            this.lightCubeDir[1] = new pc.Vec3(1, 0, 0);
+            this.lightCubeDir[2] = new pc.Vec3(0, -1, 0);
+            this.lightCubeDir[3] = new pc.Vec3(0, 1, 0);
+            this.lightCubeDir[4] = new pc.Vec3(0, 0, -1);
+            this.lightCubeDir[5] = new pc.Vec3(0, 0, 1);
+
+            this.animParams = new pc.Vec4();
+
+            this.internalTex0 = null;
+            this.internalTex1 = null;
+            this.internalTex2 = null;
+            this.internalTex3 = null;
+
+            this.vbToSort = null;
+            this.vbOld = null;
+            this.particleDistance = null;
+
+            this.camera = null;
+
+            this.swapTex = false;
+            this.useMesh = true;
+            this.useCpu = false;
+
+            this.pack8 = true;
+            this.localBounds = new pc.BoundingBox();
+            this.worldBoundsNoTrail = new pc.BoundingBox();
+            this.worldBoundsTrail = [new pc.BoundingBox(), new pc.BoundingBox()];
+            this.worldBounds = new pc.BoundingBox();
+            this.worldBoundsSize = new pc.Vec3();
+            this.prevWorldBoundsSize = new pc.Vec3();
+            this.prevWorldBoundsCenter = new pc.Vec3();
+            this.worldBoundsMul = new pc.Vec3();
+            this.worldBoundsAdd = new pc.Vec3();
+            this.timeToSwitchBounds = 0;
+            //this.prevPos = new pc.Vec3();
+
+            this.shaderParticleUpdateRespawn = null;
+            this.shaderParticleUpdateNoRespawn = null;
+            this.shaderParticleUpdateOnStop = null;
+
+            this.numParticleVerts = 0;
+            this.numParticleIndices = 0;
+
+            this.material = null;
+            this.meshInstance = null;
+
+            this.seed = 0;
+
+            this.fixedTimeStep = 1.0 / 60;
+            this.maxSubSteps = 10;
+            this.simTime = 0;
+            this.simTimeTotal = 0;
+
+            this.beenReset = false;
+
+            this._layer = null;
+
+            this.rebuild();
         }
-    }
 
-    function normalizeGraph(A, uMax) {
-        var chans = uMax.length;
-        var i, j;
-        var values = A.length / chans;
-        for (i=0; i<values; i++) {
-            for (j=0; j<chans; j++) {
-                A[i * chans + j] /= uMax[j];
-                A[i * chans + j] *= 0.5;
-                A[i * chans + j] += 0.5;
-            }
-        }
-    }
-
-    function divGraphFrom2Curves(curve1, curve2, outUMax) {
-        var sub = subGraph(curve2, curve1);
-        maxUnsignedGraphValue(sub, outUMax);
-        normalizeGraph(sub, outUMax);
-        return sub;
-    }
-
-    function mat4ToMat3(mat4, mat3) {
-        mat3.data[0] = mat4.data[0];
-        mat3.data[1] = mat4.data[1];
-        mat3.data[2] = mat4.data[2];
-
-        mat3.data[3] = mat4.data[4];
-        mat3.data[4] = mat4.data[5];
-        mat3.data[5] = mat4.data[6];
-
-        mat3.data[6] = mat4.data[8];
-        mat3.data[7] = mat4.data[9];
-        mat3.data[8] = mat4.data[10];
-    }
-
-    ParticleEmitter.prototype = {
-
-        onChangeCamera: function() {
+        onChangeCamera() {
             this.regenShader();
             this.resetMaterial();
-        },
+        }
 
-        calculateBoundsMad: function() {
+        calculateBoundsMad() {
             this.worldBoundsMul.x = 1.0 / this.worldBoundsSize.x;
             this.worldBoundsMul.y = 1.0 / this.worldBoundsSize.y;
             this.worldBoundsMul.z = 1.0 / this.worldBoundsSize.z;
@@ -421,12 +361,12 @@ pc.extend(pc, function() {
             this.worldBoundsAdd.x += 0.5;
             this.worldBoundsAdd.y += 0.5;
             this.worldBoundsAdd.z += 0.5;
-        },
+        }
 
-        calculateWorldBounds: function() {
+        calculateWorldBounds() {
             if (!this.node) return;
 
-            var pos = this.node.getPosition();
+            const pos = this.node.getPosition();
             //if (this.prevPos.equals(pos)) return; // TODO: test whole matrix?
 
             this.prevWorldBoundsSize.copy(this.worldBoundsSize);
@@ -435,9 +375,9 @@ pc.extend(pc, function() {
             this.worldBoundsNoTrail.setFromTransformedAabb(this.localBounds, this.node.getWorldTransform());
             this.worldBoundsTrail[0].add(this.worldBoundsNoTrail);
 
-            var now = this.simTimeTotal;
+            const now = this.simTimeTotal;
             if (now > this.timeToSwitchBounds) {
-                var tmp = this.worldBoundsTrail[0];
+                const tmp = this.worldBoundsTrail[0];
                 this.worldBoundsTrail[0] = this.worldBoundsTrail[1];
                 this.worldBoundsTrail[1] = tmp;
                 this.worldBoundsTrail[0].copy(this.worldBoundsNoTrail);
@@ -453,24 +393,24 @@ pc.extend(pc, function() {
             this.meshInstance._aabbVer = 1 - this.meshInstance._aabbVer;
 
             if (this.pack8) this.calculateBoundsMad();
-        },
+        }
 
-        calculateLocalBounds: function() {
-            var minx = Number.MAX_VALUE;
-            var miny = Number.MAX_VALUE;
-            var minz = Number.MAX_VALUE;
-            var maxx = -Number.MAX_VALUE;
-            var maxy = -Number.MAX_VALUE;
-            var maxz = -Number.MAX_VALUE;
-            var maxScale = 0;
-            var stepWeight = this.lifetime / this.precision;
-            var vels = [this.qVelocity, this.qVelocity2, this.qLocalVelocity, this.qLocalVelocity2];
-            var accumX = [0,0,0,0];
-            var accumY = [0,0,0,0];
-            var accumZ = [0,0,0,0];
-            var i, j;
-            var index;
-            var x, y, z;
+        calculateLocalBounds() {
+            let minx = Number.MAX_VALUE;
+            let miny = Number.MAX_VALUE;
+            let minz = Number.MAX_VALUE;
+            let maxx = -Number.MAX_VALUE;
+            let maxy = -Number.MAX_VALUE;
+            let maxz = -Number.MAX_VALUE;
+            let maxScale = 0;
+            const stepWeight = this.lifetime / this.precision;
+            const vels = [this.qVelocity, this.qVelocity2, this.qLocalVelocity, this.qLocalVelocity2];
+            const accumX = [0,0,0,0];
+            const accumY = [0,0,0,0];
+            const accumZ = [0,0,0,0];
+            let i, j;
+            let index;
+            let x, y, z;
             for (i=0; i<this.precision+1; i++) { // take extra step to prevent position glitches
                 index = Math.min(i, this.precision-1);
                 for (j=0; j<4; j++) {
@@ -527,12 +467,12 @@ pc.extend(pc, function() {
             bMax.y = maxy + maxScale;
             bMax.z = maxz + maxScale;
             this.localBounds.setMinMax(bMin, bMax);
-        },
+        }
 
-        rebuild: function() {
-            var i, len;
-            var precision = this.precision;
-            var gd = this.graphicsDevice;
+        rebuild() {
+            let i, len;
+            const precision = this.precision;
+            const gd = this.graphicsDevice;
 
             if (this.colorMap===null) this.colorMap = ParticleEmitter.DEFAULT_PARAM_TEXTURE;
 
@@ -552,7 +492,7 @@ pc.extend(pc, function() {
 
             this.useMesh = false;
             if (this.mesh) {
-                var totalVertCount = this.numParticles * this.mesh.vertexBuffer.numVertices;
+                const totalVertCount = this.numParticles * this.mesh.vertexBuffer.numVertices;
                 if (totalVertCount > 65535) {
                     console.warn("WARNING: particle system can't render mesh particles because numParticles * numVertices is more than 65k. Reverting to quad particles.");
                 } else {
@@ -584,7 +524,7 @@ pc.extend(pc, function() {
             this.frameRandom.z = Math.random();
 
             this.particleTex = new Float32Array(this.numParticlesPot * particleTexHeight * particleTexChannels);
-            var emitterPos = (this.node === null || this.localSpace) ? pc.Vec3.ZERO : this.node.getPosition();
+            const emitterPos = (this.node === null || this.localSpace) ? pc.Vec3.ZERO : this.node.getPosition();
             if (this.emitterShape === pc.EMITTERSHAPE_BOX) {
                 if (this.node === null){
                     spawnMatrix.setTRS(pc.Vec3.ZERO, pc.Quat.IDENTITY, this.spawnBounds);
@@ -620,25 +560,25 @@ pc.extend(pc, function() {
                 this.swapTex = false;
             }
 
-            var chunks = pc.shaderChunks;
-            var shaderCodeStart = chunks.particleUpdaterInitPS +
+            const chunks = pc.shaderChunks;
+            const shaderCodeStart = chunks.particleUpdaterInitPS +
             (this.pack8? (chunks.particleInputRgba8PS + chunks.particleOutputRgba8PS) :
                 (chunks.particleInputFloatPS + chunks.particleOutputFloatPS)) +
             (this.emitterShape===pc.EMITTERSHAPE_BOX? chunks.particleUpdaterAABBPS : chunks.particleUpdaterSpherePS) +
             chunks.particleUpdaterStartPS;
-            var shaderCodeRespawn = shaderCodeStart + chunks.particleUpdaterRespawnPS + chunks.particleUpdaterEndPS;
-            var shaderCodeNoRespawn = shaderCodeStart + chunks.particleUpdaterNoRespawnPS + chunks.particleUpdaterEndPS;
-            var shaderCodeOnStop = shaderCodeStart + chunks.particleUpdaterOnStopPS + chunks.particleUpdaterEndPS;
+            const shaderCodeRespawn = shaderCodeStart + chunks.particleUpdaterRespawnPS + chunks.particleUpdaterEndPS;
+            const shaderCodeNoRespawn = shaderCodeStart + chunks.particleUpdaterNoRespawnPS + chunks.particleUpdaterEndPS;
+            const shaderCodeOnStop = shaderCodeStart + chunks.particleUpdaterOnStopPS + chunks.particleUpdaterEndPS;
 
-            this.shaderParticleUpdateRespawn = chunks.createShaderFromCode(gd, chunks.fullscreenQuadVS, shaderCodeRespawn, "fsQuad0"+this.emitterShape+""+this.pack8);
-            this.shaderParticleUpdateNoRespawn = chunks.createShaderFromCode(gd, chunks.fullscreenQuadVS, shaderCodeNoRespawn, "fsQuad1"+this.emitterShape+""+this.pack8);
-            this.shaderParticleUpdateOnStop = chunks.createShaderFromCode(gd, chunks.fullscreenQuadVS, shaderCodeOnStop, "fsQuad2"+this.emitterShape+""+this.pack8);
+            this.shaderParticleUpdateRespawn = chunks.createShaderFromCode(gd, chunks.fullscreenQuadVS, shaderCodeRespawn, `fsQuad0${this.emitterShape}${this.pack8}`);
+            this.shaderParticleUpdateNoRespawn = chunks.createShaderFromCode(gd, chunks.fullscreenQuadVS, shaderCodeNoRespawn, `fsQuad1${this.emitterShape}${this.pack8}`);
+            this.shaderParticleUpdateOnStop = chunks.createShaderFromCode(gd, chunks.fullscreenQuadVS, shaderCodeOnStop, `fsQuad2${this.emitterShape}${this.pack8}`);
 
             this.numParticleVerts = this.useMesh ? this.mesh.vertexBuffer.numVertices : 4;
             this.numParticleIndices = this.useMesh ? this.mesh.indexBuffer[0].numIndices : 6;
             this._allocate(this.numParticles);
 
-            var mesh = new pc.Mesh();
+            const mesh = new pc.Mesh();
             mesh.vertexBuffer = this.vertexBuffer;
             mesh.indexBuffer[0] = this.indexBuffer;
             mesh.primitive[0].type = pc.PRIMITIVE_TRIANGLES;
@@ -676,19 +616,19 @@ pc.extend(pc, function() {
             if (this.preWarm) this.prewarm(this.lifetime);
 
             this.resetTime();
-        },
+        }
 
-        _isAnimated: function () {
+        _isAnimated() {
             return this.animNumFrames >= 1 &&
                    (this.animTilesX > 1 || this.animTilesY > 1) &&
                    (this.colorMap && this.colorMap !== ParticleEmitter.DEFAULT_PARAM_TEXTURE || this.normalMap);
-        },
+        }
 
-        calcSpawnPosition: function(emitterPos, i) {
-            var rX = Math.random();
-            var rY = Math.random();
-            var rZ = Math.random();
-            var rW = Math.random();
+        calcSpawnPosition(emitterPos, i) {
+            const rX = Math.random();
+            const rY = Math.random();
+            const rZ = Math.random();
+            const rW = Math.random();
             if (this.useCpu) {
                 this.particleTex[i * particleTexChannels + 0 + this.numParticlesPot * 2 * particleTexChannels] = rX;
                 this.particleTex[i * particleTexChannels + 1 + this.numParticlesPot * 2 * particleTexChannels] = rY;
@@ -707,40 +647,40 @@ pc.extend(pc, function() {
                 randomPosTformed.copy(emitterPos).add( randomPos.scale(rW * this.spawnBounds) );
             }
 
-            var particleRate, startSpawnTime;
+            let particleRate, startSpawnTime;
             if (this.pack8) {
-                var packX = (randomPosTformed.data[0] - this.worldBounds.center.data[0]) / this.worldBoundsSize.data[0] + 0.5;
-                var packY = (randomPosTformed.data[1] - this.worldBounds.center.data[1]) / this.worldBoundsSize.data[1] + 0.5;
-                var packZ = (randomPosTformed.data[2] - this.worldBounds.center.data[2]) / this.worldBoundsSize.data[2] + 0.5;
+                const packX = (randomPosTformed.data[0] - this.worldBounds.center.data[0]) / this.worldBoundsSize.data[0] + 0.5;
+                const packY = (randomPosTformed.data[1] - this.worldBounds.center.data[1]) / this.worldBoundsSize.data[1] + 0.5;
+                const packZ = (randomPosTformed.data[2] - this.worldBounds.center.data[2]) / this.worldBoundsSize.data[2] + 0.5;
 
-                var packA = pc.math.lerp(this.startAngle * pc.math.DEG_TO_RAD, this.startAngle2 * pc.math.DEG_TO_RAD, rX);
+                let packA = pc.math.lerp(this.startAngle * pc.math.DEG_TO_RAD, this.startAngle2 * pc.math.DEG_TO_RAD, rX);
                 packA = (packA % (Math.PI*2)) / (Math.PI*2);
 
-                var rg0 = encodeFloatRG(packX);
+                const rg0 = encodeFloatRG(packX);
                 this.particleTex[i * particleTexChannels] = rg0[0];
                 this.particleTex[i * particleTexChannels + 1] = rg0[1];
 
-                var ba0 = encodeFloatRG(packY);
+                const ba0 = encodeFloatRG(packY);
                 this.particleTex[i * particleTexChannels + 2] = ba0[0];
                 this.particleTex[i * particleTexChannels + 3] = ba0[1];
 
-                var rg1 = encodeFloatRG(packZ);
+                const rg1 = encodeFloatRG(packZ);
                 this.particleTex[i * particleTexChannels + 0 + this.numParticlesPot * particleTexChannels] = rg1[0];
                 this.particleTex[i * particleTexChannels + 1 + this.numParticlesPot * particleTexChannels] = rg1[1];
 
-                var ba1 = encodeFloatRG(packA);
+                const ba1 = encodeFloatRG(packA);
                 this.particleTex[i * particleTexChannels + 2 + this.numParticlesPot * particleTexChannels] = ba1[0];
                 this.particleTex[i * particleTexChannels + 3 + this.numParticlesPot * particleTexChannels] = ba1[1];
 
-                var a2 = 1.0;
+                const a2 = 1.0;
                 this.particleTex[i * particleTexChannels + 3 + this.numParticlesPot * particleTexChannels * 2] = a2;
 
                 particleRate = pc.math.lerp(this.rate, this.rate2, rX);
                 startSpawnTime = -particleRate * i;
-                var maxNegLife = Math.max(this.lifetime, (this.numParticles - 1.0) * (Math.max(this.rate, this.rate2)));
-                var maxPosLife = this.lifetime+1.0;
+                const maxNegLife = Math.max(this.lifetime, (this.numParticles - 1.0) * (Math.max(this.rate, this.rate2)));
+                const maxPosLife = this.lifetime+1.0;
                 startSpawnTime = (startSpawnTime + maxNegLife) / (maxNegLife + maxPosLife);
-                var rgba3 = encodeFloatRGBA(startSpawnTime);
+                const rgba3 = encodeFloatRGBA(startSpawnTime);
                 this.particleTex[i * particleTexChannels + 0 + this.numParticlesPot * particleTexChannels * 3] = rgba3[0];
                 this.particleTex[i * particleTexChannels + 1 + this.numParticlesPot * particleTexChannels * 3] = rgba3[1];
                 this.particleTex[i * particleTexChannels + 2 + this.numParticlesPot * particleTexChannels * 3] = rgba3[2];
@@ -756,12 +696,12 @@ pc.extend(pc, function() {
                 startSpawnTime = -particleRate * i;
                 this.particleTex[i * particleTexChannels + 3 + this.numParticlesPot * particleTexChannels] = startSpawnTime;
             }
-        },
+        }
 
-        rebuildGraphs: function() {
-            var precision = this.precision;
-            var gd = this.graphicsDevice;
-            var i;
+        rebuildGraphs() {
+            const precision = this.precision;
+            const gd = this.graphicsDevice;
+            let i;
 
             this.qLocalVelocity = this.localVelocityGraph.quantize(precision);
             this.qVelocity = this.velocityGraph.quantize(precision);
@@ -796,23 +736,23 @@ pc.extend(pc, function() {
             this.qAlphaDiv =         divGraphFrom2Curves(this.qAlpha, this.qAlpha2, this.alphaUMax);
 
             if (this.pack8) {
-                var umax = [0,0,0];
+                const umax = [0,0,0];
                 maxUnsignedGraphValue(this.qVelocity, umax);
-                var umax2 = [0,0,0];
+                const umax2 = [0,0,0];
                 maxUnsignedGraphValue(this.qVelocity2, umax2);
 
-                var lumax = [0,0,0];
+                const lumax = [0,0,0];
                 maxUnsignedGraphValue(this.qLocalVelocity, lumax);
-                var lumax2 = [0,0,0];
+                const lumax2 = [0,0,0];
                 maxUnsignedGraphValue(this.qLocalVelocity2, lumax2);
 
-                var maxVel = Math.max(umax[0], umax2[0]);
+                let maxVel = Math.max(umax[0], umax2[0]);
                 maxVel = Math.max(maxVel, umax[1]);
                 maxVel = Math.max(maxVel, umax2[1]);
                 maxVel = Math.max(maxVel, umax[2]);
                 maxVel = Math.max(maxVel, umax2[2]);
 
-                var lmaxVel = Math.max(lumax[0], lumax2[0]);
+                let lmaxVel = Math.max(lumax[0], lumax2[0]);
                 lmaxVel = Math.max(lmaxVel, lumax[1]);
                 lmaxVel = Math.max(lmaxVel, lumax2[1]);
                 lmaxVel = Math.max(lmaxVel, lumax[2]);
@@ -828,20 +768,20 @@ pc.extend(pc, function() {
                 this.internalTex2 = _createTexture(gd, precision, 1, packTexture5Floats(this.qRotSpeed, this.qScale, this.qScaleDiv, this.qRotSpeedDiv, this.qAlphaDiv));
             }
             this.internalTex3 = _createTexture(gd, precision, 1, packTextureRGBA(this.qColor, this.qAlpha), pc.PIXELFORMAT_R8_G8_B8_A8, 1.0, true);
-        },
+        }
 
-        _initializeTextures: function () {
+        _initializeTextures() {
             if (this.colorMap) {
                 this.material.setParameter('colorMap', this.colorMap);
                 if (this.lighting && this.normalMap) {
                     this.material.setParameter('normalMap', this.normalMap);
                 }
             }
-        },
+        }
 
-        regenShader: function() {
-            var programLib = this.graphicsDevice.getProgramLibrary();
-            var hasNormal = (this.normalMap !== null);
+        regenShader() {
+            const programLib = this.graphicsDevice.getProgramLibrary();
+            const hasNormal = (this.normalMap !== null);
             this.normalOption = 0;
             if (this.lighting) {
                 this.normalOption = hasNormal ? 2 : 1;
@@ -866,7 +806,7 @@ pc.extend(pc, function() {
                     }
                 }
 
-                var shader = programLib.getProgram("particle", {
+                const shader = programLib.getProgram("particle", {
                     useCpu: this.emitter.useCpu,
                     normal: this.emitter.normalOption,
                     halflambert: this.emitter.halfLambert,
@@ -887,11 +827,11 @@ pc.extend(pc, function() {
                 this.setShader(shader);
             };
             this.material.updateShader();
-        },
+        }
 
-        resetMaterial: function() {
-            var material = this.material;
-            var gd = this.graphicsDevice;
+        resetMaterial() {
+            const material = this.material;
+            const gd = this.graphicsDevice;
 
             material.setParameter('stretch', this.stretch);
             if (this._isAnimated()) {
@@ -940,15 +880,14 @@ pc.extend(pc, function() {
                 material.setParameter('softening', 1.0 / (this.depthSoftening * this.depthSoftening * 100)); // remap to more perceptually linear
             }
             if (this.stretch > 0.0) material.cull = pc.CULLFACE_NONE;
-        },
-
+        }
 
         // Declares vertex format, creates VB and IB
-        _allocate: function(numParticles) {
-            var psysVertCount = numParticles * this.numParticleVerts;
-            var psysIndexCount = numParticles * this.numParticleIndices;
-            var elements, particleFormat;
-            var i;
+        _allocate(numParticles) {
+            const psysVertCount = numParticles * this.numParticleVerts;
+            const psysIndexCount = numParticles * this.numParticleIndices;
+            let elements, particleFormat;
+            let i;
 
             if ((this.vertexBuffer === undefined) || (this.vertexBuffer.getNumVertices() !== psysVertCount)) {
                 // Create the particle vertex format
@@ -988,14 +927,14 @@ pc.extend(pc, function() {
                 }
 
                 // Fill the vertex buffer
-                var data = new Float32Array(this.vertexBuffer.lock());
-                var meshData, stride;
+                const data = new Float32Array(this.vertexBuffer.lock());
+                let meshData, stride;
                 if (this.useMesh) {
                     meshData = new Float32Array(this.mesh.vertexBuffer.lock());
                     stride = meshData.length / this.mesh.vertexBuffer.numVertices;
                 }
 
-                var id, rnd;
+                let id, rnd;
                 for (i = 0; i < psysVertCount; i++) {
                     id = Math.floor(i / this.numParticleVerts);
                     if (this.useCpu) {
@@ -1003,12 +942,12 @@ pc.extend(pc, function() {
                     }
 
                     if (!this.useMesh) {
-                        var vertID = i % 4;
+                        const vertID = i % 4;
                         data[i * 4] = particleVerts[vertID][0];
                         data[i * 4 + 1] = particleVerts[vertID][1];
                         data[i * 4 + 2] = 0;
                     } else {
-                        var vert = i % this.numParticleVerts;
+                        const vert = i % this.numParticleVerts;
                         data[i * 4] = meshData[vert * stride];
                         data[i * 4 + 1] = meshData[vert * stride + 1];
                         data[i * 4 + 2] = meshData[vert * stride + 2];
@@ -1028,12 +967,12 @@ pc.extend(pc, function() {
 
 
                 // Fill the index buffer
-                var dst = 0;
-                var indices = new Uint16Array(this.indexBuffer.lock());
+                let dst = 0;
+                const indices = new Uint16Array(this.indexBuffer.lock());
                 if (this.useMesh) meshData = new Uint16Array(this.mesh.indexBuffer[0].lock());
                 for (i = 0; i < numParticles; i++) {
                     if (!this.useMesh) {
-                        var baseIndex = i * 4;
+                        const baseIndex = i * 4;
                         indices[dst++] = baseIndex;
                         indices[dst++] = baseIndex + 1;
                         indices[dst++] = baseIndex + 2;
@@ -1041,7 +980,7 @@ pc.extend(pc, function() {
                         indices[dst++] = baseIndex + 2;
                         indices[dst++] = baseIndex + 3;
                     } else {
-                        for (var j = 0; j < this.numParticleIndices; j++) {
+                        for (let j = 0; j < this.numParticleIndices; j++) {
                             indices[i * this.numParticleIndices + j] = meshData[j] + i * this.numParticleVerts;
                         }
                     }
@@ -1049,52 +988,52 @@ pc.extend(pc, function() {
                 this.indexBuffer.unlock();
                 if (this.useMesh) this.mesh.indexBuffer[0].unlock();
             }
-        },
+        }
 
-        reset: function() {
+        reset() {
             this.beenReset = true;
             this.seed = Math.random();
             this.material.setParameter('seed', this.seed);
             if (this.useCpu) {
-                for (var i = 0; i < this.particleTexStart.length; i++) {
+                for (let i = 0; i < this.particleTexStart.length; i++) {
                     this.particleTex[i] = this.particleTexStart[i];
                 }
             } else {
                 this._initializeTextures();
             }
             this.resetTime();
-            var origLoop =  this.loop;
+            const origLoop =  this.loop;
             this.loop = true;
             this.addTime(0);
             this.loop = origLoop;
             if (this.preWarm) {
                 this.prewarm(this.lifetime);
             }
-        },
+        }
 
-        prewarm: function(time) {
-            var lifetimeFraction = time / this.lifetime;
-            var iterations = Math.min(Math.floor(lifetimeFraction * this.precision), this.precision);
-            var stepDelta = time / iterations;
-            for (var i=0; i<iterations; i++) {
+        prewarm(time) {
+            const lifetimeFraction = time / this.lifetime;
+            const iterations = Math.min(Math.floor(lifetimeFraction * this.precision), this.precision);
+            const stepDelta = time / iterations;
+            for (let i=0; i<iterations; i++) {
                 this.addTime(stepDelta);
             }
-        },
+        }
 
-        resetTime: function() {
+        resetTime() {
             this.endTime = calcEndTime(this);
-        },
+        }
 
-        finishFrame: function() {
+        finishFrame() {
             if (this.useCpu) this.vertexBuffer.unlock();
-        },
+        }
 
-        addTime: function(delta, isOnStop) {
-            var a, b, c, i, j;
-            var device = this.graphicsDevice;
+        addTime(delta, isOnStop) {
+            let a, b, c, i, j;
+            const device = this.graphicsDevice;
 
             // #ifdef PROFILER
-            var startTime = pc.now();
+            const startTime = pc.now();
             // #endif
 
             this.simTimeTotal += delta;
@@ -1102,7 +1041,7 @@ pc.extend(pc, function() {
             this.calculateWorldBounds();
 
             if (this._isAnimated()) {
-                var params = this.animParams;
+                const params = this.animParams;
                 params.x = 1.0 / this.animTilesX;
                 params.y = 1.0 / this.animTilesY;
                 params.z = this.animNumFrames * this.animSpeed;
@@ -1124,8 +1063,8 @@ pc.extend(pc, function() {
                 }
             }
 
-            var emitterPos;
-            var emitterScale = this.meshInstance.node === null ? pc.Vec3.ONE.data : this.meshInstance.node.localScale.data;
+            let emitterPos;
+            const emitterScale = this.meshInstance.node === null ? pc.Vec3.ONE.data : this.meshInstance.node.localScale.data;
             this.material.setParameter("emitterScale", emitterScale);
             if (this.localSpace && this.meshInstance.node) {
                 this.material.setParameter("emitterPos", this.meshInstance.node.getPosition().data);
@@ -1156,14 +1095,14 @@ pc.extend(pc, function() {
                     this.constantInBoundsSize.setValue(this.prevWorldBoundsSize.data);
                     this.constantInBoundsCenter.setValue(this.prevWorldBoundsCenter.data);
 
-                    var maxVel = this.maxVel *
+                    let maxVel = this.maxVel *
                                   Math.max(Math.max(emitterScale[0], emitterScale[1]), emitterScale[2]);
                     maxVel = Math.max(maxVel, 1);
                     this.constantMaxVel.setValue(maxVel);
                 }
 
                 emitterPos = (this.meshInstance.node === null || this.localSpace) ? pc.Vec3.ZERO.data : this.meshInstance.node.getPosition().data;
-                var emitterMatrix = this.meshInstance.node === null ? pc.Mat4.IDENTITY : this.meshInstance.node.getWorldTransform();
+                const emitterMatrix = this.meshInstance.node === null ? pc.Mat4.IDENTITY : this.meshInstance.node.getWorldTransform();
                 if (this.emitterShape === pc.EMITTERSHAPE_BOX) {
                     mat4ToMat3(spawnMatrix, spawnMatrix3);
                     this.constantSpawnBounds.setValue(spawnMatrix3.data);
@@ -1190,9 +1129,9 @@ pc.extend(pc, function() {
                 this.constantVelocityDivMult.setValue(this.velocityUMax.data);
                 this.constantRotSpeedDivMult.setValue(this.rotSpeedUMax[0]);
 
-                var texIN = this.swapTex ? this.particleTexOUT : this.particleTexIN;
+                let texIN = this.swapTex ? this.particleTexOUT : this.particleTexIN;
                 texIN = this.beenReset? this.particleTexStart : texIN;
-                var texOUT = this.swapTex ? this.particleTexIN : this.particleTexOUT;
+                const texOUT = this.swapTex ? this.particleTexIN : this.particleTexOUT;
                 this.constantParticleTexIN.setValue(texIN);
                 if (!isOnStop) {
                     pc.drawQuadWithShader(device, this.swapTex ? this.rtParticleTexIN : this.rtParticleTexOUT, this.loop ? this.shaderParticleUpdateRespawn : this.shaderParticleUpdateNoRespawn);
@@ -1210,9 +1149,9 @@ pc.extend(pc, function() {
                 device.setDepthTest(true);
                 device.setDepthWrite(true);
             } else {
-                var data = new Float32Array(this.vertexBuffer.lock());
+                const data = new Float32Array(this.vertexBuffer.lock());
                 if (this.meshInstance.node) {
-                    var fullMat = this.meshInstance.node.worldTransform;
+                    const fullMat = this.meshInstance.node.worldTransform;
                     for (j = 0; j < 12; j++) {
                         rotMat.data[j] = fullMat.data[j];
                     }
@@ -1222,35 +1161,35 @@ pc.extend(pc, function() {
 
                 // Particle updater emulation
                 emitterPos = (this.meshInstance.node === null || this.localSpace) ? pc.Vec3.ZERO : this.meshInstance.node.getPosition();
-                var posCam = this.camera ? this.camera._node.getPosition() : pc.Vec3.ZERO;
+                const posCam = this.camera ? this.camera._node.getPosition() : pc.Vec3.ZERO;
 
-                var vertSize = 14;
-                var cf, cc;
-                var rotSpeed, rotSpeed2, scale2, alpha, alpha2;
-                var precision1 = this.precision - 1;
+                const vertSize = 14;
+                let cf, cc;
+                let rotSpeed, rotSpeed2, scale2, alpha, alpha2;
+                const precision1 = this.precision - 1;
 
                 for (i = 0; i < this.numParticles; i++) {
-                    var id = Math.floor(this.vbCPU[i * this.numParticleVerts * 4 + 3]);
+                    const id = Math.floor(this.vbCPU[i * this.numParticleVerts * 4 + 3]);
 
-                    var rndFactor = this.particleTex[id * particleTexChannels + 0 + this.numParticlesPot * 2 * particleTexChannels];
+                    const rndFactor = this.particleTex[id * particleTexChannels + 0 + this.numParticlesPot * 2 * particleTexChannels];
                     rndFactor3Vec.data[0] = rndFactor;
                     rndFactor3Vec.data[1] = this.particleTex[id * particleTexChannels + 1 + this.numParticlesPot * 2 * particleTexChannels];
                     rndFactor3Vec.data[2] = this.particleTex[id * particleTexChannels + 2 + this.numParticlesPot * 2 * particleTexChannels];
 
-                    var particleRate = this.rate + (this.rate2 - this.rate) * rndFactor;// pc.math.lerp(this.rate, this.rate2, rndFactor);
+                    const particleRate = this.rate + (this.rate2 - this.rate) * rndFactor;// pc.math.lerp(this.rate, this.rate2, rndFactor);
 
-                    var particleLifetime = this.lifetime;
-                    var startSpawnTime = -particleRate * id;
+                    const particleLifetime = this.lifetime;
+                    const startSpawnTime = -particleRate * id;
 
-                    var life = this.particleTex[id * particleTexChannels + 3 + this.numParticlesPot * particleTexChannels] + delta;
-                    var nlife = saturate(life / particleLifetime);
+                    let life = this.particleTex[id * particleTexChannels + 3 + this.numParticlesPot * particleTexChannels] + delta;
+                    const nlife = saturate(life / particleLifetime);
 
-                    var scale = 0;
-                    var alphaDiv = 0;
-                    var angle = 0;
-                    var len;
-                    var interpolation;
-                    var particleEnabled = life > 0.0 && life < particleLifetime;
+                    let scale = 0;
+                    let alphaDiv = 0;
+                    const angle = 0;
+                    let len;
+                    let interpolation;
+                    let particleEnabled = life > 0.0 && life < particleLifetime;
 
                     if (particleEnabled) {
                         c = nlife * precision1;
@@ -1426,15 +1365,15 @@ pc.extend(pc, function() {
                     if (this.particleTex[id * particleTexChannels + 3 + this.numParticlesPot * 2 * particleTexChannels] < 0) particleEnabled = false;
                     this.particleTex[id * particleTexChannels + 3 + this.numParticlesPot * particleTexChannels] = life;
 
-                    for (var v = 0; v < this.numParticleVerts; v++) {
-                        var quadX = this.vbCPU[i * this.numParticleVerts * 4 + v * 4];
-                        var quadY = this.vbCPU[i * this.numParticleVerts * 4 + v * 4 + 1];
-                        var quadZ = this.vbCPU[i * this.numParticleVerts * 4 + v * 4 + 2];
+                    for (let v = 0; v < this.numParticleVerts; v++) {
+                        let quadX = this.vbCPU[i * this.numParticleVerts * 4 + v * 4];
+                        let quadY = this.vbCPU[i * this.numParticleVerts * 4 + v * 4 + 1];
+                        let quadZ = this.vbCPU[i * this.numParticleVerts * 4 + v * 4 + 2];
                         if (!particleEnabled) {
                             quadX = quadY = quadZ = 0;
                         }
 
-                        var w = i * this.numParticleVerts * vertSize + v * vertSize;
+                        const w = i * this.numParticleVerts * vertSize + v * vertSize;
                         data[w] = particleFinalPos.data[0];
                         data[w + 1] = particleFinalPos.data[1];
                         data[w + 2] = particleFinalPos.data[2];
@@ -1455,20 +1394,18 @@ pc.extend(pc, function() {
                 // Particle sorting
                 // TODO: optimize
                 if (this.sort > pc.PARTICLESORT_NONE && this.camera) {
-                    var particleDistance = this.particleDistance;
+                    const particleDistance = this.particleDistance;
                     for (i = 0; i < this.numParticles; i++) {
                         this.vbToSort[i] = [i, particleDistance[Math.floor(this.vbCPU[i * this.numParticleVerts * 4 + 3])]]; // particle id
                     }
 
                     this.vbOld.set(this.vbCPU);
 
-                    this.vbToSort.sort(function(a, b) {
-                        return a[1] - b[1];
-                    });
+                    this.vbToSort.sort((a, b) => a[1] - b[1]);
 
                     for (i = 0; i < this.numParticles; i++) {
-                        var src = this.vbToSort[i][0] * this.numParticleVerts * 4;
-                        var dest = i * this.numParticleVerts * 4;
+                        const src = this.vbToSort[i][0] * this.numParticleVerts * 4;
+                        const dest = i * this.numParticleVerts * 4;
                         for (j = 0; j < this.numParticleVerts * 4; j++) {
                             this.vbCPU[dest + j] = this.vbOld[src + j];
                         }
@@ -1488,9 +1425,9 @@ pc.extend(pc, function() {
             // #ifdef PROFILER
             this._addTimeTime += pc.now() - startTime;
             // #endif
-        },
+        }
 
-        destroy: function () {
+        destroy() {
             if (this.particleTexIN) this.particleTexIN.destroy();
             if (this.particleTexOUT) this.particleTexOUT.destroy();
             if (!this.useCpu && this.particleTexStart) this.particleTexStart.destroy();
@@ -1512,22 +1449,81 @@ pc.extend(pc, function() {
             this.shaderParticleUpdateNoRespawn = null;
             this.shaderParticleUpdateOnStop = null;
         }
-    };
+    }
+
+    function calcEndTime({rate, rate2, numParticles, lifetime}) {
+        const interval = (Math.max(rate, rate2) * numParticles + lifetime);
+        return Date.now() + interval * 1000;
+    }
+
+    function subGraph(A, B) {
+        const r = new Float32Array(A.length);
+        for (let i=0; i<A.length; i++) {
+            r[i] = A[i] - B[i];
+        }
+        return r;
+    }
+
+    function maxUnsignedGraphValue(A, outUMax) {
+        let i, j;
+        const chans = outUMax.length;
+        const values = A.length / chans;
+        for (i=0; i<values; i++) {
+            for (j=0; j<chans; j++) {
+                const a = Math.abs(A[i * chans + j]);
+                outUMax[j] = Math.max(outUMax[j], a);
+            }
+        }
+    }
+
+    function normalizeGraph(A, uMax) {
+        const chans = uMax.length;
+        let i, j;
+        const values = A.length / chans;
+        for (i=0; i<values; i++) {
+            for (j=0; j<chans; j++) {
+                A[i * chans + j] /= uMax[j];
+                A[i * chans + j] *= 0.5;
+                A[i * chans + j] += 0.5;
+            }
+        }
+    }
+
+    function divGraphFrom2Curves(curve1, curve2, outUMax) {
+        const sub = subGraph(curve2, curve1);
+        maxUnsignedGraphValue(sub, outUMax);
+        normalizeGraph(sub, outUMax);
+        return sub;
+    }
+
+    function mat4ToMat3({data}, {data}) {
+        data[0] = data[0];
+        data[1] = data[1];
+        data[2] = data[2];
+
+        data[3] = data[4];
+        data[4] = data[5];
+        data[5] = data[6];
+
+        data[6] = data[8];
+        data[7] = data[9];
+        data[8] = data[10];
+    }
 
     return {
-        ParticleEmitter: ParticleEmitter
+        ParticleEmitter
     };
-}());
+})());
 
 function frac(f) {
     return f - Math.floor(f);
 }
 
 function encodeFloatRGBA ( v ) {
-    var encX = frac(v);
-    var encY = frac(255.0 * v);
-    var encZ = frac(65025.0 * v);
-    var encW = frac(160581375.0 * v);
+    let encX = frac(v);
+    let encY = frac(255.0 * v);
+    let encZ = frac(65025.0 * v);
+    let encW = frac(160581375.0 * v);
 
     encX -= encY / 255.0;
     encY -= encZ / 255.0;
@@ -1538,8 +1534,8 @@ function encodeFloatRGBA ( v ) {
 }
 
 function encodeFloatRG ( v ) {
-    var encX = frac(v);
-    var encY = frac(255.0 * v);
+    let encX = frac(v);
+    let encY = frac(255.0 * v);
 
     encX -= encY / 255.0;
     encY -= encY / 255.0;

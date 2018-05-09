@@ -1,5 +1,5 @@
-pc.extend(pc, function () {
-    var ScriptLegacyComponentData = function () {
+pc.extend(pc, (() => {
+    let ScriptLegacyComponentData = function () {
         // serialized
         this.scripts = [];
         this.enabled = true;
@@ -16,6 +16,6 @@ pc.extend(pc, function () {
     ScriptLegacyComponentData = pc.inherits(ScriptLegacyComponentData, pc.ComponentData);
 
     return {
-        ScriptLegacyComponentData: ScriptLegacyComponentData
+        ScriptLegacyComponentData
     };
-}());
+})());

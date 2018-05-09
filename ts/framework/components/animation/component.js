@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
      * @component Animation
      * @constructor
@@ -15,7 +15,7 @@ pc.extend(pc, function () {
      * @property {Number} currentTime Get or Set the current time position (in seconds) of the animation
      * @property {Number} duration Get the duration in seconds of the current animation.
      */
-    var AnimationComponent = function (system, entity) {
+    let AnimationComponent = function (system, entity) {
         this.animationsIndex = { };
 
         // Handle changes to the 'animations' value
@@ -36,7 +36,7 @@ pc.extend(pc, function () {
          * @param {Number} [blendTime] The time in seconds to blend from the current
          * animation state to the start of the animation being set.
          */
-        play: function (name, blendTime) {
+        play(name, blendTime) {
             if (!this.data.animations[name]) {
                 console.error(pc.string.format("Trying to play animation '{0}' which doesn't exist", name));
                 return;
@@ -48,7 +48,7 @@ pc.extend(pc, function () {
 
             blendTime = blendTime || 0;
 
-            var data = this.data;
+            const data = this.data;
 
             data.prevAnim = data.currAnim;
             data.currAnim = name;
@@ -78,15 +78,15 @@ pc.extend(pc, function () {
         * @param {String} name The name of the animation asset
         * @returns {pc.Animation} An Animation
         */
-        getAnimation: function (name) {
+        getAnimation(name) {
             return this.data.animations[name];
         },
 
-        setModel: function (model) {
-            var data = this.data;
+        setModel(model) {
+            const data = this.data;
             if (model) {
                 // Create skeletons
-                var graph = model.getGraph();
+                const graph = model.getGraph();
                 data.fromSkel = new pc.Skeleton(graph);
                 data.toSkel = new pc.Skeleton(graph);
                 data.skeleton = new pc.Skeleton(graph);
@@ -101,21 +101,22 @@ pc.extend(pc, function () {
             }
         },
 
-        loadAnimationAssets: function (ids) {
+        loadAnimationAssets(ids) {
             if (! ids || ! ids.length)
                 return;
 
-            var self = this;
-            var assets = this.system.app.assets;
-            var i, l = ids.length;
+            const self = this;
+            const assets = this.system.app.assets;
+            let i;
+            const l = ids.length;
 
-            var onAssetReady = function (asset) {
-                self.animations[asset.name] = asset.resource;
-                self.animationsIndex[asset.id] = asset.name;
+            const onAssetReady = ({name, resource, id}) => {
+                self.animations[name] = resource;
+                self.animationsIndex[id] = name;
                 self.animations = self.animations; // assigning ensures set_animations event is fired
             };
 
-            var onAssetAdd = function(asset) {
+            const onAssetAdd = asset => {
                 asset.off('change', self.onAssetChanged, self);
                 asset.on('change', self.onAssetChanged, self);
 
@@ -132,35 +133,35 @@ pc.extend(pc, function () {
             };
 
             for (i = 0; i < l; i++) {
-                var asset = assets.get(ids[i]);
+                const asset = assets.get(ids[i]);
                 if (asset) {
                     onAssetAdd(asset);
                 } else {
-                    assets.on('add:' + ids[i], onAssetAdd);
+                    assets.on(`add:${ids[i]}`, onAssetAdd);
                 }
             }
         },
 
-        onAssetChanged: function (asset, attribute, newValue, oldValue) {
+        onAssetChanged({name, id}, attribute, newValue, oldValue) {
             if (attribute === 'resource') {
                 // replace old animation with new one
                 if (newValue) {
-                    this.animations[asset.name] = newValue;
-                    this.animationsIndex[asset.id] = asset.name;
+                    this.animations[name] = newValue;
+                    this.animationsIndex[id] = name;
 
-                    if (this.data.currAnim === asset.name) {
+                    if (this.data.currAnim === name) {
                         // restart animation
                         if (this.data.playing && this.data.enabled && this.entity.enabled)
-                            this.play(asset.name, 0);
+                            this.play(name, 0);
                     }
                 } else {
-                    delete this.animations[asset.name];
-                    delete this.animationsIndex[asset.id];
+                    delete this.animations[name];
+                    delete this.animationsIndex[id];
                 }
             }
         },
 
-        onAssetRemoved: function (asset) {
+        onAssetRemoved(asset) {
             asset.off('remove', this.onAssetRemoved, this);
 
             if (this.animations && this.animations[asset.name]) {
@@ -172,7 +173,7 @@ pc.extend(pc, function () {
             }
         },
 
-        _stopCurrentAnimation: function () {
+        _stopCurrentAnimation() {
             this.data.currAnim = null;
             this.data.playing = false;
             if (this.data.skeleton) {
@@ -181,20 +182,20 @@ pc.extend(pc, function () {
             }
         },
 
-        onSetAnimations: function (name, oldValue, newValue) {
-            var data = this.data;
+        onSetAnimations(name, oldValue, newValue) {
+            const data = this.data;
 
             // If we have animations _and_ a model, we can create the skeletons
-            var modelComponent = this.entity.model;
+            const modelComponent = this.entity.model;
             if (modelComponent) {
-                var m = modelComponent.model;
+                const m = modelComponent.model;
                 if (m && m !== data.model) {
                     this.entity.animation.setModel(m);
                 }
             }
 
             if (! data.currAnim && data.activate && data.enabled && this.entity.enabled) {
-                for (var animName in data.animations) {
+                for (const animName in data.animations) {
                     // Set the first loaded animation as the current
                     this.play(animName, 0);
                     break;
@@ -202,17 +203,17 @@ pc.extend(pc, function () {
             }
         },
 
-        onSetAssets: function (name, oldValue, newValue) {
+        onSetAssets(name, oldValue, newValue) {
             if (oldValue && oldValue.length) {
-                for (var i = 0; i < oldValue.length; i++) {
+                for (let i = 0; i < oldValue.length; i++) {
                     // unsubscribe from change event for old assets
                     if (oldValue[i]) {
-                        var asset = this.system.app.assets.get(oldValue[i]);
+                        const asset = this.system.app.assets.get(oldValue[i]);
                         if (asset) {
                             asset.off('change', this.onAssetChanged, this);
                             asset.off('remove', this.onAssetRemoved, this);
 
-                            var animName = this.animationsIndex[asset.id];
+                            const animName = this.animationsIndex[asset.id];
 
                             if (this.data.currAnim === animName)
                                 this._stopCurrentAnimation();
@@ -224,7 +225,7 @@ pc.extend(pc, function () {
                 }
             }
 
-            var ids = newValue.map(function (value) {
+            const ids = newValue.map(value => {
                 if (value instanceof pc.Asset) {
                     return value.id;
                 } else {
@@ -235,27 +236,27 @@ pc.extend(pc, function () {
             this.loadAnimationAssets(ids);
         },
 
-        onSetLoop: function (name, oldValue, newValue) {
+        onSetLoop(name, oldValue, newValue) {
             if (this.data.skeleton) {
                 this.data.skeleton.looping = this.data.loop;
             }
         },
 
-        onSetCurrentTime: function (name, oldValue, newValue) {
+        onSetCurrentTime(name, oldValue, newValue) {
             this.data.skeleton.currentTime = newValue;
             this.data.skeleton.addTime(0); // update
             this.data.skeleton.updateGraph();
         },
 
-        onEnable: function () {
+        onEnable() {
             AnimationComponent._super.onEnable.call(this);
 
             // load assets if they're not loaded
-            var assets = this.data.assets;
-            var registry = this.system.app.assets;
+            const assets = this.data.assets;
+            const registry = this.system.app.assets;
             if (assets) {
-                for (var i = 0, len = assets.length; i < len; i++) {
-                    var asset = assets[i];
+                for (let i = 0, len = assets.length; i < len; i++) {
+                    let asset = assets[i];
                     if (! (asset instanceof pc.Asset))
                         asset = registry.get(asset);
 
@@ -265,16 +266,16 @@ pc.extend(pc, function () {
             }
 
             if (this.data.activate && ! this.data.currAnim) {
-                for (var animName in this.data.animations) {
+                for (const animName in this.data.animations) {
                     this.play(animName, 0);
                     break;
                 }
             }
         },
 
-        onBeforeRemove: function() {
-            for (var i = 0; i < this.assets.length; i++) {
-                var asset = this.system.app.assets.get(this.assets[i]);
+        onBeforeRemove() {
+            for (let i = 0; i < this.assets.length; i++) {
+                const asset = this.system.app.assets.get(this.assets[i]);
                 if (! asset) continue;
 
                 asset.off('change', this.onAssetChanged, this);
@@ -290,10 +291,10 @@ pc.extend(pc, function () {
 
     Object.defineProperties(AnimationComponent.prototype, {
         currentTime: {
-            get: function () {
+            get() {
                 return this.data.skeleton._time;
             },
-            set: function (currentTime) {
+            set(currentTime) {
                 this.data.skeleton.currentTime = currentTime;
                 this.data.skeleton.addTime(0);
                 this.data.skeleton.updateGraph();
@@ -301,13 +302,13 @@ pc.extend(pc, function () {
         },
 
         duration: {
-            get: function () {
+            get() {
                 return this.data.animations[this.data.currAnim].duration;
             }
         }
     });
 
     return {
-        AnimationComponent: AnimationComponent
+        AnimationComponent
     };
-}());
+})());

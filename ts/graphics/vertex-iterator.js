@@ -1,35 +1,33 @@
-pc.extend(pc, function () {
-    'use strict';
-
-    function VertexIteratorSetter(buffer, vertexElement) {
+pc.extend(pc, (() => {
+    function VertexIteratorSetter(buffer, {dataType, offset, numComponents}) {
         this.index = 0;
 
-        switch (vertexElement.dataType) {
+        switch (dataType) {
             case pc.TYPE_INT8:
-                this.array = new Int8Array(buffer, vertexElement.offset);
+                this.array = new Int8Array(buffer, offset);
                 break;
             case pc.TYPE_UINT8:
-                this.array = new Uint8Array(buffer, vertexElement.offset);
+                this.array = new Uint8Array(buffer, offset);
                 break;
             case pc.TYPE_INT16:
-                this.array = new Int16Array(buffer, vertexElement.offset);
+                this.array = new Int16Array(buffer, offset);
                 break;
             case pc.TYPE_UINT16:
-                this.array = new Uint16Array(buffer, vertexElement.offset);
+                this.array = new Uint16Array(buffer, offset);
                 break;
             case pc.TYPE_INT32:
-                this.array = new Int32Array(buffer, vertexElement.offset);
+                this.array = new Int32Array(buffer, offset);
                 break;
             case pc.TYPE_UINT32:
-                this.array = new Uint32Array(buffer, vertexElement.offset);
+                this.array = new Uint32Array(buffer, offset);
                 break;
             case pc.TYPE_FLOAT32:
-                this.array = new Float32Array(buffer, vertexElement.offset);
+                this.array = new Float32Array(buffer, offset);
                 break;
         }
 
         // Methods
-        switch (vertexElement.numComponents) {
+        switch (numComponents) {
             case 1: this.set = VertexIteratorSetter_set1; break;
             case 2: this.set = VertexIteratorSetter_set2; break;
             case 3: this.set = VertexIteratorSetter_set3; break;
@@ -66,27 +64,27 @@ pc.extend(pc, function () {
      * @description Returns a new pc.VertexIterator object.
      * @param {pc.VertexBuffer} vertexBuffer The vertex buffer to be iterated.
      */
-    function VertexIterator(vertexBuffer) {
-        // Store the vertex buffer
-        this.vertexBuffer = vertexBuffer;
+    class VertexIterator {
+        constructor(vertexBuffer) {
+            // Store the vertex buffer
+            this.vertexBuffer = vertexBuffer;
 
-        // Lock the vertex buffer
-        this.buffer = this.vertexBuffer.lock();
+            // Lock the vertex buffer
+            this.buffer = this.vertexBuffer.lock();
 
-        // Create an empty list
-        this.setters = [];
-        this.element = {};
+            // Create an empty list
+            this.setters = [];
+            this.element = {};
 
-        // Add a new 'setter' function for each element
-        var vertexFormat = this.vertexBuffer.getFormat();
-        for (var i = 0; i < vertexFormat.elements.length; i++) {
-            var vertexElement = vertexFormat.elements[i];
-            this.setters[i] = new VertexIteratorSetter(this.buffer, vertexElement);
-            this.element[vertexElement.name] = this.setters[i];
+            // Add a new 'setter' function for each element
+            const vertexFormat = this.vertexBuffer.getFormat();
+            for (let i = 0; i < vertexFormat.elements.length; i++) {
+                const vertexElement = vertexFormat.elements[i];
+                this.setters[i] = new VertexIteratorSetter(this.buffer, vertexElement);
+                this.element[vertexElement.name] = this.setters[i];
+            }
         }
-    }
 
-    VertexIterator.prototype = {
         /**
          * @function
          * @name pc.VertexIterator#next
@@ -103,18 +101,18 @@ pc.extend(pc, function () {
          * iterator.element[pc.SEMANTIC_COLOR].set(0, 0, 255, 255);
          * iterator.end();
          */
-        next: function () {
-            var i = 0;
-            var setters = this.setters;
-            var numSetters = this.setters.length;
-            var vertexFormat = this.vertexBuffer.getFormat();
+        next() {
+            let i = 0;
+            const setters = this.setters;
+            const numSetters = this.setters.length;
+            const vertexFormat = this.vertexBuffer.getFormat();
             while (i < numSetters) {
-                var setter = setters[i++];
+                const setter = setters[i++];
                 // BYTES_PER_ELEMENT is on the instance and constructor for Chrome, Safari and Firefox
                 // but just the constructor for Opera
                 setter.index += vertexFormat.size / setter.array.constructor.BYTES_PER_ELEMENT;
             }
-        },
+        }
 
         /**
          * @function
@@ -133,13 +131,13 @@ pc.extend(pc, function () {
          * iterator.element[pc.SEMANTIC_COLOR].set(0, 0, 255, 255);
          * iterator.end();
          */
-        end: function () {
+        end() {
             // Unlock the vertex buffer
             this.vertexBuffer.unlock();
         }
-    };
+    }
 
     return {
-        VertexIterator: VertexIterator
+        VertexIterator
     };
-}());
+})());

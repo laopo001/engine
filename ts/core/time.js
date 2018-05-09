@@ -1,4 +1,4 @@
-pc.extend(pc, (function () {
+pc.extend(pc, ((() => {
     /**
      * @private
      * @constructor
@@ -6,23 +6,23 @@ pc.extend(pc, (function () {
      * @description Create a new Timer instance.
      * @classdesc A Timer counts milliseconds from when start() is called until when stop() is called.
      */
-    var Timer = function Timer() {
-        this._isRunning = false;
-        this._a = 0;
-        this._b = 0;
-    };
+    class Timer {
+        constructor() {
+            this._isRunning = false;
+            this._a = 0;
+            this._b = 0;
+        }
 
-    Timer.prototype = {
         /**
          * @private
          * @function
          * @name pc.Timer#start
          * @description Start the timer
          */
-        start: function () {
+        start() {
             this._isRunning = true;
             this._a = pc.now();
-        },
+        }
 
         /**
          * @private
@@ -30,10 +30,10 @@ pc.extend(pc, (function () {
          * @name pc.Timer#stop
          * @description Stop the timer
          */
-        stop: function() {
+        stop() {
             this._isRunning = false;
             this._b = pc.now();
-        },
+        }
 
         /**
          * @private
@@ -42,13 +42,13 @@ pc.extend(pc, (function () {
          * @description Get the number of milliseconds that passed between start() and stop() being called
          * @returns {Number} The elapsed milliseconds.
          */
-        getMilliseconds: function() {
+        getMilliseconds() {
             return this._b - this._a;
         }
-    };
+    }
 
     return {
-        Timer: Timer,
+        Timer,
 
         /**
          * @private
@@ -57,8 +57,6 @@ pc.extend(pc, (function () {
          * @description Get current time in milliseconds. Use it to measure time difference. Reference time may differ on different platforms.
          * @returns {Number} The time in milliseconds
          */
-        now: (!window.performance || !window.performance.now || !window.performance.timing)? Date.now : function () {
-            return window.performance.now();
-        }
+        now: (!window.performance || !window.performance.now || !window.performance.timing)? Date.now : () => window.performance.now()
     };
-}()));
+})()));

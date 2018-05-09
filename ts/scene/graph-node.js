@@ -1,10 +1,10 @@
-pc.extend(pc, function () {
-    var scaleCompensatePosTransform = new pc.Mat4();
-    var scaleCompensatePos = new pc.Vec3();
-    var scaleCompensateRot = new pc.Quat();
-    var scaleCompensateRot2 = new pc.Quat();
-    var scaleCompensateScale = new pc.Vec3();
-    var scaleCompensateScaleForParent = new pc.Vec3();
+pc.extend(pc, (() => {
+    const scaleCompensatePosTransform = new pc.Mat4();
+    const scaleCompensatePos = new pc.Vec3();
+    const scaleCompensateRot = new pc.Quat();
+    const scaleCompensateRot2 = new pc.Quat();
+    const scaleCompensateScale = new pc.Vec3();
+    const scaleCompensateScaleForParent = new pc.Vec3();
 
     /**
      * @constructor
@@ -14,98 +14,92 @@ pc.extend(pc, function () {
      * @property {String} name The non-unique name of a graph node.
      * @property {pc.Tags} tags Interface for tagging graph nodes. Tag based searches can be performed using the {@link pc.GraphNode#findByTag} function.
      */
-    var GraphNode = function GraphNode(name) {
-        this.name = typeof name === "string" ? name : "Untitled"; // Non-unique human readable name
-        this.tags = new pc.Tags(this);
+    class GraphNode {
+        constructor(name) {
+            this.name = typeof name === "string" ? name : "Untitled"; // Non-unique human readable name
+            this.tags = new pc.Tags(this);
 
-        this._labels = { };
+            this._labels = { };
 
-        // Local-space properties of transform (only first 3 are settable by the user)
-        this.localPosition = new pc.Vec3(0, 0, 0);
-        this.localRotation = new pc.Quat(0, 0, 0, 1);
-        this.localScale = new pc.Vec3(1, 1, 1);
-        this.localEulerAngles = new pc.Vec3(0, 0, 0); // Only calculated on request
+            // Local-space properties of transform (only first 3 are settable by the user)
+            this.localPosition = new pc.Vec3(0, 0, 0);
+            this.localRotation = new pc.Quat(0, 0, 0, 1);
+            this.localScale = new pc.Vec3(1, 1, 1);
+            this.localEulerAngles = new pc.Vec3(0, 0, 0); // Only calculated on request
 
-        // World-space properties of transform
-        this.position = new pc.Vec3(0, 0, 0);
-        this.rotation = new pc.Quat(0, 0, 0, 1);
-        this.eulerAngles = new pc.Vec3(0, 0, 0);
+            // World-space properties of transform
+            this.position = new pc.Vec3(0, 0, 0);
+            this.rotation = new pc.Quat(0, 0, 0, 1);
+            this.eulerAngles = new pc.Vec3(0, 0, 0);
 
-        this.localTransform = new pc.Mat4();
-        this._dirtyLocal = false;
-        this._aabbVer = 0;
+            this.localTransform = new pc.Mat4();
+            this._dirtyLocal = false;
+            this._aabbVer = 0;
 
-        this.worldTransform = new pc.Mat4();
-        this._dirtyWorld = false;
+            this.worldTransform = new pc.Mat4();
+            this._dirtyWorld = false;
 
-        this.normalMatrix = new pc.Mat3();
-        this._dirtyNormal = true;
+            this.normalMatrix = new pc.Mat3();
+            this._dirtyNormal = true;
 
-        this._right = new pc.Vec3();
-        this._up = new pc.Vec3();
-        this._forward = new pc.Vec3();
+            this._right = new pc.Vec3();
+            this._up = new pc.Vec3();
+            this._forward = new pc.Vec3();
 
-        this._parent = null;
-        this._children = [ ];
+            this._parent = null;
+            this._children = [ ];
 
-        this._enabled = true;
-        this._enabledInHierarchy = false;
+            this._enabled = true;
+            this._enabledInHierarchy = false;
 
-        this.scaleCompensation = false;
-    };
+            this.scaleCompensation = false;
+        }
 
-    /**
-     * @readonly
-     * @name pc.GraphNode#right
-     * @description The normalized local space X-axis vector of the graph node in world space.
-     * @type pc.Vec3
-     */
-    Object.defineProperty(GraphNode.prototype, 'right', {
-        get: function() {
+        /**
+         * @readonly
+         * @name pc.GraphNode#right
+         * @description The normalized local space X-axis vector of the graph node in world space.
+         * @type pc.Vec3
+         */
+        get right() {
             return this.getWorldTransform().getX(this._right).normalize();
         }
-    });
 
-    /**
-     * @readonly
-     * @name pc.GraphNode#up
-     * @description The normalized local space Y-axis vector of the graph node in world space.
-     * @type pc.Vec3
-     */
-    Object.defineProperty(GraphNode.prototype, 'up', {
-        get: function() {
+        /**
+         * @readonly
+         * @name pc.GraphNode#up
+         * @description The normalized local space Y-axis vector of the graph node in world space.
+         * @type pc.Vec3
+         */
+        get up() {
             return this.getWorldTransform().getY(this._up).normalize();
         }
-    });
 
-    /**
-     * @readonly
-     * @name pc.GraphNode#forward
-     * @description The normalized local space negative Z-axis vector of the graph node in world space.
-     * @type pc.Vec3
-     */
-    Object.defineProperty(GraphNode.prototype, 'forward', {
-        get: function() {
+        /**
+         * @readonly
+         * @name pc.GraphNode#forward
+         * @description The normalized local space negative Z-axis vector of the graph node in world space.
+         * @type pc.Vec3
+         */
+        get forward() {
             return this.getWorldTransform().getZ(this._forward).normalize().scale(-1);
         }
-    });
 
-    /**
-     * @name pc.GraphNode#enabled
-     * @type Boolean
-     * @description Enable or disable a GraphNode. If one of the GraphNode's parents is disabled
-     * there will be no other side effects. If all the parents are enabled then
-     * the new value will activate / deactivate all the enabled children of the GraphNode.
-     */
-    Object.defineProperty(GraphNode.prototype, 'enabled', {
-        get: function () {
+        /**
+         * @name pc.GraphNode#enabled
+         * @type Boolean
+         * @description Enable or disable a GraphNode. If one of the GraphNode's parents is disabled
+         * there will be no other side effects. If all the parents are enabled then
+         * the new value will activate / deactivate all the enabled children of the GraphNode.
+         */
+        get enabled() {
             // make sure to check this._enabled too because if that
             // was false when a parent was updated the _enabledInHierarchy
             // flag may not have been updated for optimization purposes
             return this._enabled && this._enabledInHierarchy;
-        },
+        }
 
-        set: function (enabled) {
+        set enabled(enabled) {
             if (this._enabled !== enabled) {
                 this._enabled = enabled;
 
@@ -113,29 +107,25 @@ pc.extend(pc, function () {
                     this._notifyHierarchyStateChanged(this, enabled);
             }
         }
-    });
 
-    /**
-     * @readonly
-     * @name pc.GraphNode#parent
-     * @type pc.GraphNode
-     * @description A read-only property to get a parent graph node
-     */
-    Object.defineProperty(GraphNode.prototype, 'parent', {
-        get: function () {
+        /**
+         * @readonly
+         * @name pc.GraphNode#parent
+         * @type pc.GraphNode
+         * @description A read-only property to get a parent graph node
+         */
+        get parent() {
             return this._parent;
         }
-    });
 
-    /**
-     * @readonly
-     * @name pc.GraphNode#root
-     * @type pc.GraphNode
-     * @description A read-only property to get highest graph node from current node
-     */
-    Object.defineProperty(GraphNode.prototype, 'root', {
-        get: function () {
-            var parent = this._parent;
+        /**
+         * @readonly
+         * @name pc.GraphNode#root
+         * @type pc.GraphNode
+         * @description A read-only property to get highest graph node from current node
+         */
+        get root() {
+            let parent = this._parent;
             if (! parent)
                 return this;
 
@@ -144,26 +134,24 @@ pc.extend(pc, function () {
 
             return parent;
         }
-    });
 
-    /**
-     * @readonly
-     * @name pc.GraphNode#children
-     * @type pc.GraphNode[]
-     * @description A read-only property to get the children of this graph node.
-     */
-    Object.defineProperty(GraphNode.prototype, 'children', {
-        get: function () {
+        /**
+         * @readonly
+         * @name pc.GraphNode#children
+         * @type pc.GraphNode[]
+         * @description A read-only property to get the children of this graph node.
+         */
+        get children() {
             return this._children;
         }
-    });
+    }
 
     pc.extend(GraphNode.prototype, {
-        _notifyHierarchyStateChanged: function (node, enabled) {
+        _notifyHierarchyStateChanged(node, enabled) {
             node._onHierarchyStateChanged(enabled);
 
-            var c = node._children;
-            for (var i=0, len=c.length; i<len; i++) {
+            const c = node._children;
+            for (let i=0, len=c.length; i<len; i++) {
                 if (c[i]._enabled)
                     this._notifyHierarchyStateChanged(c[i], enabled);
             }
@@ -176,16 +164,16 @@ pc.extend(pc, function () {
          * @description Called when the enabled flag of the entity or one of its parents changes.
          * @param {Boolean} enabled true if enabled in the hierarchy, false if disabled.
          */
-        _onHierarchyStateChanged: function (enabled) {
+        _onHierarchyStateChanged(enabled) {
             // Override in derived classes
             this._enabledInHierarchy = enabled;
         },
 
-        _cloneInternal: function (clone) {
+        _cloneInternal(clone) {
             clone.name = this.name;
 
-            var tags = this.tags._list;
-            for (var i = 0; i < tags.length; i++)
+            const tags = this.tags._list;
+            for (let i = 0; i < tags.length; i++)
                 clone.tags.add(tags[i]);
 
             clone._labels = pc.extend(this._labels, {});
@@ -215,8 +203,8 @@ pc.extend(pc, function () {
             clone._enabledInHierarchy = false;
         },
 
-        clone: function () {
-            var clone = new pc.GraphNode();
+        clone() {
+            const clone = new pc.GraphNode();
             this._cloneInternal(clone);
             return clone;
         },
@@ -244,13 +232,13 @@ pc.extend(pc, function () {
          * var entities = parent.find('name', 'Test');
          *
          */
-        find: function (attr, value) {
-            var results = [ ];
-            var len = this._children.length;
-            var i, descendants;
+        find(attr, value) {
+            let results = [ ];
+            const len = this._children.length;
+            let i, descendants;
 
             if (attr instanceof Function) {
-                var fn = attr;
+                const fn = attr;
 
                 for (i = 0; i < len; i++) {
                     if (fn(this._children[i]))
@@ -261,7 +249,7 @@ pc.extend(pc, function () {
                         results = results.concat(descendants);
                 }
             } else {
-                var testValue;
+                let testValue;
 
                 if (this[attr]) {
                     if (this[attr] instanceof Function) {
@@ -296,13 +284,13 @@ pc.extend(pc, function () {
          *     return node.model && node.name === 'head';
          * });
          */
-        findOne: function(attr, value) {
-            var i;
-            var len = this._children.length;
-            var result = null;
+        findOne(attr, value) {
+            let i;
+            const len = this._children.length;
+            let result = null;
 
             if (attr instanceof Function) {
-                var fn = attr;
+                const fn = attr;
 
                 result = fn(this);
                 if (result)
@@ -314,7 +302,7 @@ pc.extend(pc, function () {
                         return this._children[i];
                 }
             } else {
-                var testValue;
+                let testValue;
                 if (this[attr]) {
                     if (this[attr] instanceof Function) {
                         testValue = this[attr]();
@@ -358,15 +346,16 @@ pc.extend(pc, function () {
          * var meatEatingMammalsAndReptiles = node.findByTag([ "carnivore", "mammal" ], [ "carnivore", "reptile" ]);
          * // returns all assets that tagged by (`carnivore` AND `mammal`) OR (`carnivore` AND `reptile`)
          */
-        findByTag: function() {
-            var tags = this.tags._processArguments(arguments);
+        findByTag(...args) {
+            const tags = this.tags._processArguments(args);
             return this._findByTag(tags);
         },
 
-        _findByTag: function(tags) {
-            var result = [ ];
-            var i, len = this._children.length;
-            var descendants;
+        _findByTag(tags) {
+            let result = [ ];
+            let i;
+            const len = this._children.length;
+            let descendants;
 
             for (i = 0; i < len; i++) {
                 if (this._children[i].tags._has(tags))
@@ -388,11 +377,11 @@ pc.extend(pc, function () {
          * @param {String} name The name of the graph.
          * @returns {pc.GraphNode} The first node to be found matching the supplied name.
          */
-        findByName: function (name) {
+        findByName(name) {
             if (this.name === name) return this;
 
-            for (var i = 0; i < this._children.length; i++) {
-                var found = this._children[i].findByName(name);
+            for (let i = 0; i < this._children.length; i++) {
+                const found = this._children[i].findByName(name);
                 if (found !== null) return found;
             }
             return null;
@@ -408,20 +397,20 @@ pc.extend(pc, function () {
          * @example
          * var path = this.entity.findByPath('child/another_child');
          */
-        findByPath: function (path) {
+        findByPath(path) {
             // split the paths in parts. Each part represents a deeper hierarchy level
-            var parts = path.split('/');
-            var currentParent = this;
-            var result = null;
+            const parts = path.split('/');
+            let currentParent = this;
+            let result = null;
 
-            for (var i = 0, imax=parts.length; i < imax && currentParent; i++) {
-                var part = parts[i];
+            for (let i = 0, imax=parts.length; i < imax && currentParent; i++) {
+                const part = parts[i];
 
                 result = null;
 
                 // check all the children
-                var children = currentParent._children;
-                for (var j = 0, jmax = children.length; j < jmax; j++) {
+                const children = currentParent._children;
+                for (let j = 0, jmax = children.length; j < jmax; j++) {
                     if (children[j].name == part) {
                         result = children[j];
                         break;
@@ -443,11 +432,11 @@ pc.extend(pc, function () {
          * @example
          * var path = this.entity.getPath();
          */
-        getPath: function () {
-            var parent = this._parent;
+        getPath() {
+            let parent = this._parent;
             if (parent) {
-                var path = this.name;
-                var format = "{0}/{1}";
+                let path = this.name;
+                const format = "{0}/{1}";
 
                 while (parent && parent._parent) {
                     path = pc.string.format(format, parent.name, path);
@@ -471,8 +460,8 @@ pc.extend(pc, function () {
          * @example
          * var root = this.entity.getRoot();
          */
-        getRoot: function () {
-            var parent = this._parent;
+        getRoot() {
+            let parent = this._parent;
             if (!parent) {
                 return this;
             }
@@ -494,7 +483,7 @@ pc.extend(pc, function () {
          * @example
          * var parent = this.entity.getParent();
          */
-        getParent: function () {
+        getParent() {
             return this._parent;
         },
 
@@ -509,8 +498,8 @@ pc.extend(pc, function () {
          *     // roof is descendant of house entity
          * }
          */
-        isDescendantOf: function (node) {
-            var parent = this._parent;
+        isDescendantOf(node) {
+            let parent = this._parent;
             while (parent) {
                 if (parent === node)
                     return true;
@@ -531,7 +520,7 @@ pc.extend(pc, function () {
          *     // foot is within body's hierarchy
          * }
          */
-        isAncestorOf: function (node) {
+        isAncestorOf(node) {
             return node.isDescendantOf(this);
         },
 
@@ -548,7 +537,7 @@ pc.extend(pc, function () {
          * // children[i]
          * }
          */
-        getChildren: function () {
+        getChildren() {
             return this._children;
         },
 
@@ -565,7 +554,7 @@ pc.extend(pc, function () {
          * angles[1] = 180; // rotate the entity around Y by 180 degrees
          * this.entity.setEulerAngles(angles);
          */
-        getEulerAngles: function () {
+        getEulerAngles() {
             this.getWorldTransform().getEulerAngles(this.eulerAngles);
             return this.eulerAngles;
         },
@@ -583,7 +572,7 @@ pc.extend(pc, function () {
          * angles[1] = 180;
          * this.entity.setLocalEulerAngles(angles);
          */
-        getLocalEulerAngles: function () {
+        getLocalEulerAngles() {
             this.localRotation.getEulerAngles(this.localEulerAngles);
             return this.localEulerAngles;
         },
@@ -600,7 +589,7 @@ pc.extend(pc, function () {
          * position[0] += 1; // move the entity 1 unit along x.
          * this.entity.setLocalPosition(position);
          */
-        getLocalPosition: function () {
+        getLocalPosition() {
             return this.localPosition;
         },
 
@@ -614,7 +603,7 @@ pc.extend(pc, function () {
          * @example
          * var rotation = this.entity.getLocalRotation();
          */
-        getLocalRotation: function () {
+        getLocalRotation() {
             return this.localRotation;
         },
 
@@ -630,7 +619,7 @@ pc.extend(pc, function () {
          * scale.x = 100;
          * this.entity.setLocalScale(scale);
          */
-        getLocalScale: function () {
+        getLocalScale() {
             return this.localScale;
         },
 
@@ -643,7 +632,7 @@ pc.extend(pc, function () {
          * @example
          * var transform = this.entity.getLocalTransform();
          */
-        getLocalTransform: function () {
+        getLocalTransform() {
             if (this._dirtyLocal) {
                 this.localTransform.setTRS(this.localPosition, this.localRotation, this.localScale);
                 this._dirtyLocal = false;
@@ -664,7 +653,7 @@ pc.extend(pc, function () {
          *     console.log("My Entity Found");
          * }
          */
-        getName: function () {
+        getName() {
             return this.name;
         },
 
@@ -680,7 +669,7 @@ pc.extend(pc, function () {
          * position.x = 10;
          * this.entity.setPosition(position);
          */
-        getPosition: function () {
+        getPosition() {
             this.getWorldTransform().getTranslation(this.position);
             return this.position;
         },
@@ -695,7 +684,7 @@ pc.extend(pc, function () {
          * @example
          * var rotation = this.entity.getRotation();
          */
-        getRotation: function () {
+        getRotation() {
             this.rotation.setFromMat4(this.getWorldTransform());
             return this.rotation;
         },
@@ -708,7 +697,7 @@ pc.extend(pc, function () {
          * @example
          * var transform = this.entity.getWorldTransform();
          */
-        getWorldTransform: function () {
+        getWorldTransform() {
             if (! this._dirtyLocal && ! this._dirtyWorld)
                 return this.worldTransform;
 
@@ -727,8 +716,8 @@ pc.extend(pc, function () {
          * @param {pc.GraphNode} parent New parent to attach graph node to
          * @param {Number} index (optional) The child index where the child node should be placed.
          */
-        reparent: function (parent, index) {
-            var current = this._parent;
+        reparent(parent, index) {
+            const current = this._parent;
             if (current)
                 current.removeChild(this);
 
@@ -762,7 +751,7 @@ pc.extend(pc, function () {
          * var angles = new pc.Vec3(0, 90, 0);
          * this.entity.setLocalEulerAngles(angles); // Set rotation of 90 degrees around y-axis.
          */
-        setLocalEulerAngles: function (x, y, z) {
+        setLocalEulerAngles(x, y, z) {
             if (x instanceof pc.Vec3) {
                 this.localRotation.setFromEulerAngles(x.data[0], x.data[1], x.data[2]);
             } else {
@@ -792,7 +781,7 @@ pc.extend(pc, function () {
          * var pos = new pc.Vec3(0, 10, 0);
          * this.entity.setLocalPosition(pos)
          */
-        setLocalPosition: function (x, y, z) {
+        setLocalPosition(x, y, z) {
             if (x instanceof pc.Vec3) {
                 this.localPosition.copy(x);
             } else {
@@ -823,7 +812,7 @@ pc.extend(pc, function () {
          * // Set to the identity quaternion
          * this.entity.setLocalRotation(0, 0, 0, 1);
          */
-        setLocalRotation: function (x, y, z, w) {
+        setLocalRotation(x, y, z, w) {
             if (x instanceof pc.Quat) {
                 this.localRotation.copy(x);
             } else {
@@ -853,7 +842,7 @@ pc.extend(pc, function () {
          * var scale = new pc.Vec3(10, 10, 10);
          * this.entity.setLocalScale(scale);
          */
-        setLocalScale: function (x, y, z) {
+        setLocalScale(x, y, z) {
             if (x instanceof pc.Vec3) {
                 this.localScale.copy(x);
             } else {
@@ -874,11 +863,11 @@ pc.extend(pc, function () {
          * @example
          * this.entity.setName("My Entity");
          */
-        setName: function (name) {
+        setName(name) {
             this.name = name;
         },
 
-        _dirtify: function(local) {
+        _dirtify(local) {
             if ((! local || (local && this._dirtyLocal)) && this._dirtyWorld)
                 return;
 
@@ -888,7 +877,7 @@ pc.extend(pc, function () {
             if (! this._dirtyWorld) {
                 this._dirtyWorld = true;
 
-                var i = this._children.length;
+                let i = this._children.length;
                 while (i--) {
                     if (this._children[i]._dirtyWorld)
                         continue;
@@ -920,9 +909,9 @@ pc.extend(pc, function () {
          * var position = new pc.Vec3(0, 10, 0);
          * this.entity.setPosition(position);
          */
-        setPosition: function () {
-            var position = new pc.Vec3();
-            var invParentWtm = new pc.Mat4();
+        setPosition: (() => {
+            const position = new pc.Vec3();
+            const invParentWtm = new pc.Mat4();
 
             return function (x, y, z) {
                 if (x instanceof pc.Vec3) {
@@ -941,7 +930,7 @@ pc.extend(pc, function () {
                 if (! this._dirtyLocal)
                     this._dirtify(true);
             };
-        }(),
+        })(),
 
         /**
          * @function
@@ -965,9 +954,9 @@ pc.extend(pc, function () {
          * @example
          * this.entity.setRotation(0, 0, 0, 1);
          */
-        setRotation: function () {
-            var rotation = new pc.Quat();
-            var invParentRot = new pc.Quat();
+        setRotation: (() => {
+            const rotation = new pc.Quat();
+            const invParentRot = new pc.Quat();
 
             return function (x, y, z, w) {
                 if (x instanceof pc.Quat) {
@@ -979,7 +968,7 @@ pc.extend(pc, function () {
                 if (this._parent === null) {
                     this.localRotation.copy(rotation);
                 } else {
-                    var parentRot = this._parent.getRotation();
+                    const parentRot = this._parent.getRotation();
                     invParentRot.copy(parentRot).invert();
                     this.localRotation.copy(invParentRot).mul(rotation);
                 }
@@ -987,7 +976,7 @@ pc.extend(pc, function () {
                 if (! this._dirtyLocal)
                     this._dirtify(true);
             };
-        }(),
+        })(),
 
         /**
          * @function
@@ -1010,8 +999,8 @@ pc.extend(pc, function () {
          * var angles = new pc.Vec3(0, 90, 0);
          * this.entity.setEulerAngles(angles);
          */
-        setEulerAngles: function () {
-            var invParentRot = new pc.Quat();
+        setEulerAngles: (() => {
+            const invParentRot = new pc.Quat();
 
             return function (x, y, z) {
                 if (x instanceof pc.Vec3) {
@@ -1021,7 +1010,7 @@ pc.extend(pc, function () {
                 }
 
                 if (this._parent !== null) {
-                    var parentRot = this._parent.getRotation();
+                    const parentRot = this._parent.getRotation();
                     invParentRot.copy(parentRot).invert();
                     this.localRotation.mul2(invParentRot, this.localRotation);
                 }
@@ -1029,7 +1018,7 @@ pc.extend(pc, function () {
                 if (! this._dirtyLocal)
                     this._dirtify(true);
             };
-        }(),
+        })(),
 
         /**
          * @function
@@ -1040,7 +1029,7 @@ pc.extend(pc, function () {
          * var e = new pc.Entity(app);
          * this.entity.addChild(e);
          */
-        addChild: function (node) {
+        addChild(node) {
             if (node._parent !== null)
                 throw new Error("GraphNode is already parented");
 
@@ -1048,11 +1037,11 @@ pc.extend(pc, function () {
             this._onInsertChild(node);
         },
 
-        addChildAndSaveTransform: function(node) {
-            var wPos = node.getPosition();
-            var wRot = node.getRotation();
+        addChildAndSaveTransform(node) {
+            const wPos = node.getPosition();
+            const wRot = node.getRotation();
 
-            var current = node._parent;
+            const current = node._parent;
             if (current)
                 current.removeChild(node);
 
@@ -1079,7 +1068,7 @@ pc.extend(pc, function () {
          * var e = new pc.Entity(app);
          * this.entity.insertChild(e, 1);
          */
-        insertChild: function (node, index) {
+        insertChild(node, index) {
             if (node._parent !== null)
                 throw new Error("GraphNode is already parented");
 
@@ -1087,12 +1076,12 @@ pc.extend(pc, function () {
             this._onInsertChild(node);
         },
 
-        _onInsertChild: function (node) {
+        _onInsertChild(node) {
             node._parent = this;
 
             // the child node should be enabled in the hierarchy only if itself is enabled and if
             // this parent is enabled
-            var enabledInHierarchy = (node._enabled && this.enabled);
+            const enabledInHierarchy = (node._enabled && this.enabled);
             if (node._enabledInHierarchy !== enabledInHierarchy) {
                 node._enabledInHierarchy = enabledInHierarchy;
 
@@ -1119,9 +1108,9 @@ pc.extend(pc, function () {
          * var child = this.entity.children[0];
          * this.entity.removeChild(child);
          */
-        removeChild: function (child) {
-            var i;
-            var length = this._children.length;
+        removeChild(child) {
+            let i;
+            const length = this._children.length;
 
             // Remove from child list
             for (i = 0; i < length; ++i) {
@@ -1146,7 +1135,7 @@ pc.extend(pc, function () {
          * who are enemies.
          * @param {String} label The label to apply to this graph node.
          */
-        addLabel: function (label) {
+        addLabel(label) {
             this._labels[label] = true;
         },
 
@@ -1158,7 +1147,7 @@ pc.extend(pc, function () {
          * @description Get an array of all labels applied to this graph node.
          * @returns {String[]} An array of all labels.
          */
-        getLabels: function () {
+        getLabels() {
             return Object.keys(this._labels);
         },
 
@@ -1172,7 +1161,7 @@ pc.extend(pc, function () {
          * @returns {Boolean} True if the label has been added to this GraphNode.
          *
          */
-        hasLabel: function (label) {
+        hasLabel(label) {
             return !!this._labels[label];
         },
 
@@ -1184,7 +1173,7 @@ pc.extend(pc, function () {
          * @description Remove label from this graph node.
          * @param {String} label The label to remove from this node.
          */
-        removeLabel: function (label) {
+        removeLabel(label) {
             delete this._labels[label];
         },
 
@@ -1198,8 +1187,9 @@ pc.extend(pc, function () {
          * @param {pc.GraphNode[]} [results] An array to store the results in.
          * @returns {pc.GraphNode[]} The array passed in or a new array of results.
          */
-        findByLabel: function (label, results) {
-            var i, length = this._children.length;
+        findByLabel(label, results) {
+            let i;
+            const length = this._children.length;
             results = results || [];
 
             if (this.hasLabel(label)) {
@@ -1213,7 +1203,7 @@ pc.extend(pc, function () {
             return results;
         },
 
-        _sync: function () {
+        _sync() {
             if (this._dirtyLocal) {
                 this.localTransform.setTRS(this.localPosition, this.localRotation, this.localScale);
 
@@ -1225,12 +1215,12 @@ pc.extend(pc, function () {
                     this.worldTransform.copy(this.localTransform);
                 } else {
                     if (this.scaleCompensation) {
-                        var parentWorldScale;
-                        var parent = this._parent;
+                        let parentWorldScale;
+                        const parent = this._parent;
 
                         // Find a parent of the first uncompensated node up in the hierarchy and use its scale * localScale
-                        var scale = this.localScale;
-                        var parentToUseScaleFrom = parent; // current parent
+                        let scale = this.localScale;
+                        let parentToUseScaleFrom = parent; // current parent
                         if (parentToUseScaleFrom) {
                             while (parentToUseScaleFrom && parentToUseScaleFrom.scaleCompensation) {
                                 parentToUseScaleFrom = parentToUseScaleFrom._parent;
@@ -1251,7 +1241,7 @@ pc.extend(pc, function () {
                         scaleCompensateRot.mul2(scaleCompensateRot2, this.localRotation);
 
                         // Find matrix to transform position
-                        var tmatrix = parent.worldTransform;
+                        let tmatrix = parent.worldTransform;
                         if (parent.scaleCompensation) {
                             scaleCompensateScaleForParent.mul2(parentWorldScale, parent.getLocalScale());
                             scaleCompensatePosTransform.setTRS(parent.worldTransform.getTranslation(scaleCompensatePos),
@@ -1277,14 +1267,14 @@ pc.extend(pc, function () {
          * @name pc.GraphNode#syncHierarchy
          * @description Updates the world transformation matrices at this node and all of its descendants.
          */
-        syncHierarchy: function () {
+        syncHierarchy() {
             if (! this._enabled)
                 return;
 
             if (this._dirtyLocal || this._dirtyWorld)
                 this._sync();
 
-            for (var i = 0; i < this._children.length; i++)
+            for (let i = 0; i < this._children.length; i++)
                 this._children[i].syncHierarchy();
         },
 
@@ -1323,11 +1313,11 @@ pc.extend(pc, function () {
          * // Look at 10, 10, 10 with an inverted up value
          * this.entity.lookAt(10, 10, 10, 0, -1, 0);
          */
-        lookAt: function () {
-            var matrix = new pc.Mat4();
-            var target = new pc.Vec3();
-            var up = new pc.Vec3();
-            var rotation = new pc.Quat();
+        lookAt: (() => {
+            const matrix = new pc.Mat4();
+            const target = new pc.Vec3();
+            const up = new pc.Vec3();
+            const rotation = new pc.Quat();
 
             return function (tx, ty, tz, ux, uy, uz) {
                 if (tx instanceof pc.Vec3) {
@@ -1354,7 +1344,7 @@ pc.extend(pc, function () {
                 rotation.setFromMat4(matrix);
                 this.setRotation(rotation);
             };
-        }(),
+        })(),
 
         /**
          * @function
@@ -1375,8 +1365,8 @@ pc.extend(pc, function () {
          * var t = new pc.Vec3(10, 0, 0);
          * this.entity.translate(t);
          */
-        translate: function () {
-            var translation = new pc.Vec3();
+        translate: (() => {
+            const translation = new pc.Vec3();
 
             return function (x, y, z) {
                 if (x instanceof pc.Vec3) {
@@ -1388,7 +1378,7 @@ pc.extend(pc, function () {
                 translation.add(this.getPosition());
                 this.setPosition(translation);
             };
-        }(),
+        })(),
 
         /**
          * @function
@@ -1409,8 +1399,8 @@ pc.extend(pc, function () {
          * var t = new pc.Vec3(10, 0, 0);
          * this.entity.translateLocal(t);
          */
-        translateLocal: function () {
-            var translation = new pc.Vec3();
+        translateLocal: (() => {
+            const translation = new pc.Vec3();
 
             return function (x, y, z) {
                 if (x instanceof pc.Vec3) {
@@ -1425,7 +1415,7 @@ pc.extend(pc, function () {
                 if (! this._dirtyLocal)
                     this._dirtify(true);
             };
-        }(),
+        })(),
 
         /**
          * @function
@@ -1448,9 +1438,9 @@ pc.extend(pc, function () {
          * var r = new pc.Vec3(0, 90, 0);
          * this.entity.rotate(r);
          */
-        rotate: function () {
-            var quaternion = new pc.Quat();
-            var invParentRot = new pc.Quat();
+        rotate: (() => {
+            const quaternion = new pc.Quat();
+            const invParentRot = new pc.Quat();
 
             return function (x, y, z) {
                 if (x instanceof pc.Vec3) {
@@ -1462,8 +1452,8 @@ pc.extend(pc, function () {
                 if (this._parent === null) {
                     this.localRotation.mul2(quaternion, this.localRotation);
                 } else {
-                    var rot = this.getRotation();
-                    var parentRot = this._parent.getRotation();
+                    const rot = this.getRotation();
+                    const parentRot = this._parent.getRotation();
 
                     invParentRot.copy(parentRot).invert();
                     quaternion.mul2(invParentRot, quaternion);
@@ -1473,7 +1463,7 @@ pc.extend(pc, function () {
                 if (! this._dirtyLocal)
                     this._dirtify(true);
             };
-        }(),
+        })(),
 
         /**
          * @function
@@ -1496,8 +1486,8 @@ pc.extend(pc, function () {
          * var r = new pc.Vec3(0, 90, 0);
          * this.entity.rotateLocal(r);
          */
-        rotateLocal: function () {
-            var quaternion = new pc.Quat();
+        rotateLocal: (() => {
+            const quaternion = new pc.Quat();
 
             return function (x, y, z) {
                 if (x instanceof pc.Vec3) {
@@ -1511,10 +1501,10 @@ pc.extend(pc, function () {
                 if (! this._dirtyLocal)
                     this._dirtify(true);
             };
-        }()
+        })()
     });
 
     return {
-        GraphNode: GraphNode
+        GraphNode
     };
-}());
+})());

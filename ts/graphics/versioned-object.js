@@ -1,27 +1,25 @@
-pc.extend(pc, function () {
-    'use strict';
+pc.extend(pc, (() => {
+    let idCounter = 0;
 
-    var idCounter = 0;
+    class VersionedObject {
+        constructor() {
+            // Increment the global object ID counter
+            idCounter++;
 
-    var VersionedObject = function () {
-        // Increment the global object ID counter
-        idCounter++;
+            // Create a version for this object
+            this.version = new pc.Version();
 
-        // Create a version for this object
-        this.version = new pc.Version();
+            // Set the unique object ID
+            this.version.globalId = idCounter;
+        }
 
-        // Set the unique object ID
-        this.version.globalId = idCounter;
-    };
-
-    VersionedObject.prototype = {
-        increment: function () {
+        increment() {
             // Increment the revision number
             this.version.revision++;
         }
-    };
+    }
 
     return {
-        VersionedObject: VersionedObject
+        VersionedObject
     };
-}());
+})());

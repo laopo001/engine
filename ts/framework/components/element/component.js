@@ -1,7 +1,7 @@
-pc.extend(pc, function () {
-    var topMasks = [];
+pc.extend(pc, (() => {
+    const topMasks = [];
 
-    var _debugLogging = false;
+    const _debugLogging = false;
 
     /**
      * @enum pc.ELEMENTTYPE
@@ -22,12 +22,12 @@ pc.extend(pc, function () {
      */
     pc.ELEMENTTYPE_TEXT = 'text';
 
-    var vecA = new pc.Vec3();
-    var vecB = new pc.Vec3();
-    var matA = new pc.Mat4();
-    var matB = new pc.Mat4();
-    var matC = new pc.Mat4();
-    var matD = new pc.Mat4();
+    const vecA = new pc.Vec3();
+    const vecB = new pc.Vec3();
+    const matA = new pc.Mat4();
+    const matB = new pc.Mat4();
+    const matC = new pc.Mat4();
+    const matD = new pc.Mat4();
 
     /**
      * @component
@@ -89,90 +89,521 @@ pc.extend(pc, function () {
      * @property {Array} layers An array of layer IDs ({@link pc.Layer#id}) to which this element should belong.
      * Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
      */
-    var ElementComponent = function ElementComponent (system, entity) {
-        this._anchor = new pc.Vec4();
-        this._localAnchor = new pc.Vec4();
+    class ElementComponent {
+        constructor(system, entity) {
+            this._anchor = new pc.Vec4();
+            this._localAnchor = new pc.Vec4();
 
-        this._pivot = new pc.Vec2();
+            this._pivot = new pc.Vec2();
 
-        this._width = 32;
-        this._height = 32;
+            this._width = 32;
+            this._height = 32;
 
-        this._margin = new pc.Vec4(0,0,-32,-32);
+            this._margin = new pc.Vec4(0,0,-32,-32);
 
-        // the model transform used to render
-        this._modelTransform = new pc.Mat4();
+            // the model transform used to render
+            this._modelTransform = new pc.Mat4();
 
-        this._screenToWorld = new pc.Mat4();
+            this._screenToWorld = new pc.Mat4();
 
-        // transform that updates local position according to anchor values
-        this._anchorTransform = new pc.Mat4();
+            // transform that updates local position according to anchor values
+            this._anchorTransform = new pc.Mat4();
 
-        this._anchorDirty = true;
+            this._anchorDirty = true;
 
-        // transforms to calculate screen coordinates
-        this._parentWorldTransform = new pc.Mat4();
-        this._screenTransform = new pc.Mat4();
+            // transforms to calculate screen coordinates
+            this._parentWorldTransform = new pc.Mat4();
+            this._screenTransform = new pc.Mat4();
 
-        // the corners of the element relative to its screen component.
-        // Order is bottom left, bottom right, top right, top left
-        this._screenCorners = [new pc.Vec3(), new pc.Vec3(), new pc.Vec3(), new pc.Vec3()];
+            // the corners of the element relative to its screen component.
+            // Order is bottom left, bottom right, top right, top left
+            this._screenCorners = [new pc.Vec3(), new pc.Vec3(), new pc.Vec3(), new pc.Vec3()];
 
-        // canvas-space corners of the element.
-        // Order is bottom left, bottom right, top right, top left
-        this._canvasCorners = [new pc.Vec2(), new pc.Vec2(), new pc.Vec2(), new pc.Vec2()];
+            // canvas-space corners of the element.
+            // Order is bottom left, bottom right, top right, top left
+            this._canvasCorners = [new pc.Vec2(), new pc.Vec2(), new pc.Vec2(), new pc.Vec2()];
 
-        // the world-space corners of the element
-        // Order is bottom left, bottom right, top right, top left
-        this._worldCorners = [new pc.Vec3(), new pc.Vec3(), new pc.Vec3(), new pc.Vec3()];
+            // the world-space corners of the element
+            // Order is bottom left, bottom right, top right, top left
+            this._worldCorners = [new pc.Vec3(), new pc.Vec3(), new pc.Vec3(), new pc.Vec3()];
 
-        this._cornersDirty = true;
-        this._canvasCornersDirty = true;
-        this._worldCornersDirty = true;
+            this._cornersDirty = true;
+            this._canvasCornersDirty = true;
+            this._worldCornersDirty = true;
 
-        this.entity.on('insert', this._onInsert, this);
+            this.entity.on('insert', this._onInsert, this);
 
-        this._patch();
+            this._patch();
 
-        this.screen = null;
+            this.screen = null;
 
-        this._type = pc.ELEMENTTYPE_GROUP;
+            this._type = pc.ELEMENTTYPE_GROUP;
 
-        // element types
-        this._image = null;
-        this._text = null;
-        this._group = null;
+            // element types
+            this._image = null;
+            this._text = null;
+            this._group = null;
 
-        // input related
-        this._useInput = false;
+            // input related
+            this._useInput = false;
 
-        this._layers = [pc.LAYERID_UI]; // assign to the default UI layer
-        this._addedModel = null;
+            this._layers = [pc.LAYERID_UI]; // assign to the default UI layer
+            this._addedModel = null;
 
-        this._batchGroupId = -1;
-        // #ifdef DEBUG
-        this._batchGroup = null;
-        // #endif
-    };
+            this._batchGroupId = -1;
+            // #ifdef DEBUG
+            this._batchGroup = null;
+            // #endif
+        }
+
+        get type() {
+            return this._type;
+        }
+
+        set type(value) {
+            if (value !== this._type) {
+                this._type = value;
+
+                if (this._image) {
+                    this._image.destroy();
+                    this._image = null;
+                }
+                if (this._text) {
+                    this._text.destroy();
+                    this._text = null;
+                }
+
+                if (value === pc.ELEMENTTYPE_IMAGE) {
+                    this._image = new pc.ImageElement(this);
+                } else if (value === pc.ELEMENTTYPE_TEXT) {
+                    this._text = new pc.TextElement(this);
+                }
+            }
+        }
+
+        get layers() {
+            return this._layers;
+        }
+
+        set layers(value) {
+            let i, layer;
+
+            if (this._addedModel) {
+                for (i=0; i<this._layers.length; i++) {
+                    layer = this.system.app.scene.layers.getLayerById(this._layers[i]);
+                    if (layer) {
+                        layer.removeMeshInstances(this._addedModel.meshInstances);
+                    }
+                }
+            }
+
+            this._layers = value;
+
+            if (!this.enabled || !this.entity.enabled || ! this._addedModel) return;
+            for (i=0; i<this._layers.length; i++) {
+                layer = this.system.app.scene.layers.getLayerById(this._layers[i]);
+                if (layer) {
+                    layer.addMeshInstances(this._addedModel.meshInstances);
+                }
+            }
+        }
+
+        get drawOrder() {
+            return this._drawOrder;
+        }
+
+        set drawOrder(value) {
+            this._drawOrder = value;
+            this.fire('set:draworder', this._drawOrder);
+        }
+
+        get _absLeft() {
+            return this._localAnchor.data[0] + this._margin.data[0];
+        }
+
+        get _absRight() {
+            return this._localAnchor.data[2] - this._margin.data[2];
+        }
+
+        get _absTop() {
+            return this._localAnchor.data[3] - this._margin.data[3];
+        }
+
+        get _absBottom() {
+            return this._localAnchor.data[1] + this._margin.data[1];
+        }
+
+        get margin() {
+            return this._margin;
+        }
+
+        set margin(value) {
+            this._margin.copy(value);
+            this._calculateSize();
+        }
+
+        get left() {
+            return this._margin.data[0];
+        }
+
+        set left(value) {
+            this._margin.data[0] = value;
+            const p = this.entity.getLocalPosition();
+            const wr = this._absRight;
+            const wl = this._localAnchor.data[0] + value;
+            this._setWidth(wr - wl);
+
+            p.x = value + this._width * this._pivot.data[0];
+            this.entity.setLocalPosition(p);
+        }
+
+        get right() {
+            return this._margin.data[2];
+        }
+
+        set right(value) {
+            this._margin.data[2] = value;
+
+            // update width
+            const p = this.entity.getLocalPosition();
+            const wl = this._absLeft;
+            const wr = this._localAnchor.data[2] - value;
+            this._setWidth(wr - wl);
+
+            // update position
+            p.x = (this._localAnchor.data[2]-this._localAnchor.data[0]) - value - (this._width*(1-this._pivot.data[0]));
+            this.entity.setLocalPosition(p);
+        }
+
+        get top() {
+            return this._margin.data[3];
+        }
+
+        set top(value) {
+            this._margin.data[3] = value;
+            const p = this.entity.getLocalPosition();
+            const wb = this._absBottom;
+            const wt = this._localAnchor.data[3] - value;
+            this._setHeight(wt-wb);
+
+            p.y = (this._localAnchor.data[3] - this._localAnchor.data[1]) - value - this._height*(1-this._pivot.data[1]);
+            this.entity.setLocalPosition(p);
+        }
+
+        get bottom() {
+            return this._margin.data[1];
+        }
+
+        set bottom(value) {
+            this._margin.data[1] = value;
+            const p = this.entity.getLocalPosition();
+            const wt = this._absTop;
+            const wb = this._localAnchor.data[1] + value;
+            this._setHeight(wt-wb);
+
+            p.y = value + this._height*this._pivot.data[1];
+            this.entity.setLocalPosition(p);
+        }
+
+        get width() {
+            return this._width;
+        }
+
+        set width(value) {
+            this._width = value;
+
+            // reset margin data
+            const p = this.entity.getLocalPosition().data;
+            const pvt = this._pivot.data;
+            this._margin.data[0] = p[0] - this._width * pvt[0];
+            this._margin.data[2] = (this._localAnchor.data[2] - this._localAnchor.data[0]) - this._width - this._margin.data[0];
+
+
+            let i, l;
+            const c = this.entity._children;
+            for (i = 0, l = c.length; i < l; i++) {
+                if (c[i].element) {
+                    c[i].element._anchorDirty = true;
+                    c[i].element._sizeDirty = true;
+                }
+            }
+            this.fire('set:width', this._width);
+            this.fire('resize', this._width, this._height);
+        }
+
+        get height() {
+            return this._height;
+        }
+
+        set height(value) {
+            this._height = value;
+
+            // reset margin data
+            const p = this.entity.getLocalPosition().data;
+            const pvt = this._pivot.data;
+            this._margin.data[1] = p[1] - this._height * pvt[1];
+            this._margin.data[3] = (this._localAnchor.data[3]-this._localAnchor.data[1]) - this._height - this._margin.data[1];
+
+            let i, l;
+            const c = this.entity._children;
+            for (i = 0, l = c.length; i < l; i++) {
+                if (c[i].element) {
+                    c[i].element._anchorDirty = true;
+                    c[i].element._sizeDirty = true;
+                }
+            }
+
+            this.fire('set:height', this._height);
+            this.fire('resize', this._width, this._height);
+        }
+
+        get pivot() {
+            return this._pivot;
+        }
+
+        set pivot(value) {
+            const prevX = this._pivot.x;
+            const prevY = this._pivot.y;
+
+            if (value instanceof pc.Vec2) {
+                this._pivot.set(value.x, value.y);
+            } else {
+                this._pivot.set(value[0], value[1]);
+            }
+
+            const mx = this._margin.data[0] + this._margin.data[2];
+            const dx = this._pivot.x - prevX;
+            this._margin.data[0] += mx * dx;
+            this._margin.data[2] -= mx * dx;
+
+            const my = this._margin.data[1] + this._margin.data[3];
+            const dy = this._pivot.y - prevY;
+            this._margin.data[1] += my * dy;
+            this._margin.data[3] -= my * dy;
+
+            this._onScreenResize();
+            this.fire('set:pivot', this._pivot);
+        }
+
+        get anchor() {
+            return this._anchor;
+        }
+
+        set anchor(value) {
+            if (value instanceof pc.Vec4) {
+                this._anchor.set(value.x, value.y, value.z, value.w);
+            } else {
+                this._anchor.set(value[0], value[1], value[2], value[3]);
+            }
+
+
+            if (!this.entity._parent && !this.screen) {
+                this._calculateLocalAnchors();
+            } else {
+                this._calculateSize();
+            }
+
+
+            this._anchorDirty = true;
+
+            if (! this.entity._dirtyLocal)
+                this.entity._dirtify(true);
+
+            this.fire('set:anchor', this._anchor);
+        }
+
+        // Returns the 4 corners of the element relative to its screen component.
+        // Only works for elements that have a screen.
+        // Order is bottom left, bottom right, top right, top left.
+        get screenCorners() {
+            if (! this._cornersDirty || ! this.screen)
+                return this._screenCorners;
+
+            const parentBottomLeft = this.entity.parent && this.entity.parent.element && this.entity.parent.element.screenCorners[0];
+
+            // init corners
+            this._screenCorners[0].set(this._absLeft, this._absBottom, 0);
+            this._screenCorners[1].set(this._absRight, this._absBottom, 0);
+            this._screenCorners[2].set(this._absRight, this._absTop, 0);
+            this._screenCorners[3].set(this._absLeft, this._absTop, 0);
+
+            // transform corners to screen space
+            const screenSpace = this.screen.screen.screenSpace;
+            for (let i = 0; i < 4; i++) {
+                this._screenTransform.transformPoint(this._screenCorners[i], this._screenCorners[i]);
+                if (screenSpace)
+                    this._screenCorners[i].scale(this.screen.screen.scale);
+
+                if (parentBottomLeft) {
+                    this._screenCorners[i].add(parentBottomLeft);
+                }
+            }
+
+            this._cornersDirty = false;
+            this._canvasCornersDirty = true;
+            this._worldCornersDirty = true;
+
+            return this._screenCorners;
+
+        }
+
+        // Returns the 4 corners of the element in canvas pixel space.
+        // Only works for 2D elements.
+        // Order of the corners is bottom left, bottom right, top right, top left.
+        get canvasCorners() {
+            if (! this._canvasCornersDirty || ! this.screen || ! this.screen.screen.screenSpace)
+                return this._canvasCorners;
+
+            const device = this.system.app.graphicsDevice;
+            const screenCorners = this.screenCorners;
+            const sx = device.canvas.clientWidth / device.width;
+            const sy = device.canvas.clientHeight / device.height;
+
+            // scale screen corners to canvas size and reverse y
+            for (let i = 0; i < 4; i++) {
+                this._canvasCorners[i].set(screenCorners[i].x * sx, (device.height - screenCorners[i].y) * sy);
+            }
+
+            this._canvasCornersDirty = false;
+
+            return this._canvasCorners;
+        }
+
+        // Returns the 4 corners of the element in world space. Only works
+        // for 3D elements as the corners of 2D elements in world space will
+        // always depend on the camera that is rendering them. Order of the corners is
+        // bottom left, bottom right, top right, top left
+        get worldCorners() {
+            if (! this._worldCornersDirty) {
+                return this._worldCorners;
+            }
+
+            if (this.screen) {
+                const screenCorners = this.screenCorners;
+
+                if (! this.screen.screen.screenSpace) {
+                    matA.copy(this.screen.screen._screenMatrix);
+
+                    // flip screen matrix along the horizontal axis
+                    matA.data[13] = -matA.data[13];
+
+                    // create transform that brings screen corners to world space
+                    matA.mul2(this.screen.getWorldTransform(), matA);
+
+                    // transform screen corners to world space
+                    for (let i = 0; i < 4; i++) {
+                        matA.transformPoint(screenCorners[i], this._worldCorners[i]);
+                    }
+                }
+            } else {
+                const localPos = this.entity.getLocalPosition();
+
+                // rotate and scale around pivot
+                matA.setTranslate(-localPos.x, -localPos.y, -localPos.z);
+                matB.setTRS(pc.Vec3.ZERO, this.entity.getLocalRotation(), this.entity.getLocalScale());
+                matC.setTranslate(localPos.x, localPos.y, localPos.z);
+
+                matD.copy(this.entity.parent.getWorldTransform());
+                matD.mul(matC).mul(matB).mul(matA);
+
+                // bottom left
+                vecA.set(localPos.x - this.pivot.x * this.width, localPos.y - this.pivot.y * this.height, localPos.z);
+                matD.transformPoint(vecA, this._worldCorners[0]);
+
+                // bottom right
+                vecA.set(localPos.x + (1 - this.pivot.x) * this.width, localPos.y - this.pivot.y * this.height, localPos.z);
+                matD.transformPoint(vecA, this._worldCorners[1]);
+
+                // top right
+                vecA.set(localPos.x + (1 - this.pivot.x) * this.width, localPos.y + (1 - this.pivot.y) * this.height, localPos.z);
+                matD.transformPoint(vecA, this._worldCorners[2]);
+
+                // top left
+                vecA.set(localPos.x - this.pivot.x * this.width, localPos.y + (1 - this.pivot.y) * this.height, localPos.z);
+                matD.transformPoint(vecA, this._worldCorners[3]);
+            }
+
+
+            this._worldCornersDirty = false;
+
+            return this._worldCorners;
+
+        }
+
+        get textWidth() {
+            return this._text ? this._text.width : 0;
+        }
+
+        get textHeight() {
+            return this._text ? this._text.height : 0;
+        }
+
+        get useInput() {
+            return this._useInput;
+        }
+
+        set useInput(value) {
+            if (this._useInput === value)
+                return;
+
+            this._useInput = value;
+
+            if (this.system.app.elementInput) {
+                if (value) {
+                    if (this.enabled && this.entity.enabled) {
+                        this.system.app.elementInput.addElement(this);
+                    }
+                } else {
+                    this.system.app.elementInput.removeElement(this);
+                }
+            }
+
+            this.fire('set:useInput', value);
+        }
+
+        get batchGroupId() {
+            return this._batchGroupId;
+        }
+
+        set batchGroupId(value) {
+            if (this._batchGroupId === value)
+                return;
+
+            if (this._batchGroupId >= 0) this.system.app.batcher._markGroupDirty(this._batchGroupId);
+            if (value >= 0) this.system.app.batcher._markGroupDirty(value);
+
+            if (value < 0 && this._batchGroupId >= 0 && this.enabled && this.entity.enabled) {
+                // re-add model to scene, in case it was removed by batching
+                if (this._image._model) {
+                    this.addModelToLayers(this._image._model);
+                } else if (this._text._model) {
+                    this.addModelToLayers(this._text._model);
+                }
+            }
+
+            this._batchGroupId = value;
+        }
+    }
+
     ElementComponent = pc.inherits(ElementComponent, pc.Component);
 
 
     pc.extend(ElementComponent.prototype, {
-        _patch: function () {
+        _patch() {
             this.entity._sync = this._sync;
             this.entity.setPosition = this._setPosition;
             this.entity.setLocalPosition = this._setLocalPosition;
         },
 
-        _unpatch: function () {
+        _unpatch() {
             this.entity._sync = pc.Entity.prototype._sync;
             this.entity.setPosition = pc.Entity.prototype.setPosition;
             this.entity.setLocalPosition = pc.Entity.prototype.setLocalPosition;
         },
 
-        _setPosition: function () {
-            var position = new pc.Vec3();
-            var invParentWtm = new pc.Mat4();
+        _setPosition: (() => {
+            const position = new pc.Vec3();
+            const invParentWtm = new pc.Mat4();
 
             return function (x, y, z) {
                 if (! this.element.screen)
@@ -191,9 +622,9 @@ pc.extend(pc, function () {
                 if (! this._dirtyLocal)
                     this._dirtify(true);
             };
-        }(),
+        })(),
 
-        _setLocalPosition: function (x, y, z) {
+        _setLocalPosition(x, y, z) {
             if (x instanceof pc.Vec3) {
                 this.localPosition.copy(x);
             } else {
@@ -201,9 +632,9 @@ pc.extend(pc, function () {
             }
 
             // update margin
-            var element = this.element;
-            var p = this.localPosition.data;
-            var pvt = element._pivot.data;
+            const element = this.element;
+            const p = this.localPosition.data;
+            const pvt = element._pivot.data;
             element._margin.data[0] = p[0] - element._width * pvt[0];
             element._margin.data[2] = (element._localAnchor.data[2] - element._localAnchor.data[0]) - element._width - element._margin.data[0];
             element._margin.data[1] = p[1] - element._height * pvt[1];
@@ -215,17 +646,17 @@ pc.extend(pc, function () {
         },
 
         // this method overwrites GraphNode#sync and so operates in scope of the Entity.
-        _sync: function () {
-            var element = this.element;
-            var screen = element.screen;
+        _sync() {
+            const element = this.element;
+            const screen = element.screen;
 
             if (screen) {
 
                 if (element._anchorDirty) {
-                    var resx = 0;
-                    var resy = 0;
-                    var px = 0;
-                    var py = 1;
+                    let resx = 0;
+                    let resy = 0;
+                    let px = 0;
+                    let py = 1;
 
                     if (this._parent && this._parent.element) {
                         // use parent rect
@@ -235,7 +666,7 @@ pc.extend(pc, function () {
                         py = this._parent.element.pivot.y;
                     } else if (screen) {
                         // use screen rect
-                        var resolution = screen.screen.resolution;
+                        const resolution = screen.screen.resolution;
                         resx = resolution.x / screen.screen.scale;
                         resy = resolution.y / screen.screen.scale;
                     }
@@ -258,8 +689,8 @@ pc.extend(pc, function () {
                 this.localTransform.setTRS(this.localPosition, this.localRotation, this.localScale);
 
                 // update margin
-                var p = this.localPosition.data;
-                var pvt = element._pivot.data;
+                const p = this.localPosition.data;
+                const pvt = element._pivot.data;
                 element._margin.data[0] = p[0] - element._width * pvt[0];
                 element._margin.data[2] = (element._localAnchor.data[2] - element._localAnchor.data[0]) - element._width - element._margin.data[0];
                 element._margin.data[1] = p[1] - element._height * pvt[1];
@@ -302,9 +733,9 @@ pc.extend(pc, function () {
                         this.worldTransform.mul2(element._screenToWorld, this.localTransform);
 
                         // update parent world transform
-                        var parentWorldTransform = element._parentWorldTransform;
+                        const parentWorldTransform = element._parentWorldTransform;
                         parentWorldTransform.setIdentity();
-                        var parent = this._parent;
+                        const parent = this._parent;
                         if (parent && parent.element && parent !== screen) {
                             matA.setTRS(pc.Vec3.ZERO, parent.getLocalRotation(), parent.getLocalScale());
                             parentWorldTransform.mul2(parent.element._parentWorldTransform, matA);
@@ -312,10 +743,10 @@ pc.extend(pc, function () {
 
                         // update element transform
                         // rotate and scale around pivot
-                        var depthOffset = vecA;
+                        const depthOffset = vecA;
                         depthOffset.set(0, 0, this.localPosition.z);
 
-                        var pivotOffset = vecB;
+                        const pivotOffset = vecB;
                         pivotOffset.set(element._absLeft + element._pivot.x * element.width, element._absBottom + element._pivot.y * element.height, 0);
 
                         matA.setTranslate(-pivotOffset.x, -pivotOffset.y, -pivotOffset.z);
@@ -336,10 +767,10 @@ pc.extend(pc, function () {
             }
         },
 
-        _onInsert: function (parent) {
+        _onInsert(parent) {
             // when the entity is reparented find a possible new screen and mask
 
-            var result = this._parseUpToScreen();
+            const result = this._parseUpToScreen();
 
             this.entity._dirtify();
 
@@ -348,10 +779,10 @@ pc.extend(pc, function () {
             this._dirtifyMask();
         },
 
-        _dirtifyMask: function () {
-            var parent = this.entity;
+        _dirtifyMask() {
+            let parent = this.entity;
             while (parent) {
-                var next = parent.getParent();
+                const next = parent.getParent();
                 if ((next === null || next.screen) && parent.element) {
                     if (!this.system._prerender || !this.system._prerender.length) {
                         this.system._prerender = [];
@@ -359,33 +790,33 @@ pc.extend(pc, function () {
 
                         if (_debugLogging) console.log('register prerender');
                     }
-                    var i = this.system._prerender.indexOf(this.entity);
+                    const i = this.system._prerender.indexOf(this.entity);
                     if (i >= 0) {
                         this.system._prerender.splice(i, 1);
                     }
-                    var j = this.system._prerender.indexOf(parent);
+                    const j = this.system._prerender.indexOf(parent);
                     if (j < 0) {
                         this.system._prerender.push(parent);
                     }
-                    if (_debugLogging) console.log('set prerender root to: ' + parent.name);
+                    if (_debugLogging) console.log(`set prerender root to: ${parent.name}`);
                 }
 
                 parent = next;
             }
         },
 
-        _onPrerender: function () {
-            var ref = 0;
-            for (var i = 0; i < this.system._prerender.length; i++) {
-                var mask = this.system._prerender[i];
-                if (_debugLogging) console.log('prerender from: ' + mask.name);
+        _onPrerender() {
+            let ref = 0;
+            for (let i = 0; i < this.system._prerender.length; i++) {
+                const mask = this.system._prerender[i];
+                if (_debugLogging) console.log(`prerender from: ${mask.name}`);
                 ref = mask.element.syncMask(ref)+1;
             }
 
             this.system._prerender.length = 0;
         },
 
-        _updateScreen: function (screen) {
+        _updateScreen(screen) {
             if (this.screen && this.screen !== screen) {
                 this.screen.screen.off('set:resolution', this._onScreenResize, this);
                 this.screen.screen.off('set:referenceresolution', this._onScreenResize, this);
@@ -410,8 +841,8 @@ pc.extend(pc, function () {
             this._anchorDirty = true;
 
             // update all child screens
-            var children = this.entity.getChildren();
-            for (var i = 0, l = children.length; i < l; i++) {
+            const children = this.entity.getChildren();
+            for (let i = 0, l = children.length; i < l; i++) {
                 if (children[i].element) children[i].element._updateScreen(screen);
             }
 
@@ -419,14 +850,14 @@ pc.extend(pc, function () {
             if (this.screen) this.screen.screen.syncDrawOrder();
         },
 
-        syncMask: function (ref) {
-            var result = this._parseUpToScreen();
+        syncMask(ref) {
+            const result = this._parseUpToScreen();
             return this._updateMask(result.mask, ref);
         },
 
-        _setMaskedBy: function (mask) {
-            var i, mi, len;
-            var elem = this._image || this._text;
+        _setMaskedBy(mask) {
+            let i, mi, len;
+            const elem = this._image || this._text;
             if (!elem) return;
 
             if (mask) {
@@ -434,10 +865,10 @@ pc.extend(pc, function () {
                 //     // already masked by something else
                 // }
 
-                var ref = mask.element._image._maskRef;
-                if (_debugLogging) console.log("masking: " + this.entity.name + " with " + ref);
-                var sp = new pc.StencilParameters({
-                    ref: ref,
+                const ref = mask.element._image._maskRef;
+                if (_debugLogging) console.log(`masking: ${this.entity.name} with ${ref}`);
+                const sp = new pc.StencilParameters({
+                    ref,
                     func: pc.FUNC_EQUAL
                 });
 
@@ -448,7 +879,7 @@ pc.extend(pc, function () {
 
                 elem._maskedBy = mask;
             } else {
-                if (_debugLogging) console.log("no masking on: " + this.entity.name);
+                if (_debugLogging) console.log(`no masking on: ${this.entity.name}`);
                 // remove mask
                 // restore default material
                 for (i = 0, len = elem._model.meshInstances.length; i<len; i++) {
@@ -459,9 +890,9 @@ pc.extend(pc, function () {
             }
         },
 
-        _getMaskDepth: function () {
-            var depth = 1;
-            var parent = this.entity;
+        _getMaskDepth() {
+            let depth = 1;
+            let parent = this.entity;
 
             while (parent) {
                 parent = parent.getParent();
@@ -475,8 +906,8 @@ pc.extend(pc, function () {
         },
 
         // set the mask ancestor on this entity
-        _updateMask: function (mask, ref) {
-            var i, l, sp, children;
+        _updateMask(mask, ref) {
+            let i, l, sp, children;
 
             if (!ref) ref = 1;
 
@@ -484,7 +915,7 @@ pc.extend(pc, function () {
                 this._setMaskedBy(mask);
 
                 if (this.mask) {
-                    if (_debugLogging) console.log("masking: " + this.entity.name + " with " + ref);
+                    if (_debugLogging) console.log(`masking: ${this.entity.name} with ${ref}`);
 
                     sp = new pc.StencilParameters({
                         ref: ref++,
@@ -494,7 +925,7 @@ pc.extend(pc, function () {
                     this._image._meshInstance.stencilFront = sp;
                     this._image._meshInstance.stencilBack = sp;
                     this._image._maskRef = ref;
-                    if (_debugLogging) console.log("masking from: " + this.entity.name + " with " + ref);
+                    if (_debugLogging) console.log(`masking from: ${this.entity.name} with ${ref}`);
 
                     mask = this.entity;
                 }
@@ -515,12 +946,12 @@ pc.extend(pc, function () {
                     sp = new pc.StencilParameters({
                         func: pc.FUNC_ALWAYS,
                         zpass: pc.STENCILOP_REPLACE,
-                        ref: ref
+                        ref
                     });
                     this._image._meshInstance.stencilFront = sp;
                     this._image._meshInstance.stencilBack = sp;
                     this._image._maskRef = ref;
-                    if (_debugLogging) console.log("masking from: " + this.entity.name + " with " + ref);
+                    if (_debugLogging) console.log(`masking from: ${this.entity.name} with ${ref}`);
                     mask = this.entity;
                 }
 
@@ -539,13 +970,13 @@ pc.extend(pc, function () {
         // search up the parent hierarchy until we reach a screen
         // this screen is the parent screen
         // also searches for masked elements to get the relevant mask
-        _parseUpToScreen: function () {
-            var result = {
+        _parseUpToScreen() {
+            const result = {
                 screen: null,
                 mask: null
             };
 
-            var parent = this.entity._parent;
+            let parent = this.entity._parent;
 
             while (parent && !parent.screen) {
                 if (parent.element && parent.element.mask) {
@@ -560,7 +991,7 @@ pc.extend(pc, function () {
             return result;
         },
 
-        _onScreenResize: function (res) {
+        _onScreenResize(res) {
             this._anchorDirty = true;
             this._cornersDirty = true;
             this._worldCornersDirty = true;
@@ -570,25 +1001,25 @@ pc.extend(pc, function () {
             this.fire('screen:set:resolution', res);
         },
 
-        _onScreenSpaceChange: function () {
+        _onScreenSpaceChange() {
             this.fire('screen:set:screenspace', this.screen.screen.screenSpace);
         },
 
-        _onScreenRemove: function () {
+        _onScreenRemove() {
             this._updateScreen(null);
         },
 
         // store pixel positions of anchor relative to current parent resolution
-        _calculateLocalAnchors: function () {
-            var resx = 1000;
-            var resy = 1000;
-            var parent = this.entity._parent;
+        _calculateLocalAnchors() {
+            let resx = 1000;
+            let resy = 1000;
+            const parent = this.entity._parent;
             if (parent && parent.element) {
                 resx = parent.element.width;
                 resy = parent.element.height;
             } else if (this.screen) {
-                var res = this.screen.screen.resolution;
-                var scale = this.screen.screen.scale;
+                const res = this.screen.screen.resolution;
+                const scale = this.screen.screen.scale;
                 resx = res.x / scale;
                 resy = res.y / scale;
             }
@@ -602,8 +1033,8 @@ pc.extend(pc, function () {
         },
 
         // internal - apply offset x,y to local position and find point in world space
-        getOffsetPosition: function (x, y) {
-            var p = this.entity.getLocalPosition().clone();
+        getOffsetPosition(x, y) {
+            const p = this.entity.getLocalPosition().clone();
 
             p.x += x;
             p.y += y;
@@ -613,7 +1044,7 @@ pc.extend(pc, function () {
             return p;
         },
 
-        onLayersChanged: function(oldComp, newComp) {
+        onLayersChanged(oldComp, newComp) {
             this.addModelToLayers(this._image ? this._image._model : this._text._model);
             oldComp.off("add", this.onLayerAdded, this);
             oldComp.off("remove", this.onLayerRemoved, this);
@@ -621,8 +1052,8 @@ pc.extend(pc, function () {
             newComp.on("remove", this.onLayerRemoved, this);
         },
 
-        onLayerAdded: function(layer) {
-            var index = this.layers.indexOf(layer.id);
+        onLayerAdded(layer) {
+            const index = this.layers.indexOf(layer.id);
             if (index < 0) return;
             if (this._image) {
                 layer.addMeshInstances(this._image._model.meshInstances);
@@ -631,8 +1062,8 @@ pc.extend(pc, function () {
             }
         },
 
-        onLayerRemoved: function(layer) {
-            var index = this.layers.indexOf(layer.id);
+        onLayerRemoved(layer) {
+            const index = this.layers.indexOf(layer.id);
             if (index < 0) return;
             if (this._image) {
                 layer.removeMeshInstances(this._image._model.meshInstances);
@@ -641,7 +1072,7 @@ pc.extend(pc, function () {
             }
         },
 
-        onEnable: function () {
+        onEnable() {
             ElementComponent._super.onEnable.call(this);
             if (this._image) this._image.onEnable();
             if (this._text) this._text.onEnable();
@@ -652,10 +1083,10 @@ pc.extend(pc, function () {
             }
 
             if (this.mask) {
-                var maskDepth = this._getMaskDepth();
+                const maskDepth = this._getMaskDepth();
                 if (maskDepth === 1) {
                     this._topMask = true;
-                    if (topMasks.indexOf(this) < 0) topMasks.push(this);
+                    if (!topMasks.includes(this)) topMasks.push(this);
                 }
             }
 
@@ -666,7 +1097,7 @@ pc.extend(pc, function () {
             }
         },
 
-        onDisable: function () {
+        onDisable() {
             ElementComponent._super.onDisable.call(this);
 
             this.system.app.scene.off("set:layers", this.onLayersChanged, this);
@@ -684,13 +1115,13 @@ pc.extend(pc, function () {
             }
 
             if (this._topMask) {
-                var index = topMasks.indexOf(this);
+                const index = topMasks.indexOf(this);
                 if (index >= 0) topMasks.splice(index, 1);
                 this._topMask = false;
             }
         },
 
-        onRemove: function () {
+        onRemove() {
             this.entity.off('insert', this._onInsert, this);
 
             this._unpatch();
@@ -702,7 +1133,7 @@ pc.extend(pc, function () {
             }
 
             if (this._topMask) {
-                var index = topMasks.indexOf(this);
+                const index = topMasks.indexOf(this);
                 if (index >= 0) topMasks.splice(index, 1);
                 this._topMask = false;
             }
@@ -712,13 +1143,13 @@ pc.extend(pc, function () {
         //   localAnchor, width, height, (local position is updated if anchors are split)
         // assumes these properties are up to date
         //   _margin
-        _calculateSize: function () {
+        _calculateSize() {
             // can't calculate if local anchors are wrong
             if (!this.entity._parent && !this.screen) return;
 
             this._calculateLocalAnchors();
 
-            var p = this.entity.getLocalPosition();
+            const p = this.entity.getLocalPosition();
 
             this._setWidth(this._absRight - this._absLeft);
             this._setHeight(this._absTop - this._absBottom);
@@ -732,11 +1163,11 @@ pc.extend(pc, function () {
         },
 
         // internal set width without updating margin
-        _setWidth: function (w) {
+        _setWidth(w) {
             this._width = w;
 
-            var i,l;
-            var c = this.entity._children;
+            let i, l;
+            const c = this.entity._children;
             for (i = 0, l = c.length; i < l; i++) {
                 if (c[i].element) {
                     c[i].element._anchorDirty = true;
@@ -749,11 +1180,11 @@ pc.extend(pc, function () {
         },
 
         // internal set height without updating margin
-        _setHeight: function (h) {
+        _setHeight(h) {
             this._height = h;
 
-            var i,l;
-            var c = this.entity._children;
+            let i, l;
+            const c = this.entity._children;
             for (i = 0, l = c.length; i < l; i++) {
                 if (c[i].element) {
                     c[i].element._anchorDirty = true;
@@ -765,504 +1196,30 @@ pc.extend(pc, function () {
             this.fire('resize', this._width, this._height);
         },
 
-        addModelToLayers: function(model) {
-            var layer;
+        addModelToLayers(model) {
+            let layer;
             this._addedModel = model;
-            for (var i=0; i<this.layers.length; i++) {
+            for (let i=0; i<this.layers.length; i++) {
                 layer = this.system.app.scene.layers.getLayerById(this.layers[i]);
                 if (!layer) continue;
                 layer.addMeshInstances(model.meshInstances);
             }
         },
 
-        removeModelFromLayers: function(model) {
-            var layer;
+        removeModelFromLayers({meshInstances}) {
+            let layer;
             this._addedModel = null;
-            for (var i=0; i<this.layers.length; i++) {
+            for (let i=0; i<this.layers.length; i++) {
                 layer = this.system.app.scene.layers.getLayerById(this.layers[i]);
                 if (!layer) continue;
-                layer.removeMeshInstances(model.meshInstances);
+                layer.removeMeshInstances(meshInstances);
             }
         }
     });
 
-    Object.defineProperty(ElementComponent.prototype, "type", {
-        get: function () {
-            return this._type;
-        },
-
-        set: function (value) {
-            if (value !== this._type) {
-                this._type = value;
-
-                if (this._image) {
-                    this._image.destroy();
-                    this._image = null;
-                }
-                if (this._text) {
-                    this._text.destroy();
-                    this._text = null;
-                }
-
-                if (value === pc.ELEMENTTYPE_IMAGE) {
-                    this._image = new pc.ImageElement(this);
-                } else if (value === pc.ELEMENTTYPE_TEXT) {
-                    this._text = new pc.TextElement(this);
-                }
-            }
-        }
-    });
-
-    Object.defineProperty(ElementComponent.prototype, "layers", {
-        get: function () {
-            return this._layers;
-        },
-
-        set: function (value) {
-            var i, layer;
-
-            if (this._addedModel) {
-                for (i=0; i<this._layers.length; i++) {
-                    layer = this.system.app.scene.layers.getLayerById(this._layers[i]);
-                    if (layer) {
-                        layer.removeMeshInstances(this._addedModel.meshInstances);
-                    }
-                }
-            }
-
-            this._layers = value;
-
-            if (!this.enabled || !this.entity.enabled || ! this._addedModel) return;
-            for (i=0; i<this._layers.length; i++) {
-                layer = this.system.app.scene.layers.getLayerById(this._layers[i]);
-                if (layer) {
-                    layer.addMeshInstances(this._addedModel.meshInstances);
-                }
-            }
-        }
-    });
-
-    Object.defineProperty(ElementComponent.prototype, "drawOrder", {
-        get: function () {
-            return this._drawOrder;
-        },
-
-        set: function (value) {
-            this._drawOrder = value;
-            this.fire('set:draworder', this._drawOrder);
-        }
-    });
-
-    Object.defineProperty(ElementComponent.prototype, "_absLeft", {
-        get: function () {
-            return this._localAnchor.data[0] + this._margin.data[0];
-        }
-    });
-
-    Object.defineProperty(ElementComponent.prototype, "_absRight", {
-        get: function () {
-            return this._localAnchor.data[2] - this._margin.data[2];
-        }
-    });
-
-    Object.defineProperty(ElementComponent.prototype, "_absTop", {
-        get: function () {
-            return this._localAnchor.data[3] - this._margin.data[3];
-        }
-    });
-
-    Object.defineProperty(ElementComponent.prototype, "_absBottom", {
-        get: function () {
-            return this._localAnchor.data[1] + this._margin.data[1];
-        }
-    });
-
-    Object.defineProperty(ElementComponent.prototype, "margin", {
-        get: function () {
-            return this._margin;
-        },
-
-        set: function (value) {
-            this._margin.copy(value);
-            this._calculateSize();
-        }
-    });
-
-    Object.defineProperty(ElementComponent.prototype, "left", {
-        get: function () {
-            return this._margin.data[0];
-        },
-
-        set: function (value) {
-            this._margin.data[0] = value;
-            var p = this.entity.getLocalPosition();
-            var wr = this._absRight;
-            var wl = this._localAnchor.data[0] + value;
-            this._setWidth(wr - wl);
-
-            p.x = value + this._width * this._pivot.data[0];
-            this.entity.setLocalPosition(p);
-        }
-    });
-
-    Object.defineProperty(ElementComponent.prototype, "right", {
-        get: function () {
-            return this._margin.data[2];
-        },
-
-        set: function (value) {
-            this._margin.data[2] = value;
-
-            // update width
-            var p = this.entity.getLocalPosition();
-            var wl = this._absLeft;
-            var wr = this._localAnchor.data[2] - value;
-            this._setWidth(wr - wl);
-
-            // update position
-            p.x = (this._localAnchor.data[2]-this._localAnchor.data[0]) - value - (this._width*(1-this._pivot.data[0]));
-            this.entity.setLocalPosition(p);
-        }
-    });
-
-    Object.defineProperty(ElementComponent.prototype, "top", {
-        get: function () {
-            return this._margin.data[3];
-        },
-
-        set: function (value) {
-            this._margin.data[3] = value;
-            var p = this.entity.getLocalPosition();
-            var wb = this._absBottom;
-            var wt = this._localAnchor.data[3] - value;
-            this._setHeight(wt-wb);
-
-            p.y = (this._localAnchor.data[3] - this._localAnchor.data[1]) - value - this._height*(1-this._pivot.data[1]);
-            this.entity.setLocalPosition(p);
-        }
-    });
-
-    Object.defineProperty(ElementComponent.prototype, "bottom", {
-        get: function () {
-            return this._margin.data[1];
-        },
-
-        set: function (value) {
-            this._margin.data[1] = value;
-            var p = this.entity.getLocalPosition();
-            var wt = this._absTop;
-            var wb = this._localAnchor.data[1] + value;
-            this._setHeight(wt-wb);
-
-            p.y = value + this._height*this._pivot.data[1];
-            this.entity.setLocalPosition(p);
-        }
-    });
-
-    Object.defineProperty(ElementComponent.prototype, "width", {
-        get: function () {
-            return this._width;
-        },
-
-        set: function (value) {
-            this._width = value;
-
-            // reset margin data
-            var p = this.entity.getLocalPosition().data;
-            var pvt = this._pivot.data;
-            this._margin.data[0] = p[0] - this._width * pvt[0];
-            this._margin.data[2] = (this._localAnchor.data[2] - this._localAnchor.data[0]) - this._width - this._margin.data[0];
-
-
-            var i,l;
-            var c = this.entity._children;
-            for (i = 0, l = c.length; i < l; i++) {
-                if (c[i].element) {
-                    c[i].element._anchorDirty = true;
-                    c[i].element._sizeDirty = true;
-                }
-            }
-            this.fire('set:width', this._width);
-            this.fire('resize', this._width, this._height);
-        }
-    });
-
-    Object.defineProperty(ElementComponent.prototype, "height", {
-        get: function () {
-            return this._height;
-        },
-
-        set: function (value) {
-            this._height = value;
-
-            // reset margin data
-            var p = this.entity.getLocalPosition().data;
-            var pvt = this._pivot.data;
-            this._margin.data[1] = p[1] - this._height * pvt[1];
-            this._margin.data[3] = (this._localAnchor.data[3]-this._localAnchor.data[1]) - this._height - this._margin.data[1];
-
-            var i,l;
-            var c = this.entity._children;
-            for (i = 0, l = c.length; i < l; i++) {
-                if (c[i].element) {
-                    c[i].element._anchorDirty = true;
-                    c[i].element._sizeDirty = true;
-                }
-            }
-
-            this.fire('set:height', this._height);
-            this.fire('resize', this._width, this._height);
-        }
-    });
-
-    Object.defineProperty(ElementComponent.prototype, "pivot", {
-        get: function () {
-            return this._pivot;
-        },
-
-        set: function (value) {
-            var prevX = this._pivot.x;
-            var prevY = this._pivot.y;
-
-            if (value instanceof pc.Vec2) {
-                this._pivot.set(value.x, value.y);
-            } else {
-                this._pivot.set(value[0], value[1]);
-            }
-
-            var mx = this._margin.data[0] + this._margin.data[2];
-            var dx = this._pivot.x - prevX;
-            this._margin.data[0] += mx * dx;
-            this._margin.data[2] -= mx * dx;
-
-            var my = this._margin.data[1] + this._margin.data[3];
-            var dy = this._pivot.y - prevY;
-            this._margin.data[1] += my * dy;
-            this._margin.data[3] -= my * dy;
-
-            this._onScreenResize();
-            this.fire('set:pivot', this._pivot);
-        }
-    });
-
-    Object.defineProperty(ElementComponent.prototype, "anchor", {
-        get: function () {
-            return this._anchor;
-        },
-
-        set: function (value) {
-            if (value instanceof pc.Vec4) {
-                this._anchor.set(value.x, value.y, value.z, value.w);
-            } else {
-                this._anchor.set(value[0], value[1], value[2], value[3]);
-            }
-
-
-            if (!this.entity._parent && !this.screen) {
-                this._calculateLocalAnchors();
-            } else {
-                this._calculateSize();
-            }
-
-
-            this._anchorDirty = true;
-
-            if (! this.entity._dirtyLocal)
-                this.entity._dirtify(true);
-
-            this.fire('set:anchor', this._anchor);
-        }
-    });
-
-
-    // Returns the 4 corners of the element relative to its screen component.
-    // Only works for elements that have a screen.
-    // Order is bottom left, bottom right, top right, top left.
-    Object.defineProperty(ElementComponent.prototype, 'screenCorners', {
-        get: function () {
-            if (! this._cornersDirty || ! this.screen)
-                return this._screenCorners;
-
-            var parentBottomLeft = this.entity.parent && this.entity.parent.element && this.entity.parent.element.screenCorners[0];
-
-            // init corners
-            this._screenCorners[0].set(this._absLeft, this._absBottom, 0);
-            this._screenCorners[1].set(this._absRight, this._absBottom, 0);
-            this._screenCorners[2].set(this._absRight, this._absTop, 0);
-            this._screenCorners[3].set(this._absLeft, this._absTop, 0);
-
-            // transform corners to screen space
-            var screenSpace = this.screen.screen.screenSpace;
-            for (var i = 0; i < 4; i++) {
-                this._screenTransform.transformPoint(this._screenCorners[i], this._screenCorners[i]);
-                if (screenSpace)
-                    this._screenCorners[i].scale(this.screen.screen.scale);
-
-                if (parentBottomLeft) {
-                    this._screenCorners[i].add(parentBottomLeft);
-                }
-            }
-
-            this._cornersDirty = false;
-            this._canvasCornersDirty = true;
-            this._worldCornersDirty = true;
-
-            return this._screenCorners;
-
-        }
-    });
-
-    // Returns the 4 corners of the element in canvas pixel space.
-    // Only works for 2D elements.
-    // Order of the corners is bottom left, bottom right, top right, top left.
-    Object.defineProperty(ElementComponent.prototype, 'canvasCorners', {
-        get: function () {
-            if (! this._canvasCornersDirty || ! this.screen || ! this.screen.screen.screenSpace)
-                return this._canvasCorners;
-
-            var device = this.system.app.graphicsDevice;
-            var screenCorners = this.screenCorners;
-            var sx = device.canvas.clientWidth / device.width;
-            var sy = device.canvas.clientHeight / device.height;
-
-            // scale screen corners to canvas size and reverse y
-            for (var i = 0; i < 4; i++) {
-                this._canvasCorners[i].set(screenCorners[i].x * sx, (device.height - screenCorners[i].y) * sy);
-            }
-
-            this._canvasCornersDirty = false;
-
-            return this._canvasCorners;
-        }
-    });
-
-    // Returns the 4 corners of the element in world space. Only works
-    // for 3D elements as the corners of 2D elements in world space will
-    // always depend on the camera that is rendering them. Order of the corners is
-    // bottom left, bottom right, top right, top left
-    Object.defineProperty(ElementComponent.prototype, 'worldCorners', {
-        get: function () {
-            if (! this._worldCornersDirty) {
-                return this._worldCorners;
-            }
-
-            if (this.screen) {
-                var screenCorners = this.screenCorners;
-
-                if (! this.screen.screen.screenSpace) {
-                    matA.copy(this.screen.screen._screenMatrix);
-
-                    // flip screen matrix along the horizontal axis
-                    matA.data[13] = -matA.data[13];
-
-                    // create transform that brings screen corners to world space
-                    matA.mul2(this.screen.getWorldTransform(), matA);
-
-                    // transform screen corners to world space
-                    for (var i = 0; i < 4; i++) {
-                        matA.transformPoint(screenCorners[i], this._worldCorners[i]);
-                    }
-                }
-            } else {
-                var localPos = this.entity.getLocalPosition();
-
-                // rotate and scale around pivot
-                matA.setTranslate(-localPos.x, -localPos.y, -localPos.z);
-                matB.setTRS(pc.Vec3.ZERO, this.entity.getLocalRotation(), this.entity.getLocalScale());
-                matC.setTranslate(localPos.x, localPos.y, localPos.z);
-
-                matD.copy(this.entity.parent.getWorldTransform());
-                matD.mul(matC).mul(matB).mul(matA);
-
-                // bottom left
-                vecA.set(localPos.x - this.pivot.x * this.width, localPos.y - this.pivot.y * this.height, localPos.z);
-                matD.transformPoint(vecA, this._worldCorners[0]);
-
-                // bottom right
-                vecA.set(localPos.x + (1 - this.pivot.x) * this.width, localPos.y - this.pivot.y * this.height, localPos.z);
-                matD.transformPoint(vecA, this._worldCorners[1]);
-
-                // top right
-                vecA.set(localPos.x + (1 - this.pivot.x) * this.width, localPos.y + (1 - this.pivot.y) * this.height, localPos.z);
-                matD.transformPoint(vecA, this._worldCorners[2]);
-
-                // top left
-                vecA.set(localPos.x - this.pivot.x * this.width, localPos.y + (1 - this.pivot.y) * this.height, localPos.z);
-                matD.transformPoint(vecA, this._worldCorners[3]);
-            }
-
-
-            this._worldCornersDirty = false;
-
-            return this._worldCorners;
-
-        }
-    });
-
-    Object.defineProperty(ElementComponent.prototype, "textWidth", {
-        get: function () {
-            return this._text ? this._text.width : 0;
-        }
-    });
-
-    Object.defineProperty(ElementComponent.prototype, "textHeight", {
-        get: function () {
-            return this._text ? this._text.height : 0;
-        }
-    });
-
-
-    Object.defineProperty(ElementComponent.prototype, "useInput", {
-        get: function () {
-            return this._useInput;
-        },
-        set: function (value) {
-            if (this._useInput === value)
-                return;
-
-            this._useInput = value;
-
-            if (this.system.app.elementInput) {
-                if (value) {
-                    if (this.enabled && this.entity.enabled) {
-                        this.system.app.elementInput.addElement(this);
-                    }
-                } else {
-                    this.system.app.elementInput.removeElement(this);
-                }
-            }
-
-            this.fire('set:useInput', value);
-        }
-    });
-
-    Object.defineProperty(ElementComponent.prototype, "batchGroupId", {
-        get: function () {
-            return this._batchGroupId;
-        },
-        set: function (value) {
-            if (this._batchGroupId === value)
-                return;
-
-            if (this._batchGroupId >= 0) this.system.app.batcher._markGroupDirty(this._batchGroupId);
-            if (value >= 0) this.system.app.batcher._markGroupDirty(value);
-
-            if (value < 0 && this._batchGroupId >= 0 && this.enabled && this.entity.enabled) {
-                // re-add model to scene, in case it was removed by batching
-                if (this._image._model) {
-                    this.addModelToLayers(this._image._model);
-                } else if (this._text._model) {
-                    this.addModelToLayers(this._text._model);
-                }
-            }
-
-            this._batchGroupId = value;
-        }
-    });
-
-    var _define = function (name) {
+    const _define = name => {
         Object.defineProperty(ElementComponent.prototype, name, {
-            get: function () {
+            get() {
                 if (this._text) {
                     return this._text[name];
                 } else if (this._image) {
@@ -1271,7 +1228,7 @@ pc.extend(pc, function () {
                     return null;
                 }
             },
-            set: function (value) {
+            set(value) {
                 if (this._text) {
                     this._text[name] = value;
                 } else if (this._image) {
@@ -1307,9 +1264,9 @@ pc.extend(pc, function () {
     _define("mask");
 
     return {
-        ElementComponent: ElementComponent
+        ElementComponent
     };
-}());
+})());
 
 // Events Documentation
 

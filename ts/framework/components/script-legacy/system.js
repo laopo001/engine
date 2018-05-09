@@ -1,22 +1,22 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
 
-    var _schema = [
+    const _schema = [
         'enabled',
         'scripts',
         'instances',
         'runInTools'
     ];
 
-    var INITIALIZE = "initialize";
-    var POST_INITIALIZE = "postInitialize";
-    var UPDATE = "update";
-    var POST_UPDATE = "postUpdate";
-    var FIXED_UPDATE = "fixedUpdate";
-    var TOOLS_UPDATE = "toolsUpdate";
-    var ON_ENABLE = 'onEnable';
-    var ON_DISABLE = 'onDisable';
+    const INITIALIZE = "initialize";
+    const POST_INITIALIZE = "postInitialize";
+    const UPDATE = "update";
+    const POST_UPDATE = "postUpdate";
+    const FIXED_UPDATE = "fixedUpdate";
+    const TOOLS_UPDATE = "toolsUpdate";
+    const ON_ENABLE = 'onEnable';
+    const ON_DISABLE = 'onDisable';
 
-    var ScriptLegacyComponentSystem = function ScriptLegacyComponentSystem(app) {
+    let ScriptLegacyComponentSystem = function ScriptLegacyComponentSystem(app) {
         this.id = 'script';
         this.description = "Allows the Entity to run JavaScript fragments to implement custom behavior.";
         app.systems.add(this.id, this);
@@ -48,15 +48,15 @@ pc.extend(pc, function () {
     pc.Component._buildAccessors(pc.ScriptLegacyComponent.prototype, _schema);
 
     pc.extend(ScriptLegacyComponentSystem.prototype, {
-        initializeComponentData: function (component, data, properties) {
+        initializeComponentData(component, data, properties) {
             properties = ['runInTools', 'enabled', 'scripts'];
 
             // convert attributes array to dictionary
             if (data.scripts && data.scripts.length) {
-                data.scripts.forEach(function (script) {
+                data.scripts.forEach(script => {
                     if (script.attributes && pc.type(script.attributes) === 'array') {
-                        var dict = {};
-                        for (var i = 0; i < script.attributes.length; i++) {
+                        const dict = {};
+                        for (let i = 0; i < script.attributes.length; i++) {
                             dict[script.attributes[i].name] = script.attributes[i];
                         }
 
@@ -68,10 +68,10 @@ pc.extend(pc, function () {
             ScriptLegacyComponentSystem._super.initializeComponentData.call(this, component, data, properties);
         },
 
-        cloneComponent: function (entity, clone) {
+        cloneComponent({_guid}, clone) {
             // overridden to make sure urls list is duplicated
-            var src = this.dataStore[entity._guid];
-            var data = {
+            const src = this.dataStore[_guid];
+            const data = {
                 runInTools: src.data.runInTools,
                 scripts: [],
                 enabled: src.data.enabled
@@ -79,9 +79,9 @@ pc.extend(pc, function () {
 
             // manually clone scripts so that we don't clone attributes with pc.extend
             // which will result in a stack overflow when extending 'entity' script attributes
-            var scripts = src.data.scripts;
-            for (var i = 0, len = scripts.length; i < len; i++) {
-                var attributes = scripts[i].attributes;
+            const scripts = src.data.scripts;
+            for (let i = 0, len = scripts.length; i < len; i++) {
+                const attributes = scripts[i].attributes;
                 if (attributes) {
                     delete scripts[i].attributes;
                 }
@@ -97,7 +97,7 @@ pc.extend(pc, function () {
             return this.addComponent(clone, data);
         },
 
-        onBeforeRemove: function (entity, component) {
+        onBeforeRemove(entity, component) {
             // if the script component is enabled
             // call onDisable on all its instances first
             if (component.enabled) {
@@ -108,7 +108,7 @@ pc.extend(pc, function () {
             this._destroyScriptComponent(component);
         },
 
-        onInitialize: function (root) {
+        onInitialize(root) {
             this._registerInstances(root);
 
             if (root.enabled) {
@@ -116,8 +116,9 @@ pc.extend(pc, function () {
                     this._initializeScriptComponent(root.script);
                 }
 
-                var children = root._children;
-                var i, len = children.length;
+                const children = root._children;
+                let i;
+                const len = children.length;
                 for (i = 0; i < len; i++) {
                     if (children[i] instanceof pc.Entity) {
                         this.onInitialize(children[i]);
@@ -126,14 +127,15 @@ pc.extend(pc, function () {
             }
         },
 
-        onPostInitialize: function (root) {
-            if (root.enabled) {
-                if (root.script && root.script.enabled) {
-                    this._postInitializeScriptComponent(root.script);
+        onPostInitialize({enabled, script, _children}) {
+            if (enabled) {
+                if (script && script.enabled) {
+                    this._postInitializeScriptComponent(script);
                 }
 
-                var children = root._children;
-                var i, len = children.length;
+                const children = _children;
+                let i;
+                const len = children.length;
                 for (i = 0; i < len; i++) {
                     if (children[i] instanceof pc.Entity) {
                         this.onPostInitialize(children[i]);
@@ -142,11 +144,11 @@ pc.extend(pc, function () {
             }
         },
 
-        _callInstancesMethod: function (script, method) {
-            var instances = script.data.instances;
-            for (var name in instances) {
+        _callInstancesMethod({data}, method) {
+            const instances = data.instances;
+            for (const name in instances) {
                 if (instances.hasOwnProperty(name)) {
-                    var instance = instances[name].instance;
+                    const instance = instances[name].instance;
                     if (instance[method]) {
                         instance[method].call(instance);
                     }
@@ -154,7 +156,7 @@ pc.extend(pc, function () {
             }
         },
 
-        _initializeScriptComponent: function (script) {
+        _initializeScriptComponent(script) {
             this._callInstancesMethod(script, INITIALIZE);
             script.data.initialized = true;
 
@@ -165,20 +167,20 @@ pc.extend(pc, function () {
             }
         },
 
-        _enableScriptComponent: function (script) {
+        _enableScriptComponent(script) {
             this._callInstancesMethod(script, ON_ENABLE);
         },
 
-        _disableScriptComponent: function (script) {
+        _disableScriptComponent(script) {
             this._callInstancesMethod(script, ON_DISABLE);
         },
 
-        _destroyScriptComponent: function (script) {
-            var index;
-            var instances = script.data.instances;
-            for (var name in instances) {
+        _destroyScriptComponent(script) {
+            let index;
+            const instances = script.data.instances;
+            for (const name in instances) {
                 if (instances.hasOwnProperty(name)) {
-                    var instance = instances[name].instance;
+                    const instance = instances[name].instance;
                     if (instance.destroy) {
                         instance.destroy();
                     }
@@ -219,14 +221,14 @@ pc.extend(pc, function () {
             }
         },
 
-        _postInitializeScriptComponent: function (script) {
+        _postInitializeScriptComponent(script) {
             this._callInstancesMethod(script, POST_INITIALIZE);
             script.data.postInitialized = true;
         },
 
-        _updateInstances: function (method, updateList, dt) {
-            var item;
-            for (var i=0, len=updateList.length; i<len; i++) {
+        _updateInstances(method, updateList, dt) {
+            let item;
+            for (let i=0, len=updateList.length; i<len; i++) {
                 item = updateList[i];
                 if (item && item.entity && item.entity.enabled && item.entity.script.enabled) {
                     item[method].call(item, dt);
@@ -234,28 +236,28 @@ pc.extend(pc, function () {
             }
         },
 
-        onUpdate: function (dt) {
+        onUpdate(dt) {
             this._updateInstances(UPDATE, this.instancesWithUpdate, dt);
         },
 
-        onFixedUpdate: function (dt) {
+        onFixedUpdate(dt) {
             this._updateInstances(FIXED_UPDATE, this.instancesWithFixedUpdate, dt);
         },
 
-        onPostUpdate: function (dt) {
+        onPostUpdate(dt) {
             this._updateInstances(POST_UPDATE, this.instancesWithPostUpdate, dt);
         },
 
-        onToolsUpdate: function (dt) {
+        onToolsUpdate(dt) {
             this._updateInstances(TOOLS_UPDATE, this.instancesWithToolsUpdate, dt);
         },
 
-        broadcast: function (name, functionName) {
+        broadcast(name, functionName) {
             console.warn("DEPRECATED: ScriptLegacyComponentSystem.broadcast() is deprecated and will be removed soon. Please use: http://developer.playcanvas.com/user-manual/scripting/communication/");
-            var args = pc.makeArray(arguments).slice(2);
+            const args = pc.makeArray(arguments).slice(2);
 
-            var id, data, fn;
-            var dataStore = this.store;
+            let id, data, fn;
+            const dataStore = this.store;
             // var results = [];
 
             for (id in dataStore) {
@@ -271,22 +273,22 @@ pc.extend(pc, function () {
             }
         },
 
-        _preRegisterInstance: function (entity, url, name, instance) {
-            if (entity.script) {
-                entity.script.data._instances = entity.script.data._instances || {};
-                if (entity.script.data._instances[name]) {
-                    throw Error(pc.string.format("Script name collision '{0}'. Scripts from '{1}' and '{2}' {{3}}", name, url, entity.script.data._instances[name].url, entity._guid));
+        _preRegisterInstance({script, _guid}, url, name, instance) {
+            if (script) {
+                script.data._instances = script.data._instances || {};
+                if (script.data._instances[name]) {
+                    throw Error(pc.string.format("Script name collision '{0}'. Scripts from '{1}' and '{2}' {{3}}", name, url, script.data._instances[name].url, _guid));
                 }
-                entity.script.data._instances[name] = {
-                    url: url,
-                    name: name,
-                    instance: instance
+                script.data._instances[name] = {
+                    url,
+                    name,
+                    instance
                 };
             }
         },
 
-        _registerInstances: function (entity) {
-            var preRegistered, instance, instanceName;
+        _registerInstances(entity) {
+            let preRegistered, instance, instanceName;
 
             if (entity.script) {
                 if (entity.script.data._instances) {
@@ -332,8 +334,9 @@ pc.extend(pc, function () {
 
             }
 
-            var children = entity._children;
-            var i, len = children.length;
+            const children = entity._children;
+            let i;
+            const len = children.length;
             for (i = 0; i < len; i++) {
                 if (children[i] instanceof pc.Entity) {
                     this._registerInstances(children[i]);
@@ -341,10 +344,10 @@ pc.extend(pc, function () {
             }
         },
 
-        _cloneAttributes: function (attributes) {
-            var result = {};
+        _cloneAttributes(attributes) {
+            const result = {};
 
-            for (var key in attributes) {
+            for (const key in attributes) {
                 if (!attributes.hasOwnProperty(key))
                     continue;
 
@@ -352,7 +355,7 @@ pc.extend(pc, function () {
                     result[key] = pc.extend({}, attributes[key]);
                 } else {
                     // don't pc.extend an entity
-                    var val = attributes[key].value;
+                    const val = attributes[key].value;
                     delete attributes[key].value;
 
                     result[key] = pc.extend({}, attributes[key]);
@@ -365,18 +368,18 @@ pc.extend(pc, function () {
             return result;
         },
 
-        _createAccessors: function (entity, instance) {
-            var self = this;
-            var i;
-            var len = entity.script.scripts.length;
-            var url = instance.url;
+        _createAccessors(entity, instance) {
+            const self = this;
+            let i;
+            const len = entity.script.scripts.length;
+            const url = instance.url;
 
             for (i=0; i<len; i++) {
-                var script = entity.script.scripts[i];
+                const script = entity.script.scripts[i];
                 if (script.url === url) {
-                    var attributes = script.attributes;
+                    const attributes = script.attributes;
                     if (script.name && attributes) {
-                        for (var key in attributes) {
+                        for (const key in attributes) {
                             if (attributes.hasOwnProperty(key)) {
                                 self._createAccessor(attributes[key], instance);
                             }
@@ -389,8 +392,8 @@ pc.extend(pc, function () {
             }
         },
 
-        _createAccessor: function (attribute, instance) {
-            var self = this;
+        _createAccessor(attribute, instance) {
+            const self = this;
 
             // create copy of attribute data
             // to avoid overwriting the same attribute values
@@ -404,11 +407,11 @@ pc.extend(pc, function () {
             self._convertAttributeValue(attribute);
 
             Object.defineProperty(instance.instance, attribute.name, {
-                get: function () {
+                get() {
                     return attribute.value;
                 },
-                set: function (value) {
-                    var oldValue = attribute.value;
+                set(value) {
+                    const oldValue = attribute.value;
                     attribute.value = value;
                     self._convertAttributeValue(attribute);
                     instance.instance.fire("set", attribute.name, oldValue, attribute.value);
@@ -417,15 +420,15 @@ pc.extend(pc, function () {
             });
         },
 
-        _updateAccessors: function (entity, instance) {
-            var self = this;
-            var i;
-            var len = entity.script.scripts.length;
-            var key;
-            var url = instance.url;
-            var scriptComponent, script, name, attributes;
-            var previousAttributes;
-            var oldAttribute;
+        _updateAccessors(entity, instance) {
+            const self = this;
+            let i;
+            const len = entity.script.scripts.length;
+            let key;
+            const url = instance.url;
+            let scriptComponent, script, name, attributes;
+            let previousAttributes;
+            let oldAttribute;
 
             for (i=0; i<len; i++) {
                 scriptComponent = entity.script;
@@ -473,7 +476,7 @@ pc.extend(pc, function () {
             }
         },
 
-        _convertAttributeValue: function (attribute) {
+        _convertAttributeValue(attribute) {
             if (attribute.type === 'rgb' || attribute.type === 'rgba') {
                 if (pc.type(attribute.value) === 'array') {
                     attribute.value = attribute.value.length === 3 ?
@@ -497,7 +500,7 @@ pc.extend(pc, function () {
                     attribute.value = this.app.root.findByGuid(attribute.value);
 
             } else if (attribute.type === 'curve' || attribute.type === 'colorcurve') {
-                var curveType = attribute.value.keys[0] instanceof Array ? pc.CurveSet : pc.Curve;
+                const curveType = attribute.value.keys[0] instanceof Array ? pc.CurveSet : pc.Curve;
                 attribute.value = new curveType(attribute.value.keys);
                 attribute.value.type = attribute.value.type;
             }
@@ -505,6 +508,6 @@ pc.extend(pc, function () {
     });
 
     return {
-        ScriptLegacyComponentSystem: ScriptLegacyComponentSystem
+        ScriptLegacyComponentSystem
     };
-}());
+})());

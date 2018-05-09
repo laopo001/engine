@@ -1,7 +1,5 @@
-pc.extend(pc, function () {
-    'use strict';
-
-    var _typeSize = [];
+pc.extend(pc, (() => {
+    const _typeSize = [];
     _typeSize[pc.TYPE_INT8] = 1;
     _typeSize[pc.TYPE_UINT8] = 1;
     _typeSize[pc.TYPE_INT16] = 2;
@@ -66,8 +64,8 @@ pc.extend(pc, function () {
      *     { semantic: pc.SEMANTIC_COLOR, components: 4, type: pc.TYPE_UINT8, normalize: true }
      * ]);
      */
-    var VertexFormat = function (graphicsDevice, description) {
-        var i, len, element;
+    const VertexFormat = function({scope}, description) {
+        let i, len, element;
 
         this.elements = [];
         this.hasUv0 = false;
@@ -76,13 +74,13 @@ pc.extend(pc, function () {
 
         this.size = 0;
         for (i = 0, len = description.length; i < len; i++) {
-            var elementDesc = description[i];
+            const elementDesc = description[i];
             element = {
                 name: elementDesc.semantic,
                 offset: 0,
                 stride: 0,
                 stream: -1,
-                scopeId: graphicsDevice.scope.resolve(elementDesc.semantic),
+                scopeId: scope.resolve(elementDesc.semantic),
                 dataType: elementDesc.type,
                 numComponents: elementDesc.components,
                 normalize: (elementDesc.normalize === undefined) ? false : elementDesc.normalize,
@@ -100,7 +98,7 @@ pc.extend(pc, function () {
             }
         }
 
-        var offset = 0;
+        let offset = 0;
         for (i = 0, len = this.elements.length; i < len; i++) {
             element = this.elements[i];
 
@@ -112,6 +110,6 @@ pc.extend(pc, function () {
     };
 
     return {
-        VertexFormat: VertexFormat
+        VertexFormat
     };
-}());
+})());

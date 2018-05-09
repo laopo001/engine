@@ -1,7 +1,5 @@
-pc.extend(pc, function () {
-    'use strict';
-
-    var Channel;
+pc.extend(pc, (() => {
+    let Channel;
 
     if (pc.AudioManager.hasAudioContext()) {
         /**
@@ -34,7 +32,7 @@ pc.extend(pc, function () {
             this.manager = manager;
 
             this.source = null;
-            var context = manager.context;
+            const context = manager.context;
             this.gain = context.createGain();
         };
 
@@ -45,7 +43,7 @@ pc.extend(pc, function () {
              * @name pc.Channel#play
              * @description Begin playback of sound
              */
-            play: function () {
+            play() {
                 if (this.source) {
                     throw new Error('Call stop() before calling play()');
                 }
@@ -79,7 +77,7 @@ pc.extend(pc, function () {
              * @name pc.Channel#pause
              * @description Pause playback of sound. Call unpause() to resume playback from the same position
              */
-            pause: function () {
+            pause() {
                 if (this.source) {
                     this.paused = true;
 
@@ -95,7 +93,7 @@ pc.extend(pc, function () {
              * @name pc.Channel#unpause
              * @description Resume playback of the sound. Playback resumes at the point that the audio was paused
              */
-            unpause: function () {
+            unpause() {
                 if (this.source || !this.paused) {
                     console.warn('Call pause() before unpausing.');
                     return;
@@ -123,7 +121,7 @@ pc.extend(pc, function () {
              * @name pc.Channel#stop
              * @description Stop playback of sound. Calling play() again will restart playback from the beginning of the sound.
              */
-            stop: function () {
+            stop() {
                 if (this.source) {
                     this.source.stop(0);
                     this.source = null;
@@ -141,7 +139,7 @@ pc.extend(pc, function () {
              * @description Enable/disable the loop property to make the sound restart from the beginning when it reaches the end.
              * @param {Boolean} loop true to loop the sound, false otherwise.
              */
-            setLoop: function (loop) {
+            setLoop(loop) {
                 this.loop = loop;
                 if (this.source) {
                     this.source.loop = loop;
@@ -155,7 +153,7 @@ pc.extend(pc, function () {
              * @description Set the volume of playback between 0 and 1.
              * @param {Number} volume The volume of the sound. Will be clamped between 0 and 1.
              */
-            setVolume: function (volume) {
+            setVolume(volume) {
                 volume = pc.math.clamp(volume, 0, 1);
                 this.volume = volume;
                 if (this.gain) {
@@ -163,18 +161,18 @@ pc.extend(pc, function () {
                 }
             },
 
-            setPitch: function (pitch) {
+            setPitch(pitch) {
                 this.pitch = pitch;
                 if (this.source) {
                     this.source.playbackRate.value = pitch;
                 }
             },
 
-            isPlaying: function () {
+            isPlaying() {
                 return (!this.paused && (this.source.playbackState === this.source.PLAYING_STATE));
             },
 
-            getDuration: function () {
+            getDuration() {
                 if (this.source) {
                     return this.source.buffer.duration;
                 } else {
@@ -182,8 +180,8 @@ pc.extend(pc, function () {
                 }
             },
 
-            _createSource: function () {
-                var context = this.manager.context;
+            _createSource() {
+                const context = this.manager.context;
 
                 if (this.sound.buffer) {
                     this.source = context.createBufferSource();
@@ -201,11 +199,11 @@ pc.extend(pc, function () {
             }
         };
     } else if (pc.AudioManager.hasAudio()) {
-        Channel = function (manager, sound, options) {
-            this.volume = options.volume || 1;
-            this.loop = options.loop || false;
+        Channel = function(manager, sound, {volume, loop, pitch}) {
+            this.volume = volume || 1;
+            this.loop = loop || false;
             this.sound = sound;
-            this.pitch = options.pitch !== undefined ? options.pitch : 1;
+            this.pitch = pitch !== undefined ? pitch : 1;
 
             this.paused = false;
             this.suspended = false;
@@ -220,7 +218,7 @@ pc.extend(pc, function () {
         };
 
         Channel.prototype = {
-            play: function () {
+            play() {
                 if (this.source) {
                     this.paused = false;
                     this.setVolume(this.volume);
@@ -239,21 +237,21 @@ pc.extend(pc, function () {
 
             },
 
-            pause: function () {
+            pause() {
                 if (this.source) {
                     this.paused = true;
                     this.source.pause();
                 }
             },
 
-            unpause: function () {
+            unpause() {
                 if (this.source) {
                     this.paused = false;
                     this.source.play();
                 }
             },
 
-            stop: function () {
+            stop() {
                 if (this.source) {
                     this.source.pause();
                 }
@@ -263,7 +261,7 @@ pc.extend(pc, function () {
                 this.manager.off('resume', this.onManagerResume, this);
             },
 
-            setVolume: function (volume) {
+            setVolume(volume) {
                 volume = pc.math.clamp(volume, 0, 1);
                 this.volume = volume;
                 if (this.source) {
@@ -271,23 +269,23 @@ pc.extend(pc, function () {
                 }
             },
 
-            setLoop: function (loop) {
+            setLoop(loop) {
                 this.loop = loop;
                 if (this.source) {
                     this.source.loop = loop;
                 }
             },
 
-            setPitch: function (pitch) {
+            setPitch(pitch) {
                 this.pitch = pitch;
                 if (this.source) {
                     this.source.playbackRate = pitch;
                 }
             },
 
-            getDuration: function () {
+            getDuration() {
                 if (this.source) {
-                    var d = this.source.duration;
+                    const d = this.source.duration;
                     if (d === d) {
                         // Not NaN
                         return d;
@@ -297,12 +295,12 @@ pc.extend(pc, function () {
                 return 0;
             },
 
-            isPlaying: function () {
+            isPlaying() {
                 return !this.source.paused;
             }
         };
     } else {
-        Channel = function () {
+        Channel = () => {
         };
     }
 
@@ -315,7 +313,7 @@ pc.extend(pc, function () {
          * @description Get the current value for the volume. Between 0 and 1.
          * @returns {Number} The volume of the channel.
          */
-        getVolume: function () {
+        getVolume() {
             return this.volume;
         },
 
@@ -326,7 +324,7 @@ pc.extend(pc, function () {
          * @description Get the current looping state of the Channel
          * @returns {Boolean} The loop property for the channel.
          */
-        getLoop: function () {
+        getLoop() {
             return this.loop;
         },
 
@@ -337,7 +335,7 @@ pc.extend(pc, function () {
          * @description Get the current pitch of the Channel
          * @returns {Number} The pitch of the channel.
          */
-        getPitch: function () {
+        getPitch() {
             return this.pitch;
         },
 
@@ -347,7 +345,7 @@ pc.extend(pc, function () {
          * @name pc.Channel#onManagerVolumeChange
          * @description Handle the manager's 'volumechange' event.
          */
-        onManagerVolumeChange: function () {
+        onManagerVolumeChange() {
             this.setVolume(this.getVolume());
         },
 
@@ -357,7 +355,7 @@ pc.extend(pc, function () {
          * @name pc.Channel#onManagerSuspend
          * @description Handle the manager's 'suspend' event.
          */
-        onManagerSuspend: function () {
+        onManagerSuspend() {
             if (this.isPlaying() && !this.suspended) {
                 this.suspended = true;
                 this.pause();
@@ -370,7 +368,7 @@ pc.extend(pc, function () {
          * @name pc.Channel#onManagerResume
          * @description Handle the manager's 'resume' event.
          */
-        onManagerResume: function () {
+        onManagerResume() {
             if (this.suspended) {
                 this.suspended = false;
                 this.unpause();
@@ -379,6 +377,6 @@ pc.extend(pc, function () {
     });
 
     return {
-        Channel: Channel
+        Channel
     };
-}());
+})());

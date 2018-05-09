@@ -1,6 +1,6 @@
-pc.extend(pc, function () {
-    var _morphMin = new pc.Vec3();
-    var _morphMax = new pc.Vec3();
+pc.extend(pc, (() => {
+    const _morphMin = new pc.Vec3();
+    const _morphMax = new pc.Vec3();
 
     /**
      * @private
@@ -18,14 +18,14 @@ pc.extend(pc, function () {
      * @param {String} [name] Name
      * @param {pc.BoundingBox} [aabb] Bounding box. Will be automatically generated, if undefined.
      */
-    var MorphTarget = function (options) {
+    const MorphTarget = function (options) {
         if (options.indices) {
             this.indices = options.indices;
         } else {
-            var arr = options.deltaPositions;
+            const arr = options.deltaPositions;
             this.indices = [];
             this.indices.length = arr.length;
-            for (var i=0; i<arr.length; i++) {
+            for (let i=0; i<arr.length; i++) {
                 this.indices[i] = i;
             }
         }
@@ -43,7 +43,7 @@ pc.extend(pc, function () {
      * @classdesc Contains a list of pc.MorphTarget, a combined AABB and some associated data.
      * @param {pc.MoprhTarget[]} targets A list of morph targets
      */
-    var Morph = function (targets) {
+    const Morph = function (targets) {
         this.aabb = new pc.BoundingBox();
 
         this._baseBuffer = null;
@@ -62,18 +62,18 @@ pc.extend(pc, function () {
     pc.extend(Morph.prototype, {
 
         // called if the mesh is changed
-        _setBaseMesh: function (baseMesh) {
-            this._baseBuffer = baseMesh.vertexBuffer;
-            this._baseAabb = baseMesh._aabb;
+        _setBaseMesh({vertexBuffer, _aabb}) {
+            this._baseBuffer = vertexBuffer;
+            this._baseAabb = _aabb;
 
             this._baseData = new Float32Array(this._baseBuffer.storage);
 
-            var offsetP = -1;
-            var offsetN = -1;
-            var offsetT = -1;
-            var elems = this._baseBuffer.format.elements;
-            var vertSize = this._baseBuffer.format.size;
-            for (var j=0; j<elems.length; j++) {
+            let offsetP = -1;
+            let offsetN = -1;
+            let offsetT = -1;
+            const elems = this._baseBuffer.format.elements;
+            const vertSize = this._baseBuffer.format.size;
+            for (let j=0; j<elems.length; j++) {
                 if (elems[j].name === pc.SEMANTIC_POSITION) {
                     offsetP = elems[j].offset;
                 } else if (elems[j].name === pc.SEMANTIC_NORMAL) {
@@ -91,18 +91,18 @@ pc.extend(pc, function () {
         },
 
         // called when changing the target list
-        _calculateAabb: function () {
+        _calculateAabb() {
             if (!this._baseBuffer) return;
 
             this.aabb.copy(this._baseAabb);
 
-            var numIndices;
-            var i, j, target, index, id;
-            var x, y, z;
+            let numIndices;
+            let i, j, target, index, id;
+            let x, y, z;
 
-            var vertSizeF = this._vertSizeF;
-            var offsetPF = this._offsetPF;
-            var baseData = this._baseData;
+            const vertSizeF = this._vertSizeF;
+            const offsetPF = this._offsetPF;
+            const baseData = this._baseData;
 
             for (i=0; i<this._targets.length; i++) {
                 target = this._targets[i];
@@ -143,7 +143,7 @@ pc.extend(pc, function () {
          * @description Adds a new morph target to the list
          * @param {pc.MoprhTarget} target A new morph target
          */
-        addTarget: function (target) {
+        addTarget(target) {
             this._targets.push(target);
             this._aabbDirty = true;
         },
@@ -155,8 +155,8 @@ pc.extend(pc, function () {
          * @description Remove the specified morph target from the list
          * @param {pc.MoprhTarget} target A morph target to delete
          */
-        removeTarget: function (target) {
-            var index = this._targets.indexOf(target);
+        removeTarget(target) {
+            const index = this._targets.indexOf(target);
             if (index !== -1) {
                 this._targets.splice(index, 1);
                 this._aabbDirty = true;
@@ -171,7 +171,7 @@ pc.extend(pc, function () {
          * @param {Number} index An index of morph target.
          * @returns {pc.MorphTarget} A morph target object
          */
-        getTarget: function (index) {
+        getTarget(index) {
             return this._targets[index];
         }
     });
@@ -183,42 +183,41 @@ pc.extend(pc, function () {
      * @classdesc An instance of pc.Morph. Contains weights to assign to every pc.MorphTarget, holds morphed buffer and associated data.
      * @param {pc.Morph} morph The pc.Morph to instance.
     */
-    var MorphInstance = function (morph) {
-        this.morph = morph;
+    class MorphInstance {
+        constructor(morph) {
+            this.morph = morph;
 
-        this._vertexBuffer = null;
-        this._vertexData = null;
-        this._weights = [];
-        this._dirty = true;
-    };
-
-    MorphInstance.prototype = {
+            this._vertexBuffer = null;
+            this._vertexData = null;
+            this._weights = [];
+            this._dirty = true;
+        }
 
         // called if the mesh is changed
-        _setBaseMesh: function (baseMesh) {
+        _setBaseMesh(baseMesh) {
             this.destroy();
             this._vertexBuffer = new pc.VertexBuffer(this.morph._baseBuffer.device, this.morph._baseBuffer.format,
                                                      this.morph._baseBuffer.numVertices, pc.BUFFER_DYNAMIC, this.morph._baseBuffer.storage.slice(0));
             this._vertexData = new Float32Array(this._vertexBuffer.storage);
             this._weights = [];
             this._weights.length = this.morph._targets.length;
-            for (var i=0; i<this.morph._targets.length; i++) {
+            for (let i=0; i<this.morph._targets.length; i++) {
                 this._weights[i] = 0;
             }
             this._dirty = true;
-        },
+        }
 
         /**
          * @function
          * @name pc.MorphInstance#destroy
          * @description Frees video memory allocated by this object.
          */
-        destroy: function () {
+        destroy() {
             if (this._vertexBuffer) {
                 this._vertexBuffer.destroy();
                 this._vertexBuffer = null;
             }
-        },
+        }
 
         /**
          * @private
@@ -228,9 +227,9 @@ pc.extend(pc, function () {
          * @param {Number} index An index of morph target.
          * @returns {Number} Weight
          */
-        getWeight: function (index) {
+        getWeight(index) {
             return this._weights[index];
-        },
+        }
 
         /**
          * @private
@@ -240,10 +239,10 @@ pc.extend(pc, function () {
          * @param {Number} index An index of morph target.
          * @param {Number} weight Weight
          */
-        setWeight: function (index, weight) {
+        setWeight(index, weight) {
             this._weights[index] = weight;
             this._dirty = true;
-        },
+        }
 
         /**
          * @private
@@ -252,7 +251,7 @@ pc.extend(pc, function () {
          * @param {pc.Mesh} mesh Base mesh for the morph.
          * @description Calculates AABB for this morph instance. Called automatically by renderer.
          */
-        updateBounds: function (mesh) {
+        updateBounds(mesh) {
             if (this.morph._baseBuffer !== mesh.vertexBuffer) {
                 this.morph._setBaseMesh(mesh);
             }
@@ -263,7 +262,7 @@ pc.extend(pc, function () {
             if (this.morph._aabbDirty) {
                 this.morph._calculateAabb();
             }
-        },
+        }
 
         /**
          * @private
@@ -272,7 +271,7 @@ pc.extend(pc, function () {
          * @param {pc.Mesh} mesh Base mesh for the morph.
          * @description Performs morphing. Called automatically by renderer.
          */
-        update: function (mesh) {
+        update(mesh) {
             if (this.morph._baseBuffer !== mesh.vertexBuffer) {
                 this.morph._setBaseMesh(mesh);
             }
@@ -280,20 +279,20 @@ pc.extend(pc, function () {
                 this._setBaseMesh(mesh);
             }
 
-            var numIndices, index;
+            let numIndices, index;
 
-            var targets = this.morph._targets;
-            var weights = this._weights;
-            var target, weight, j, id, j3, j4;
-            var vertSizeF = this.morph._vertSizeF;
-            var offsetPF = this.morph._offsetPF;
-            var offsetNF = this.morph._offsetNF;
-            var offsetTF = this.morph._offsetTF;
+            const targets = this.morph._targets;
+            const weights = this._weights;
+            let target, weight, j, id, j3, j4;
+            const vertSizeF = this.morph._vertSizeF;
+            const offsetPF = this.morph._offsetPF;
+            const offsetNF = this.morph._offsetNF;
+            const offsetTF = this.morph._offsetTF;
 
-            var vdata = this._vertexData;
+            const vdata = this._vertexData;
             vdata.set(this.morph._baseData);
 
-            for (var i=0; i<targets.length; i++) {
+            for (let i=0; i<targets.length; i++) {
                 weight = weights[i];
                 if (weight === 0) continue;
                 target = targets[i];
@@ -332,11 +331,11 @@ pc.extend(pc, function () {
 
             this._vertexBuffer.unlock();
         }
-    };
+    }
 
     return {
-        MorphTarget: MorphTarget,
-        Morph: Morph,
-        MorphInstance: MorphInstance
+        MorphTarget,
+        Morph,
+        MorphInstance
     };
-}());
+})());

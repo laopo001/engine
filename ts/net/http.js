@@ -1,11 +1,11 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
     * @name pc.Http
     * @class Used to send and receive HTTP requests.
     * @description Create a new Http instance. By default, a PlayCanvas application creates an instance of this
     * object at `pc.http`.
     */
-    var Http = function Http() {
+    const Http = function Http() {
     };
 
     Http.ContentType = {
@@ -72,7 +72,7 @@ pc.extend(pc, function () {
          *     console.log(response);
          * });
          */
-        get: function (url, options, callback) {
+        get(url, options, callback) {
             if (typeof(options) === "function") {
                 callback = options;
                 options = {};
@@ -99,7 +99,7 @@ pc.extend(pc, function () {
          * where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
          * err is the error code.
          */
-        post: function (url, data, options, callback) {
+        post(url, data, options, callback) {
             if (typeof(options) === "function") {
                 callback = options;
                 options = {};
@@ -127,7 +127,7 @@ pc.extend(pc, function () {
          * where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
          * err is the error code.
          */
-        put: function (url, data, options, callback) {
+        put(url, data, options, callback) {
             if (typeof(options) === "function") {
                 callback = options;
                 options = {};
@@ -155,7 +155,7 @@ pc.extend(pc, function () {
          * where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
          * err is the error code.
          */
-        del: function (url, options, callback) {
+        del(url, options, callback) {
             if (typeof(options) === "function") {
                 callback = options;
                 options = {};
@@ -183,9 +183,9 @@ pc.extend(pc, function () {
          * where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
          * err is the error code.
          */
-        request: function (method, url, options, callback) {
-            var uri, query, timestamp, postdata, xhr;
-            var errored = false;
+        request(method, url, options, callback) {
+            let uri, query, timestamp, postdata, xhr;
+            let errored = false;
 
             if (typeof(options) === "function") {
                 callback = options;
@@ -212,7 +212,7 @@ pc.extend(pc, function () {
                     postdata = options.postdata;
                 } else if (options.postdata instanceof Object) {
                     // Now to work out how to encode the post data based on the headers
-                    var contentType = options.headers["Content-Type"];
+                    let contentType = options.headers["Content-Type"];
 
                     // If there is no type then default to form-encoded
                     if (contentType === undefined) {
@@ -223,17 +223,17 @@ pc.extend(pc, function () {
                         case Http.ContentType.FORM_URLENCODED:
                             // Normal URL encoded form data
                             postdata = "";
-                            var bFirstItem = true;
+                            let bFirstItem = true;
 
                             // Loop round each entry in the map and encode them into the post data
-                            for (var key in options.postdata) {
+                            for (const key in options.postdata) {
                                 if (options.postdata.hasOwnProperty(key)) {
                                     if (bFirstItem) {
                                         bFirstItem = false;
                                     } else {
                                         postdata += "&";
                                     }
-                                    postdata += escape(key) + "=" + escape(options.postdata[key]);
+                                    postdata += `${escape(key)}=${escape(options.postdata[key])}`;
                                 }
                             }
                             break;
@@ -260,9 +260,9 @@ pc.extend(pc, function () {
 
                 uri = new pc.URI(url);
                 if (!uri.query) {
-                    uri.query = "ts=" + timestamp;
+                    uri.query = `ts=${timestamp}`;
                 } else {
-                    uri.query = uri.query + "&ts=" + timestamp;
+                    uri.query = `${uri.query}&ts=${timestamp}`;
                 }
                 url = uri.toString();
             }
@@ -279,20 +279,20 @@ pc.extend(pc, function () {
             xhr.responseType = options.responseType || this._guessResponseType(url);
 
             // Set the http headers
-            for (var header in options.headers) {
+            for (const header in options.headers) {
                 if (options.headers.hasOwnProperty(header)) {
                     xhr.setRequestHeader(header, options.headers[header]);
                 }
             }
 
-            xhr.onreadystatechange = function () {
+            xhr.onreadystatechange = () => {
                 this._onReadyStateChange(method, url, options, xhr);
-            }.bind(this);
+            };
 
-            xhr.onerror = function () {
+            xhr.onerror = () => {
                 this._onError(method, url, options, xhr);
                 errored = true;
-            }.bind(this);
+            };
 
             try {
                 xhr.send(postdata);
@@ -308,11 +308,11 @@ pc.extend(pc, function () {
             return xhr;
         },
 
-        _guessResponseType: function (url) {
-            var uri = new pc.URI(url);
-            var ext = pc.path.getExtension(uri.path);
+        _guessResponseType(url) {
+            const uri = new pc.URI(url);
+            const ext = pc.path.getExtension(uri.path);
 
-            if (Http.binaryExtensions.indexOf(ext) >= 0) {
+            if (Http.binaryExtensions.includes(ext)) {
                 return Http.ResponseType.ARRAY_BUFFER;
             }
 
@@ -323,16 +323,16 @@ pc.extend(pc, function () {
             return Http.ResponseType.TEXT;
         },
 
-        _isBinaryContentType: function (contentType) {
-            var binTypes = [Http.ContentType.MP4, Http.ContentType.WAV, Http.ContentType.OGG, Http.ContentType.MP3, Http.ContentType.BIN, Http.ContentType.DDS];
-            if (binTypes.indexOf(contentType) >= 0) {
+        _isBinaryContentType(contentType) {
+            const binTypes = [Http.ContentType.MP4, Http.ContentType.WAV, Http.ContentType.OGG, Http.ContentType.MP3, Http.ContentType.BIN, Http.ContentType.DDS];
+            if (binTypes.includes(contentType)) {
                 return true;
             }
 
             return false;
         },
 
-        _onReadyStateChange: function (method, url, options, xhr) {
+        _onReadyStateChange(method, url, options, xhr) {
             if (xhr.readyState === 4) {
                 switch (xhr.status) {
                     case 0: {
@@ -360,11 +360,11 @@ pc.extend(pc, function () {
             }
         },
 
-        _onSuccess: function (method, url, options, xhr) {
-            var response;
-            var header;
-            var contentType;
-            var parts;
+        _onSuccess(method, url, options, xhr) {
+            let response;
+            let header;
+            let contentType;
+            let parts;
             header = xhr.getResponseHeader("Content-Type");
             if (header) {
                 // Split up header into content type and parameter
@@ -396,14 +396,14 @@ pc.extend(pc, function () {
             // options.success(response, xhr.status, xhr);
         },
 
-        _onError: function (method, url, options, xhr) {
-            options.callback(xhr.status, null);//, xhr.status, xhr);
+        _onError(method, url, options, {status}) {
+            options.callback(status, null);//, xhr.status, xhr);
             // options.error(xhr.status, xhr, null);
         }
     };
 
     return {
-        Http: Http,
+        Http,
         http: new Http()
     };
-}());
+})());

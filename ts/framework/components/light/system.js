@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
 /*
 * @name pc.LightComponentSystem
 * @description Create a new LightComponentSystem.
@@ -6,16 +6,16 @@ pc.extend(pc, function () {
 * @param {pc.Application} app The application.
 * @extends pc.ComponentSystem
 */
-    var lightTypes = {
+    const lightTypes = {
         'directional': pc.LIGHTTYPE_DIRECTIONAL,
         'point': pc.LIGHTTYPE_POINT,
         'spot': pc.LIGHTTYPE_SPOT
     };
 
-    var LightComponentSystem = function (app) {
+    let LightComponentSystem = function({systems}) {
         this.id = 'light';
         this.description = "Enables the Entity to emit light.";
-        app.systems.add(this.id, this);
+        systems.add(this.id, this);
 
         this.ComponentType = pc.LightComponent;
         this.DataType = pc.LightComponentData;
@@ -25,12 +25,12 @@ pc.extend(pc, function () {
     LightComponentSystem = pc.inherits(LightComponentSystem, pc.ComponentSystem);
 
     pc.extend(LightComponentSystem.prototype, {
-        initializeComponentData: function (component, _data) {
+        initializeComponentData(component, _data) {
             // duplicate because we're modifying the data
-            var data = {};
-            var _props = pc._lightProps;
-            var name;
-            for (var i=0; i<_props.length; i++) {
+            const data = {};
+            const _props = pc._lightProps;
+            let name;
+            for (let i=0; i<_props.length; i++) {
                 name = _props[i];
                 data[name] = _data[name];
             }
@@ -58,7 +58,7 @@ pc.extend(pc, function () {
                 data.enabled = data.enable;
             }
 
-            var light = new pc.Light();
+            const light = new pc.Light();
             light.type = lightTypes[data.type];
             light._node = component.entity;
             light._scene = this.app.scene;
@@ -67,13 +67,13 @@ pc.extend(pc, function () {
             LightComponentSystem._super.initializeComponentData.call(this, component, data, _props);
         },
 
-        cloneComponent: function (entity, clone) {
-            var light = entity.light;
+        cloneComponent(entity, clone) {
+            const light = entity.light;
 
-            var data = [];
-            var name;
-            var _props = pc._lightProps;
-            for (var i=0; i<_props.length; i++) {
+            const data = [];
+            let name;
+            const _props = pc._lightProps;
+            for (let i=0; i<_props.length; i++) {
                 name = _props[i];
                 if (name==="light") continue;
                 if (light[name] && light[name].clone) {
@@ -86,15 +86,15 @@ pc.extend(pc, function () {
             this.addComponent(clone, data);
         },
 
-        changeType: function (component, oldValue, newValue) {
+        changeType({light}, oldValue, newValue) {
             if (oldValue!==newValue) {
-                component.light.type = lightTypes[newValue];
+                light.type = lightTypes[newValue];
             }
         }
     });
 
 
     return {
-        LightComponentSystem: LightComponentSystem
+        LightComponentSystem
     };
-}());
+})());

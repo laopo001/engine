@@ -1,19 +1,17 @@
-pc.extend(pc, function () {
-    'use strict';
-
+pc.extend(pc, (() => {
     function addLineNumbers(src) {
-        var chunks = src.split("\n");
+        const chunks = src.split("\n");
 
         // Chrome reports shader errors on lines indexed from 1
-        for (var i = 0, len = chunks.length; i < len; i ++) {
-            chunks[i] = (i+1) + ":\t" + chunks[i];
+        for (let i = 0, len = chunks.length; i < len; i ++) {
+            chunks[i] = `${i+1}:\t${chunks[i]}`;
         }
 
         return chunks.join( "\n" );
     }
 
     function createShader(gl, type, src) {
-        var shader = gl.createShader(type);
+        const shader = gl.createShader(type);
 
         gl.shaderSource(shader, src);
         gl.compileShader(shader);
@@ -22,7 +20,7 @@ pc.extend(pc, function () {
     }
 
     function createProgram(gl, vertexShader, fragmentShader) {
-        var program = gl.createProgram();
+        const program = gl.createProgram();
 
         gl.attachShader(program, vertexShader);
         gl.attachShader(program, fragmentShader);
@@ -74,31 +72,31 @@ pc.extend(pc, function () {
      *
      * shader = new pc.Shader(graphicsDevice, shaderDefinition);
      */
-    var Shader = function (graphicsDevice, definition) {
-        this.device = graphicsDevice;
-        this.definition = definition;
+    class Shader {
+        constructor(graphicsDevice, definition) {
+            this.device = graphicsDevice;
+            this.definition = definition;
 
-        // Used for shader variants (see pc.Material)
-        this._refCount = 0;
+            // Used for shader variants (see pc.Material)
+            this._refCount = 0;
 
-        this.compile();
+            this.compile();
 
-        this.device.shaders.push(this);
-    };
+            this.device.shaders.push(this);
+        }
 
-    Shader.prototype = {
-        compile: function () {
+        compile() {
             this.ready = false;
 
             // #ifdef PROFILER
-            var startTime = pc.now();
+            const startTime = pc.now();
             this.device.fire('shader:compile:start', {
                 timestamp: startTime,
                 target: this
             });
             // #endif
 
-            var gl = this.device.gl;
+            const gl = this.device.gl;
             this.vshader = createShader(gl, gl.VERTEX_SHADER, this.definition.vshader);
             this.fshader = createShader(gl, gl.FRAGMENT_SHADER, this.definition.fshader);
             this.program = createProgram(gl, this.vshader, this.fshader);
@@ -112,21 +110,21 @@ pc.extend(pc, function () {
             }
 
             // #ifdef PROFILER
-            var endTime = pc.now();
+            const endTime = pc.now();
             this.device.fire('shader:compile:end', {
                 timestamp: endTime,
                 target: this
             });
             this.device._shaderStats.compileTime += endTime - startTime;
             // #endif
-        },
+        }
 
-        link: function () {
-            var gl = this.device.gl;
-            var retValue = true;
+        link() {
+            const gl = this.device.gl;
+            let retValue = true;
 
             // #ifdef PROFILER
-            var startTime = pc.now();
+            const startTime = pc.now();
             this.device.fire('shader:link:start', {
                 timestamp: startTime,
                 target: this
@@ -135,11 +133,11 @@ pc.extend(pc, function () {
 
             if (this.device.webgl2 && this.definition.useTransformFeedback) {
                 // Collect all "out_" attributes and use them for output
-                var attrs = this.definition.attributes;
-                var outNames = [];
-                for (var attr in attrs) {
+                const attrs = this.definition.attributes;
+                const outNames = [];
+                for (const attr in attrs) {
                     if (attrs.hasOwnProperty(attr)) {
-                        outNames.push("out_" + attr);
+                        outNames.push(`out_${attr}`);
                     }
                 }
                 gl.transformFeedbackVaryings(this.program, outNames, gl.INTERLEAVED_ATTRIBS);
@@ -150,17 +148,17 @@ pc.extend(pc, function () {
             // check for errors
             // vshader
             if (! gl.getShaderParameter(this.vshader, gl.COMPILE_STATUS)) {
-                logERROR("Failed to compile vertex shader:\n\n" + addLineNumbers(this.definition.vshader) + "\n\n" + gl.getShaderInfoLog(this.vshader));
+                logERROR(`Failed to compile vertex shader:\n\n${addLineNumbers(this.definition.vshader)}\n\n${gl.getShaderInfoLog(this.vshader)}`);
                 retValue = false;
             }
             // fshader
             if (! gl.getShaderParameter(this.fshader, gl.COMPILE_STATUS)) {
-                logERROR("Failed to compile fragment shader:\n\n" + addLineNumbers(this.definition.fshader) + "\n\n" + gl.getShaderInfoLog(this.fshader));
+                logERROR(`Failed to compile fragment shader:\n\n${addLineNumbers(this.definition.fshader)}\n\n${gl.getShaderInfoLog(this.fshader)}`);
                 retValue = false;
             }
             // program
             if (! gl.getProgramParameter(this.program, gl.LINK_STATUS)) {
-                logERROR("Failed to link shader program. Error: " + gl.getProgramInfoLog(this.program));
+                logERROR(`Failed to link shader program. Error: ${gl.getProgramInfoLog(this.program)}`);
                 retValue = false;
             }
 
@@ -172,10 +170,10 @@ pc.extend(pc, function () {
             this.samplers = [];
 
             // Query the program for each vertex buffer input (GLSL 'attribute')
-            var i = 0;
-            var info, location;
+            let i = 0;
+            let info, location;
 
-            var _typeToPc = {};
+            const _typeToPc = {};
             _typeToPc[gl.BOOL]         = pc.UNIFORMTYPE_BOOL;
             _typeToPc[gl.INT]          = pc.UNIFORMTYPE_INT;
             _typeToPc[gl.FLOAT]        = pc.UNIFORMTYPE_FLOAT;
@@ -199,14 +197,14 @@ pc.extend(pc, function () {
                 _typeToPc[gl.SAMPLER_3D]          = pc.UNIFORMTYPE_TEXTURE3D;
             }
 
-            var numAttributes = gl.getProgramParameter(this.program, gl.ACTIVE_ATTRIBUTES);
+            const numAttributes = gl.getProgramParameter(this.program, gl.ACTIVE_ATTRIBUTES);
             while (i < numAttributes) {
                 info = gl.getActiveAttrib(this.program, i++);
                 location = gl.getAttribLocation(this.program, info.name);
 
                 // Check attributes are correctly linked up
                 if (this.definition.attributes[info.name] === undefined) {
-                    console.error('Vertex shader attribute "' + info.name + '" is not mapped to a semantic in shader definition.');
+                    console.error(`Vertex shader attribute "${info.name}" is not mapped to a semantic in shader definition.`);
                 }
 
                 this.attributes.push(new pc.ShaderInput(this.device, this.definition.attributes[info.name], _typeToPc[info.type], location));
@@ -214,7 +212,7 @@ pc.extend(pc, function () {
 
             // Query the program for each shader state (GLSL 'uniform')
             i = 0;
-            var numUniforms = gl.getProgramParameter(this.program, gl.ACTIVE_UNIFORMS);
+            const numUniforms = gl.getProgramParameter(this.program, gl.ACTIVE_UNIFORMS);
             while (i < numUniforms) {
                 info = gl.getActiveUniform(this.program, i++);
                 location = gl.getUniformLocation(this.program, info.name);
@@ -230,7 +228,7 @@ pc.extend(pc, function () {
             this.ready = true;
 
             // #ifdef PROFILER
-            var endTime = pc.now();
+            const endTime = pc.now();
             this.device.fire('shader:link:end', {
                 timestamp: endTime,
                 target: this
@@ -239,30 +237,30 @@ pc.extend(pc, function () {
             // #endif
 
             return retValue;
-        },
+        }
 
         /**
          * @function
          * @name pc.Shader#destroy
          * @description Frees resources associated with this shader.
          */
-        destroy: function () {
-            var device = this.device;
-            var idx = device.shaders.indexOf(this);
+        destroy() {
+            const device = this.device;
+            const idx = device.shaders.indexOf(this);
             if (idx !== -1) {
                 device.shaders.splice(idx, 1);
             }
 
             if (this.program) {
-                var gl = device.gl;
+                const gl = device.gl;
                 gl.deleteProgram(this.program);
                 this.program = null;
                 this.device.removeShaderFromCache(this);
             }
         }
-    };
+    }
 
     return {
-        Shader: Shader
+        Shader
     };
-}());
+})());

@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
 
     /**
      * @private
@@ -6,7 +6,7 @@ pc.extend(pc, function () {
      * @name pc.DepthMaterial
      * @classdesc A Depth material is for rendering linear depth values to a render target.
      */
-    var DepthMaterial = function () {
+    let DepthMaterial = () => {
     };
 
     DepthMaterial = pc.inherits(DepthMaterial, pc.Material);
@@ -19,8 +19,8 @@ pc.extend(pc, function () {
          * @description Duplicates a Depth material.
          * @returns {pc.DepthMaterial} A cloned Depth material.
          */
-        clone: function () {
-            var clone = new pc.DepthMaterial();
+        clone() {
+            const clone = new pc.DepthMaterial();
 
             pc.Material.prototype._cloneInternal.call(this, clone);
 
@@ -28,19 +28,19 @@ pc.extend(pc, function () {
             return clone;
         },
 
-        update: function () {
+        update() {
         },
 
-        updateShader: function (device) {
-            var options = {
+        updateShader(device) {
+            const options = {
                 skin: !!this.meshInstances[0].skinInstance
             };
-            var library = device.getProgramLibrary();
+            const library = device.getProgramLibrary();
             this.shader = library.getProgram('depth', options);
         }
     });
 
     return {
-        DepthMaterial: DepthMaterial
+        DepthMaterial
     };
-}());
+})());

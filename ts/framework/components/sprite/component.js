@@ -1,6 +1,4 @@
-pc.extend(pc, function () {
-    'use strict';
-
+pc.extend(pc, (() => {
     /**
      * @private
      * @enum pc.SPRITETYPE
@@ -18,13 +16,13 @@ pc.extend(pc, function () {
      */
     pc.SPRITETYPE_ANIMATED = 'animated';
 
-    var PARAM_EMISSIVE_MAP = 'texture_emissiveMap';
-    var PARAM_OPACITY_MAP = 'texture_opacityMap';
-    var PARAM_EMISSIVE = 'material_emissive';
-    var PARAM_OPACITY = 'material_opacity';
-    var PARAM_INNER_OFFSET = 'innerOffset';
-    var PARAM_OUTER_SCALE = 'outerScale';
-    var PARAM_ATLAS_RECT = 'atlasRect';
+    const PARAM_EMISSIVE_MAP = 'texture_emissiveMap';
+    const PARAM_OPACITY_MAP = 'texture_opacityMap';
+    const PARAM_EMISSIVE = 'material_emissive';
+    const PARAM_OPACITY = 'material_opacity';
+    const PARAM_INNER_OFFSET = 'innerOffset';
+    const PARAM_OUTER_SCALE = 'outerScale';
+    const PARAM_ATLAS_RECT = 'atlasRect';
 
     /**
      * @private
@@ -56,58 +54,354 @@ pc.extend(pc, function () {
      * @property {Array} layers An array of layer IDs ({@link pc.Layer#id}) to which this sprite should belong.
      * @property {Number} drawOrder The draw order of the component. A higher value means that the component will be rendered on top of other components in the same layer.
      */
-    var SpriteComponent = function SpriteComponent (system, entity) {
-        this._type = pc.SPRITETYPE_SIMPLE;
-        this._material = system.defaultMaterial;
-        this._color = new pc.Color(1,1,1,1);
-        this._speed = 1;
-        this._flipX = false;
-        this._flipY = false;
-        this._width = 1;
-        this._height = 1;
+    class SpriteComponent {
+        constructor({defaultMaterial}, entity) {
+            this._type = pc.SPRITETYPE_SIMPLE;
+            this._material = defaultMaterial;
+            this._color = new pc.Color(1,1,1,1);
+            this._speed = 1;
+            this._flipX = false;
+            this._flipY = false;
+            this._width = 1;
+            this._height = 1;
 
-        this._drawOrder = 0;
-        this._layers = [pc.LAYERID_WORLD]; // assign to the default world layer
+            this._drawOrder = 0;
+            this._layers = [pc.LAYERID_WORLD]; // assign to the default world layer
 
-        // 9-slicing
-        this._outerScale = new pc.Vec2(1, 1);
-        this._innerOffset = new pc.Vec4();
-        this._atlasRect = new pc.Vec4();
+            // 9-slicing
+            this._outerScale = new pc.Vec2(1, 1);
+            this._innerOffset = new pc.Vec4();
+            this._atlasRect = new pc.Vec4();
 
-        // batch groups
-        this._batchGroupId = -1;
-        this._batchGroup = null;
+            // batch groups
+            this._batchGroupId = -1;
+            this._batchGroup = null;
 
-        // node / meshinstance
-        this._node = new pc.GraphNode();
-        this._model = new pc.Model();
-        this._model.graph = this._node;
-        this._meshInstance = null;
-        entity.addChild(this._model.graph);
-        this._model._entity = entity;
-        this._updateAabbFunc = this._updateAabb.bind(this);
+            // node / meshinstance
+            this._node = new pc.GraphNode();
+            this._model = new pc.Model();
+            this._model.graph = this._node;
+            this._meshInstance = null;
+            entity.addChild(this._model.graph);
+            this._model._entity = entity;
+            this._updateAabbFunc = this._updateAabb.bind(this);
 
-        this._addedModel = false;
+            this._addedModel = false;
 
-        // animated sprites
-        this._autoPlayClip = null;
+            // animated sprites
+            this._autoPlayClip = null;
 
-        this._clips = {};
+            this._clips = {};
 
-        // create default clip for simple sprite type
-        this._defaultClip = new pc.SpriteAnimationClip(this, {
-            name: this.entity.name,
-            fps: 0,
-            loop: false,
-            spriteAsset: null
-        });
+            // create default clip for simple sprite type
+            this._defaultClip = new pc.SpriteAnimationClip(this, {
+                name: this.entity.name,
+                fps: 0,
+                loop: false,
+                spriteAsset: null
+            });
 
-        this._currentClip = this._defaultClip;
-    };
+            this._currentClip = this._defaultClip;
+        }
+
+        get type() {
+            return this._type;
+        }
+
+        set type(value) {
+            if (this._type === value)
+                return;
+
+            this._type = value;
+            if (this._type === pc.SPRITETYPE_SIMPLE) {
+                this.stop();
+                this._currentClip = this._defaultClip;
+
+                if (this.enabled && this.entity.enabled) {
+                    this._currentClip.frame = this.frame;
+
+                    if (this._currentClip.sprite) {
+                        this._showModel();
+                    } else {
+                        this._hideModel();
+                    }
+                }
+
+            } else if (this._type === pc.SPRITETYPE_ANIMATED) {
+                this.stop();
+
+                if (this._autoPlayClip) {
+                    this._tryAutoPlay();
+                }
+
+                if (this._currentClip && this._currentClip.isPlaying && this.enabled && this.entity.enabled) {
+                    this._showModel();
+                } else {
+                    this._hideModel();
+                }
+            }
+        }
+
+        get frame() {
+            return this._currentClip.frame;
+        }
+
+        set frame(value) {
+            this._currentClip.frame = value;
+        }
+
+        get spriteAsset() {
+            return this._defaultClip._spriteAsset;
+        }
+
+        set spriteAsset(value) {
+            this._defaultClip.spriteAsset = value;
+        }
+
+        get sprite() {
+            return this._currentClip.sprite;
+        }
+
+        set sprite(value) {
+            this._currentClip.sprite = value;
+        }
+
+        // (private) {pc.Material} material The material used to render a sprite.
+        get material() {
+            return this._material;
+        }
+
+        set material(value) {
+            this._material = value;
+            if (this._meshInstance) {
+                this._meshInstance.material = value;
+            }
+        }
+
+        get color() {
+            return this._color;
+        }
+
+        set color({data}) {
+            this._color.data[0] = data[0];
+            this._color.data[1] = data[1];
+            this._color.data[2] = data[2];
+
+            if (this._meshInstance) {
+                this._meshInstance.setParameter(PARAM_EMISSIVE, this._color.data3);
+            }
+        }
+
+        get opacity() {
+            return this._color.data[3];
+        }
+
+        set opacity(value) {
+            this._color.data[3] = value;
+            if (this._meshInstance) {
+                this._meshInstance.setParameter(PARAM_OPACITY, value);
+            }
+        }
+
+        get clips() {
+            return this._clips;
+        }
+
+        set clips(value) {
+            let name, key;
+
+            // if value is null remove all clips
+            if (! value) {
+                for (name in this._clips) {
+                    this.removeClip(name);
+                }
+                return;
+            }
+
+            // remove existing clips not in new value
+            // and update clips in both objects
+            for (name in this._clips) {
+                let found = false;
+                for (key in value) {
+                    if (value[key].name === name) {
+                        found = true;
+                        this._clips[name].fps = value[key].fps;
+                        this._clips[name].loop = value[key].loop;
+
+                        if (value[key].hasOwnProperty('sprite')) {
+                            this._clips[name].sprite = value[key].sprite;
+                        } else if (value[key].hasOwnProperty('spriteAsset')) {
+                            this._clips[name].spriteAsset = value[key].spriteAsset;
+                        }
+
+                        break;
+                    }
+                }
+
+                if (! found) {
+                    this.removeClip(name);
+                }
+            }
+
+            // add clips that do not exist
+            for (key in value) {
+                if (this._clips[value[key].name]) continue;
+
+                this.addClip(value[key]);
+            }
+
+            // auto play clip
+            if (this._autoPlayClip) {
+                this._tryAutoPlay();
+            }
+
+            // if the current clip doesn't have a sprite then hide the model
+            if (! this._currentClip || !this._currentClip.sprite) {
+                this._hideModel();
+            }
+        }
+
+        get currentClip() {
+            return this._currentClip;
+        }
+
+        get speed() {
+            return this._speed;
+        }
+
+        set speed(value) {
+            this._speed = value;
+        }
+
+        get flipX() {
+            return this._flipX;
+        }
+
+        set flipX(value) {
+            if (this._flipX === value) return;
+
+            this._flipX = value;
+            this._updateTransform();
+        }
+
+        get flipY() {
+            return this._flipY;
+        }
+
+        set flipY(value) {
+            if (this._flipY === value) return;
+
+            this._flipY = value;
+            this._updateTransform();
+        }
+
+        get width() {
+            return this._width;
+        }
+
+        set width(value) {
+            if (value === this._width) return;
+
+            this._width = value;
+            this._outerScale.x = this._width;
+
+            if (this.sprite && (this.sprite.renderMode === pc.SPRITE_RENDERMODE_TILED || this.sprite.renderMode === pc.SPRITE_RENDERMODE_SLICED)) {
+                this._updateTransform();
+            }
+        }
+
+        get height() {
+            return this._height;
+        }
+
+        set height(value) {
+            if (value === this._height) return;
+
+            this._height = value;
+            this._outerScale.y = this.height;
+
+            if (this.sprite && (this.sprite.renderMode === pc.SPRITE_RENDERMODE_TILED || this.sprite.renderMode === pc.SPRITE_RENDERMODE_SLICED)) {
+                this._updateTransform();
+            }
+        }
+
+        get batchGroupId() {
+            return this._batchGroupId;
+        }
+
+        set batchGroupId(value) {
+            if (this._batchGroupId === value)
+                return;
+
+            const prev = this._batchGroupId;
+            this._batchGroupId = value;
+
+            if (prev >= 0) {
+                this.system.app.batcher._markGroupDirty(prev);
+            }
+
+            if (this._batchGroupId >= 0) {
+                this.system.app.batcher._markGroupDirty(this._batchGroupId);
+            } else {
+                // re-add model to scene in case it was removed by batching
+                if (prev >= 0) {
+                    if (this._currentClip && this._currentClip.sprite && this.enabled && this.entity.enabled) {
+                        this._showModel();
+                    }
+                }
+            }
+        }
+
+        get autoPlayClip() {
+            return this._autoPlayClip;
+        }
+
+        set autoPlayClip(value) {
+            this._autoPlayClip = value instanceof pc.SpriteAnimationClip ? value.name : value;
+            this._tryAutoPlay();
+        }
+
+        get drawOrder() {
+            return this._drawOrder;
+        }
+
+        set drawOrder(value) {
+            this._drawOrder = value;
+            if (this._meshInstance) {
+                this._meshInstance.drawOrder = value;
+            }
+        }
+
+        get layers() {
+            return this._layers;
+        }
+
+        set layers(value) {
+            let i;
+            let len;
+
+            if (this._addedModel) {
+                this._hideModel();
+            }
+
+            const prev = this._layers;
+            this._layers = value;
+
+            // early out
+            if (! this._meshInstance) {
+                return;
+            }
+
+            if (this.enabled && this.entity.enabled) {
+                this._showModel();
+            }
+        }
+    }
+
     SpriteComponent = pc.inherits(SpriteComponent, pc.Component);
 
     pc.extend(SpriteComponent.prototype, {
-        onEnable: function () {
+        onEnable() {
             SpriteComponent._super.onEnable.call(this);
 
             this.system.app.scene.on("set:layers", this._onLayersChanged, this);
@@ -121,7 +415,7 @@ pc.extend(pc, function () {
                 this._tryAutoPlay();
         },
 
-        onDisable: function () {
+        onDisable() {
             SpriteComponent._super.onDisable.call(this);
 
             this.system.app.scene.off("set:layers", this._onLayersChanged, this);
@@ -134,14 +428,14 @@ pc.extend(pc, function () {
             this._hideModel();
         },
 
-        onDestroy: function () {
+        onDestroy() {
             this._currentClip = null;
 
             if (this._defaultClip) {
                 this._defaultClip._destroy();
                 this._defaultClip = null;
             }
-            for (var key in this._clips) {
+            for (const key in this._clips) {
                 this._clips[key]._destroy();
             }
             this._clips = null;
@@ -163,17 +457,17 @@ pc.extend(pc, function () {
             }
         },
 
-        _showModel: function () {
+        _showModel() {
             if (this._addedModel) return;
             if (! this._meshInstance) return;
 
-            var i;
-            var len;
+            let i;
+            let len;
 
-            var meshInstances = [this._meshInstance];
+            const meshInstances = [this._meshInstance];
 
             for (i = 0, len = this._layers.length; i<len; i++) {
-                var layer = this.system.app.scene.layers.getLayerById(this._layers[i]);
+                const layer = this.system.app.scene.layers.getLayerById(this._layers[i]);
                 if (layer) {
                     layer.addMeshInstances(meshInstances)
                 }
@@ -182,16 +476,16 @@ pc.extend(pc, function () {
             this._addedModel = true;
         },
 
-        _hideModel: function () {
+        _hideModel() {
             if (! this._addedModel || ! this._meshInstance) return;
 
-            var i;
-            var len;
+            let i;
+            let len;
 
-            var meshInstances = [this._meshInstance];
+            const meshInstances = [this._meshInstance];
 
             for (i = 0, len = this._layers.length; i<len; i++) {
-                var layer = this.system.app.scene.layers.getLayerById(this._layers[i]);
+                const layer = this.system.app.scene.layers.getLayerById(this._layers[i]);
                 if (layer) {
                     layer.removeMeshInstances(meshInstances);
                 }
@@ -201,10 +495,10 @@ pc.extend(pc, function () {
         },
 
         // Set the desired mesh on the mesh instance
-        _showFrame: function (frame) {
+        _showFrame(frame) {
             if (! this.sprite) return;
 
-            var mesh = this.sprite.meshes[frame];
+            const mesh = this.sprite.meshes[frame];
             // if mesh is null then hide the mesh instance
             if (! mesh) {
                 if (this._meshInstance) {
@@ -215,7 +509,7 @@ pc.extend(pc, function () {
                 return;
             }
 
-            var material = this.system.defaultMaterial;
+            let material = this.system.defaultMaterial;
             if (this.sprite.renderMode === pc.SPRITE_RENDERMODE_SLICED) {
                 material = this.system.default9SlicedMaterialSlicedMode;
             } else if (this.sprite.renderMode === pc.SPRITE_RENDERMODE_TILED) {
@@ -269,10 +563,10 @@ pc.extend(pc, function () {
                 this._meshInstance._updateAabbFunc = this._updateAabbFunc;
 
                 // calculate inner offset
-                var frameData = this.sprite.atlas.frames[this.sprite.frameKeys[frame]];
+                const frameData = this.sprite.atlas.frames[this.sprite.frameKeys[frame]];
                 if (frameData) {
-                    var borderWidthScale = 2 / frameData.rect.z;
-                    var borderHeightScale = 2 / frameData.rect.w;
+                    const borderWidthScale = 2 / frameData.rect.z;
+                    const borderHeightScale = 2 / frameData.rect.w;
 
                     this._innerOffset.set(
                         frameData.border.x * borderWidthScale,
@@ -281,7 +575,7 @@ pc.extend(pc, function () {
                         frameData.border.w * borderHeightScale
                     );
 
-                    var tex = this.sprite.atlas.texture;
+                    const tex = this.sprite.atlas.texture;
                     this._atlasRect.set(frameData.rect.x / tex.width,
                                         frameData.rect.y / tex.height,
                                         frameData.rect.z / tex.width,
@@ -302,22 +596,22 @@ pc.extend(pc, function () {
             this._updateTransform();
         },
 
-        _updateTransform: function () {
+        _updateTransform() {
             // flip
-            var scaleX = this.flipX ? -1 : 1;
-            var scaleY = this.flipY ? -1 : 1;
+            let scaleX = this.flipX ? -1 : 1;
+            let scaleY = this.flipY ? -1 : 1;
 
             // pivot
-            var posX = 0;
-            var posY = 0;
+            let posX = 0;
+            let posY = 0;
 
             if (this.sprite && (this.sprite.renderMode === pc.SPRITE_RENDERMODE_SLICED || this.sprite.renderMode === pc.SPRITE_RENDERMODE_TILED)) {
 
-                var w = 1;
-                var h = 1;
+                let w = 1;
+                let h = 1;
 
                 if (this.sprite.atlas) {
-                    var frameData = this.sprite.atlas.frames[this.sprite.frameKeys[this.frame]];
+                    const frameData = this.sprite.atlas.frames[this.sprite.frameKeys[this.frame]];
                     if (frameData) {
                         // get frame dimensions
                         w = frameData.rect.z;
@@ -330,8 +624,8 @@ pc.extend(pc, function () {
                 }
 
                 // scale: apply PPU
-                var scaleMulX = w / this.sprite.pixelsPerUnit;
-                var scaleMulY = h / this.sprite.pixelsPerUnit;
+                const scaleMulX = w / this.sprite.pixelsPerUnit;
+                const scaleMulY = h / this.sprite.pixelsPerUnit;
 
                 // scale borders if necessary instead of overlapping
                 this._outerScale.set(Math.max(this._width, this._innerOffset.x * scaleMulX), Math.max(this._height, this._innerOffset.y * scaleMulY));
@@ -360,7 +654,7 @@ pc.extend(pc, function () {
         },
 
         // updates AABB while 9-slicing
-        _updateAabb: function (aabb) {
+        _updateAabb(aabb) {
             // pivot
             aabb.center.set(0,0,0);
             // size
@@ -370,11 +664,11 @@ pc.extend(pc, function () {
             return aabb;
         },
 
-        _tryAutoPlay: function () {
+        _tryAutoPlay() {
             if (! this._autoPlayClip) return;
             if (this.type !== pc.SPRITETYPE_ANIMATED) return;
 
-            var clip = this._clips[this._autoPlayClip];
+            const clip = this._clips[this._autoPlayClip];
             // if the clip exists and nothing else is playing play it
             if (clip && ! clip.isPlaying && (!this._currentClip || !this._currentClip.isPlaying)) {
                 if (this.enabled && this.entity.enabled) {
@@ -383,7 +677,7 @@ pc.extend(pc, function () {
             }
         },
 
-        _onLayersChanged: function(oldComp, newComp) {
+        _onLayersChanged(oldComp, newComp) {
             oldComp.off("add", this.onLayerAdded, this);
             oldComp.off("remove", this.onLayerRemoved, this);
             newComp.on("add", this.onLayerAdded, this);
@@ -394,8 +688,8 @@ pc.extend(pc, function () {
             }
         },
 
-        _onLayerAdded: function(layer) {
-            var index = this.layers.indexOf(layer.id);
+        _onLayerAdded(layer) {
+            const index = this.layers.indexOf(layer.id);
             if (index < 0) return;
 
             if (this._addedModel && this.enabled && this.entity.enabled && this._meshInstance) {
@@ -403,10 +697,10 @@ pc.extend(pc, function () {
             }
         },
 
-        _onLayerRemoved: function(layer) {
+        _onLayerRemoved(layer) {
             if (!this._meshInstance) return;
 
-            var index = this.layers.indexOf(layer.id);
+            const index = this.layers.indexOf(layer.id);
             if (index < 0) return;
             layer.removeMeshInstances([this._meshInstance]);
         },
@@ -423,15 +717,15 @@ pc.extend(pc, function () {
          * @param {Number} [data.spriteAsset] The id of the sprite asset that this clip will play.
          * @returns {pc.SpriteAnimationClip} The new clip that was added.
          */
-        addClip: function (data) {
-            var clip = new pc.SpriteAnimationClip(this, {
-                name: data.name,
-                fps: data.fps,
-                loop: data.loop,
-                spriteAsset: data.spriteAsset
+        addClip({name, fps, loop, spriteAsset}) {
+            const clip = new pc.SpriteAnimationClip(this, {
+                name: name,
+                fps: fps,
+                loop: loop,
+                spriteAsset: spriteAsset
             });
 
-            this._clips[data.name] = clip;
+            this._clips[name] = clip;
 
             if (clip.name && clip.name === this._autoPlayClip)
                 this._tryAutoPlay();
@@ -446,7 +740,7 @@ pc.extend(pc, function () {
          * @description Removes a clip by name.
          * @param {String} name The name of the animation clip to remove.
          */
-        removeClip: function (name) {
+        removeClip(name) {
             delete this._clips[name];
         },
 
@@ -458,7 +752,7 @@ pc.extend(pc, function () {
          * @param {String} name The name of the clip.
          * @returns {pc.SpriteAnimationClip} The clip.
          */
-        clip: function (name) {
+        clip(name) {
             return this._clips[name];
         },
 
@@ -470,10 +764,10 @@ pc.extend(pc, function () {
          * @param {String} name The name of the clip to play.
          * @returns {pc.SpriteAnimationClip} The clip that started playing.
          */
-        play: function (name) {
-            var clip = this._clips[name];
+        play(name) {
+            const clip = this._clips[name];
 
-            var current = this._currentClip;
+            const current = this._currentClip;
             if (current && current !== clip) {
                 current._playing = false;
             }
@@ -484,7 +778,7 @@ pc.extend(pc, function () {
                 this._currentClip = clip;
                 this._currentClip.play();
             } else {
-                logWARNING('Trying to play sprite animation ' + name + ' which does not exist.');
+                logWARNING(`Trying to play sprite animation ${name} which does not exist.`);
             }
 
             return clip;
@@ -496,7 +790,7 @@ pc.extend(pc, function () {
          * @name pc.SpriteComponent#pause
          * @description Pauses the current animation clip.
          */
-        pause: function () {
+        pause() {
             if (this._currentClip === this._defaultClip) return;
 
             if (this._currentClip.isPlaying) {
@@ -510,7 +804,7 @@ pc.extend(pc, function () {
          * @name pc.SpriteComponent#resume
          * @description Resumes the current paused animation clip.
          */
-        resume: function () {
+        resume() {
             if (this._currentClip === this._defaultClip) return;
 
             if (this._currentClip.isPaused) {
@@ -524,332 +818,17 @@ pc.extend(pc, function () {
          * @name pc.SpriteComponent#stop
          * @description Stops the current animation clip and resets it to the first frame.
          */
-        stop: function () {
+        stop() {
             if (this._currentClip === this._defaultClip) return;
 
             this._currentClip.stop();
         }
     });
 
-    Object.defineProperty(SpriteComponent.prototype, "type", {
-        get: function () {
-            return this._type;
-        },
-
-        set: function (value) {
-            if (this._type === value)
-                return;
-
-            this._type = value;
-            if (this._type === pc.SPRITETYPE_SIMPLE) {
-                this.stop();
-                this._currentClip = this._defaultClip;
-
-                if (this.enabled && this.entity.enabled) {
-                    this._currentClip.frame = this.frame;
-
-                    if (this._currentClip.sprite) {
-                        this._showModel();
-                    } else {
-                        this._hideModel();
-                    }
-                }
-
-            } else if (this._type === pc.SPRITETYPE_ANIMATED) {
-                this.stop();
-
-                if (this._autoPlayClip) {
-                    this._tryAutoPlay();
-                }
-
-                if (this._currentClip && this._currentClip.isPlaying && this.enabled && this.entity.enabled) {
-                    this._showModel();
-                } else {
-                    this._hideModel();
-                }
-            }
-        }
-    });
-
-    Object.defineProperty(SpriteComponent.prototype, "frame", {
-        get: function () {
-            return this._currentClip.frame;
-        },
-
-        set: function (value) {
-            this._currentClip.frame = value;
-        }
-    });
-
-    Object.defineProperty(SpriteComponent.prototype, "spriteAsset", {
-        get: function () {
-            return this._defaultClip._spriteAsset;
-        },
-        set: function (value) {
-            this._defaultClip.spriteAsset = value;
-        }
-    });
-
-    Object.defineProperty(SpriteComponent.prototype, "sprite", {
-        get: function () {
-            return this._currentClip.sprite;
-        },
-        set: function (value) {
-            this._currentClip.sprite = value;
-        }
-    });
-
-    // (private) {pc.Material} material The material used to render a sprite.
-    Object.defineProperty(SpriteComponent.prototype, "material", {
-        get: function () {
-            return this._material;
-        },
-        set: function (value) {
-            this._material = value;
-            if (this._meshInstance) {
-                this._meshInstance.material = value;
-            }
-        }
-    });
-
-    Object.defineProperty(SpriteComponent.prototype, "color", {
-        get: function () {
-            return this._color;
-        },
-        set: function (value) {
-            this._color.data[0] = value.data[0];
-            this._color.data[1] = value.data[1];
-            this._color.data[2] = value.data[2];
-
-            if (this._meshInstance) {
-                this._meshInstance.setParameter(PARAM_EMISSIVE, this._color.data3);
-            }
-        }
-    });
-
-    Object.defineProperty(SpriteComponent.prototype, "opacity", {
-        get: function () {
-            return this._color.data[3];
-        },
-        set: function (value) {
-            this._color.data[3] = value;
-            if (this._meshInstance) {
-                this._meshInstance.setParameter(PARAM_OPACITY, value);
-            }
-        }
-    });
-
-    Object.defineProperty(SpriteComponent.prototype, "clips", {
-        get: function () {
-            return this._clips;
-        },
-        set: function (value) {
-            var name, key;
-
-            // if value is null remove all clips
-            if (! value) {
-                for (name in this._clips) {
-                    this.removeClip(name);
-                }
-                return;
-            }
-
-            // remove existing clips not in new value
-            // and update clips in both objects
-            for (name in this._clips) {
-                var found = false;
-                for (key in value) {
-                    if (value[key].name === name) {
-                        found = true;
-                        this._clips[name].fps = value[key].fps;
-                        this._clips[name].loop = value[key].loop;
-
-                        if (value[key].hasOwnProperty('sprite')) {
-                            this._clips[name].sprite = value[key].sprite;
-                        } else if (value[key].hasOwnProperty('spriteAsset')) {
-                            this._clips[name].spriteAsset = value[key].spriteAsset;
-                        }
-
-                        break;
-                    }
-                }
-
-                if (! found) {
-                    this.removeClip(name);
-                }
-            }
-
-            // add clips that do not exist
-            for (key in value) {
-                if (this._clips[value[key].name]) continue;
-
-                this.addClip(value[key]);
-            }
-
-            // auto play clip
-            if (this._autoPlayClip) {
-                this._tryAutoPlay();
-            }
-
-            // if the current clip doesn't have a sprite then hide the model
-            if (! this._currentClip || !this._currentClip.sprite) {
-                this._hideModel();
-            }
-        }
-    });
-
-    Object.defineProperty(SpriteComponent.prototype, "currentClip", {
-        get: function () {
-            return this._currentClip;
-        }
-    });
-
-    Object.defineProperty(SpriteComponent.prototype, "speed", {
-        get: function () {
-            return this._speed;
-        },
-        set: function (value) {
-            this._speed = value;
-        }
-    });
-
-    Object.defineProperty(SpriteComponent.prototype, "flipX", {
-        get: function () {
-            return this._flipX;
-        },
-        set: function (value) {
-            if (this._flipX === value) return;
-
-            this._flipX = value;
-            this._updateTransform();
-        }
-    });
-
-    Object.defineProperty(SpriteComponent.prototype, "flipY", {
-        get: function () {
-            return this._flipY;
-        },
-        set: function (value) {
-            if (this._flipY === value) return;
-
-            this._flipY = value;
-            this._updateTransform();
-        }
-    });
-
-    Object.defineProperty(SpriteComponent.prototype, "width", {
-        get: function () {
-            return this._width;
-        },
-        set: function (value) {
-            if (value === this._width) return;
-
-            this._width = value;
-            this._outerScale.x = this._width;
-
-            if (this.sprite && (this.sprite.renderMode === pc.SPRITE_RENDERMODE_TILED || this.sprite.renderMode === pc.SPRITE_RENDERMODE_SLICED)) {
-                this._updateTransform();
-            }
-        }
-    });
-
-    Object.defineProperty(SpriteComponent.prototype, "height", {
-        get: function () {
-            return this._height;
-        },
-        set: function (value) {
-            if (value === this._height) return;
-
-            this._height = value;
-            this._outerScale.y = this.height;
-
-            if (this.sprite && (this.sprite.renderMode === pc.SPRITE_RENDERMODE_TILED || this.sprite.renderMode === pc.SPRITE_RENDERMODE_SLICED)) {
-                this._updateTransform();
-            }
-        }
-    });
-
-    Object.defineProperty(SpriteComponent.prototype, "batchGroupId", {
-        get: function () {
-            return this._batchGroupId;
-        },
-        set: function (value) {
-            if (this._batchGroupId === value)
-                return;
-
-            var prev = this._batchGroupId;
-            this._batchGroupId = value;
-
-            if (prev >= 0) {
-                this.system.app.batcher._markGroupDirty(prev);
-            }
-
-            if (this._batchGroupId >= 0) {
-                this.system.app.batcher._markGroupDirty(this._batchGroupId);
-            } else {
-                // re-add model to scene in case it was removed by batching
-                if (prev >= 0) {
-                    if (this._currentClip && this._currentClip.sprite && this.enabled && this.entity.enabled) {
-                        this._showModel();
-                    }
-                }
-            }
-        }
-    });
-
-    Object.defineProperty(SpriteComponent.prototype, "autoPlayClip", {
-        get: function () {
-            return this._autoPlayClip;
-        },
-        set: function (value) {
-            this._autoPlayClip = value instanceof pc.SpriteAnimationClip ? value.name : value;
-            this._tryAutoPlay();
-        }
-    });
-
-    Object.defineProperty(SpriteComponent.prototype, "drawOrder", {
-        get: function () {
-            return this._drawOrder;
-        },
-        set: function (value) {
-            this._drawOrder = value;
-            if (this._meshInstance) {
-                this._meshInstance.drawOrder = value;
-            }
-        }
-    });
-
-    Object.defineProperty(SpriteComponent.prototype, "layers", {
-        get: function () {
-            return this._layers;
-        },
-        set: function (value) {
-            var i;
-            var len;
-
-            if (this._addedModel) {
-                this._hideModel();
-            }
-
-            var prev = this._layers;
-            this._layers = value;
-
-            // early out
-            if (! this._meshInstance) {
-                return;
-            }
-
-            if (this.enabled && this.entity.enabled) {
-                this._showModel();
-            }
-        }
-
-    });
-
     return {
-        SpriteComponent: SpriteComponent
+        SpriteComponent
     };
-}());
+})());
 
 
 // Events Documentation

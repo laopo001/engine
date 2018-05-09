@@ -1,7 +1,5 @@
-pc.extend(pc, (function () {
-    'use strict';
-
-    var typeNumber = 'number';
+pc.extend(pc, ((() => {
+    const typeNumber = 'number';
 
     /**
      * @constructor
@@ -18,30 +16,30 @@ pc.extend(pc, (function () {
      * @param {Number} [v7] The value in row 1, column 2.
      * @param {Number} [v8] The value in row 2, column 2.
      */
-    var Mat3 = function (v0, v1, v2, v3, v4, v5, v6, v7, v8) {
-        if (v0 && v0.length === 9) {
-            this.data = new Float32Array(v0);
-            return;
+    class Mat3 {
+        constructor(v0, v1, v2, v3, v4, v5, v6, v7, v8) {
+            if (v0 && v0.length === 9) {
+                this.data = new Float32Array(v0);
+                return;
+            }
+
+            this.data = new Float32Array(9);
+
+            if (typeof(v0) === typeNumber) {
+                this.data[0] = v0;
+                this.data[1] = v1;
+                this.data[2] = v2;
+                this.data[3] = v3;
+                this.data[4] = v4;
+                this.data[5] = v5;
+                this.data[6] = v6;
+                this.data[7] = v7;
+                this.data[8] = v8;
+            } else {
+                this.setIdentity();
+            }
         }
 
-        this.data = new Float32Array(9);
-
-        if (typeof(v0) === typeNumber) {
-            this.data[0] = v0;
-            this.data[1] = v1;
-            this.data[2] = v2;
-            this.data[3] = v3;
-            this.data[4] = v4;
-            this.data[5] = v5;
-            this.data[6] = v6;
-            this.data[7] = v7;
-            this.data[8] = v8;
-        } else {
-            this.setIdentity();
-        }
-    };
-
-    Mat3.prototype = {
         /**
          * @function
          * @name pc.Mat3#clone
@@ -52,9 +50,9 @@ pc.extend(pc, (function () {
          * var dst = src.clone();
          * console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
          */
-        clone: function () {
+        clone() {
             return new pc.Mat3().copy(this);
-        },
+        }
 
         /**
          * @function
@@ -68,9 +66,9 @@ pc.extend(pc, (function () {
          * dst.copy(src);
          * console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
          */
-        copy: function (rhs) {
-            var src = rhs.data;
-            var dst = this.data;
+        copy({data}) {
+            const src = data;
+            const dst = this.data;
 
             dst[0] = src[0];
             dst[1] = src[1];
@@ -83,7 +81,7 @@ pc.extend(pc, (function () {
             dst[8] = src[8];
 
             return this;
-        },
+        }
 
         /**
          * @function
@@ -96,9 +94,9 @@ pc.extend(pc, (function () {
          * var b = new pc.Mat3();
          * console.log("The two matrices are " + (a.equals(b) ? "equal" : "different"));
          */
-        equals: function (rhs) {
-            var l = this.data;
-            var r = rhs.data;
+        equals({data}) {
+            const l = this.data;
+            const r = data;
 
             return ((l[0] === r[0]) &&
                     (l[1] === r[1]) &&
@@ -109,7 +107,7 @@ pc.extend(pc, (function () {
                     (l[6] === r[6]) &&
                     (l[7] === r[7]) &&
                     (l[8] === r[8]));
-        },
+        }
 
         /**
          * @function
@@ -120,8 +118,8 @@ pc.extend(pc, (function () {
          * var m = new pc.Mat3();
          * console.log("The matrix is " + (m.isIdentity() ? "identity" : "not identity"));
          */
-        isIdentity: function () {
-            var m = this.data;
+        isIdentity() {
+            const m = this.data;
             return ((m[0] === 1) &&
                     (m[1] === 0) &&
                     (m[2] === 0) &&
@@ -131,7 +129,7 @@ pc.extend(pc, (function () {
                     (m[6] === 0) &&
                     (m[7] === 0) &&
                     (m[8] === 1));
-        },
+        }
 
         /**
          * @function
@@ -142,8 +140,8 @@ pc.extend(pc, (function () {
          * m.setIdentity();
          * console.log("The matrix is " + (m.isIdentity() ? "identity" : "not identity"));
          */
-        setIdentity: function () {
-            var m = this.data;
+        setIdentity() {
+            const m = this.data;
             m[0] = 1;
             m[1] = 0;
             m[2] = 0;
@@ -157,7 +155,7 @@ pc.extend(pc, (function () {
             m[8] = 1;
 
             return this;
-        },
+        }
 
         /**
          * @function
@@ -169,15 +167,15 @@ pc.extend(pc, (function () {
          * // Should output '[1, 0, 0, 0, 1, 0, 0, 0, 1]'
          * console.log(m.toString());
          */
-        toString: function () {
-            var t = "[";
-            for (var i = 0; i < 9; i++) {
+        toString() {
+            let t = "[";
+            for (let i = 0; i < 9; i++) {
                 t += this.data[i];
                 t += (i !== 9) ? ", " : "";
             }
             t += "]";
             return t;
-        },
+        }
 
         /**
          * @function
@@ -190,17 +188,17 @@ pc.extend(pc, (function () {
          * // Transpose in place
          * m.transpose();
          */
-        transpose: function () {
-            var m = this.data;
+        transpose() {
+            const m = this.data;
 
-            var tmp;
+            let tmp;
             tmp = m[1]; m[1] = m[3]; m[3] = tmp;
             tmp = m[2]; m[2] = m[6]; m[6] = tmp;
             tmp = m[5]; m[5] = m[7]; m[7] = tmp;
 
             return this;
         }
-    };
+    }
 
     /**
      * @field
@@ -211,12 +209,10 @@ pc.extend(pc, (function () {
      * @description A constant matrix set to the identity.
      */
     Object.defineProperty(Mat3, 'IDENTITY', {
-        get: function () {
-            var identity = new Mat3();
-            return function() {
-                return identity;
-            };
-        }()
+        get: (() => {
+            const identity = new Mat3();
+            return () => identity;
+        })()
     });
 
     /**
@@ -228,15 +224,13 @@ pc.extend(pc, (function () {
      * @description A constant matrix with all elements set to 0.
      */
     Object.defineProperty(Mat3, 'ZERO', {
-        get: function () {
-            var zero = new Mat3(0, 0, 0, 0, 0, 0, 0, 0, 0);
-            return function() {
-                return zero;
-            };
-        }()
+        get: (() => {
+            const zero = new Mat3(0, 0, 0, 0, 0, 0, 0, 0, 0);
+            return () => zero;
+        })()
     });
 
     return {
-        Mat3: Mat3
+        Mat3
     };
-}()));
+})()));

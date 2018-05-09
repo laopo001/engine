@@ -1,4 +1,4 @@
-pc.extend(pc, function(){
+pc.extend(pc, (() => {
     /**
      * @constructor
      * @name pc.KeyboardEvent
@@ -18,7 +18,7 @@ pc.extend(pc, function(){
      * };
      * app.keyboard.on("keydown", onKeyDown, this);
      */
-    var KeyboardEvent = function (keyboard, event) {
+    const KeyboardEvent = function (keyboard, event) {
         if (event) {
             this.key = event.keyCode;
             this.element = event.target;
@@ -31,7 +31,7 @@ pc.extend(pc, function(){
     };
 
     // internal global keyboard events
-    var _keyboardEvent = new KeyboardEvent();
+    const _keyboardEvent = new KeyboardEvent();
 
     function makeKeyboardEvent(event) {
         _keyboardEvent.key = event.keyCode;
@@ -56,7 +56,7 @@ pc.extend(pc, function(){
         }
     }
 
-    var _keyCodeToKeyIdentifier = {
+    const _keyCodeToKeyIdentifier = {
         '9': 'Tab',
         '13': 'Enter',
         '16': 'Shift',
@@ -118,207 +118,209 @@ pc.extend(pc, function(){
      * @example
      * var keyboard = new pc.Keyboard(window); // attach keyboard listeners to the window
      */
-    var Keyboard = function(element, options) {
-        options = options || {};
-        this._element = null;
+    class Keyboard {
+        constructor(element, options) {
+            options = options || {};
+            this._element = null;
 
-        this._keyDownHandler = this._handleKeyDown.bind(this);
-        this._keyUpHandler = this._handleKeyUp.bind(this);
-        this._keyPressHandler = this._handleKeyPress.bind(this);
+            this._keyDownHandler = this._handleKeyDown.bind(this);
+            this._keyUpHandler = this._handleKeyUp.bind(this);
+            this._keyPressHandler = this._handleKeyPress.bind(this);
 
-        pc.events.attach(this);
+            pc.events.attach(this);
 
-        this._keymap = {};
-        this._lastmap = {};
+            this._keymap = {};
+            this._lastmap = {};
 
-        if (element) {
-            this.attach(element);
+            if (element) {
+                this.attach(element);
+            }
+
+            this.preventDefault = options.preventDefault || false;
+            this.stopPropagation = options.stopPropagation || false;
         }
 
-        this.preventDefault = options.preventDefault || false;
-        this.stopPropagation = options.stopPropagation || false;
-    };
-
-    /**
-    * @function
-    * @name pc.Keyboard#attach
-    * @description Attach the keyboard event handlers to an Element
-    * @param {Element} element The element to listen for keyboard events on.
-    */
-    Keyboard.prototype.attach = function (element) {
-        if (this._element) {
-            // remove previous attached element
-            this.detach();
-        }
-        this._element = element;
-        this._element.addEventListener("keydown", this._keyDownHandler, false);
-        this._element.addEventListener("keypress", this._keyPressHandler, false);
-        this._element.addEventListener("keyup", this._keyUpHandler, false);
-    };
-
-    /**
-    * @function
-    * @name pc.Keyboard#detach
-    * @description Detach the keyboard event handlers from the element it is attached to.
-    */
-    Keyboard.prototype.detach = function () {
-        this._element.removeEventListener("keydown", this._keyDownHandler);
-        this._element.removeEventListener("keypress", this._keyPressHandler);
-        this._element.removeEventListener("keyup", this._keyUpHandler);
-        this._element = null;
-    };
-
-    /**
-     * @private
-     * @function
-     * @name pc.Keyboard#toKeyIdentifier
-     * @description Convert a key code into a key identifier
-     * @param {Number} keyCode The key code.
-     * @returns {String} The key identifier.
-     */
-    Keyboard.prototype.toKeyIdentifier = function(keyCode){
-        keyCode = toKeyCode(keyCode);
-        var count;
-        var hex;
-        var length;
-        var id = _keyCodeToKeyIdentifier[keyCode.toString()];
-
-        if (id) {
-            return id;
+        /**
+        * @function
+        * @name pc.Keyboard#attach
+        * @description Attach the keyboard event handlers to an Element
+        * @param {Element} element The element to listen for keyboard events on.
+        */
+        attach(element) {
+            if (this._element) {
+                // remove previous attached element
+                this.detach();
+            }
+            this._element = element;
+            this._element.addEventListener("keydown", this._keyDownHandler, false);
+            this._element.addEventListener("keypress", this._keyPressHandler, false);
+            this._element.addEventListener("keyup", this._keyUpHandler, false);
         }
 
-        // Convert to hex and add leading 0's
-        hex = keyCode.toString(16).toUpperCase();
-        length = hex.length;
-        for (count = 0; count < (4 - length); count++) {
-            hex = '0' + hex;
+        /**
+        * @function
+        * @name pc.Keyboard#detach
+        * @description Detach the keyboard event handlers from the element it is attached to.
+        */
+        detach() {
+            this._element.removeEventListener("keydown", this._keyDownHandler);
+            this._element.removeEventListener("keypress", this._keyPressHandler);
+            this._element.removeEventListener("keyup", this._keyUpHandler);
+            this._element = null;
         }
 
-        return 'U+' + hex;
-    };
+        /**
+         * @private
+         * @function
+         * @name pc.Keyboard#toKeyIdentifier
+         * @description Convert a key code into a key identifier
+         * @param {Number} keyCode The key code.
+         * @returns {String} The key identifier.
+         */
+        toKeyIdentifier(keyCode) {
+            keyCode = toKeyCode(keyCode);
+            let count;
+            let hex;
+            let length;
+            const id = _keyCodeToKeyIdentifier[keyCode.toString()];
 
-    Keyboard.prototype._handleKeyDown = function(event) {
-        var code = event.keyCode || event.charCode;
+            if (id) {
+                return id;
+            }
 
-        // Google Chrome auto-filling of login forms could raise a malformed event
-        if (code === undefined) return;
+            // Convert to hex and add leading 0's
+            hex = keyCode.toString(16).toUpperCase();
+            length = hex.length;
+            for (count = 0; count < (4 - length); count++) {
+                hex = `0${hex}`;
+            }
 
-        var id = this.toKeyIdentifier(code);
-
-        this._keymap[id] = true;
-
-        // Patch on the keyIdentifier property in non-webkit browsers
-        //event.keyIdentifier = event.keyIdentifier || id;
-
-        this.fire("keydown", makeKeyboardEvent(event));
-
-        if (this.preventDefault) {
-            event.preventDefault();
-        }
-        if (this.stopPropagation) {
-            event.stopPropagation();
-        }
-    };
-
-    Keyboard.prototype._handleKeyUp = function(event){
-        var code = event.keyCode || event.charCode;
-
-        // Google Chrome auto-filling of login forms could raise a malformed event
-        if (code === undefined) return;
-
-        var id = this.toKeyIdentifier(code);
-
-        delete this._keymap[id];
-
-        // Patch on the keyIdentifier property in non-webkit browsers
-        //event.keyIdentifier = event.keyIdentifier || id;
-
-        this.fire("keyup", makeKeyboardEvent(event));
-
-        if (this.preventDefault) {
-            event.preventDefault();
-        }
-        if (this.stopPropagation) {
-            event.stopPropagation();
-        }
-    };
-
-    Keyboard.prototype._handleKeyPress = function(event){
-        this.fire("keypress", makeKeyboardEvent(event));
-
-        if (this.preventDefault) {
-            event.preventDefault();
-        }
-        if (this.stopPropagation) {
-            event.stopPropagation();
-        }
-    };
-
-    /**
-     * @private
-     * @function
-     * @name pc.Keyboard#update
-     * @description Called once per frame to update internal state.
-     */
-    Keyboard.prototype.update = function () {
-        var prop;
-
-        // clear all keys
-        for (prop in this._lastmap) {
-            delete this._lastmap[prop];
+            return `U+${hex}`;
         }
 
-        for (prop in this._keymap) {
-            if (this._keymap.hasOwnProperty(prop)) {
-                this._lastmap[prop] = this._keymap[prop];
+        _handleKeyDown(event) {
+            const code = event.keyCode || event.charCode;
+
+            // Google Chrome auto-filling of login forms could raise a malformed event
+            if (code === undefined) return;
+
+            const id = this.toKeyIdentifier(code);
+
+            this._keymap[id] = true;
+
+            // Patch on the keyIdentifier property in non-webkit browsers
+            //event.keyIdentifier = event.keyIdentifier || id;
+
+            this.fire("keydown", makeKeyboardEvent(event));
+
+            if (this.preventDefault) {
+                event.preventDefault();
+            }
+            if (this.stopPropagation) {
+                event.stopPropagation();
             }
         }
-    };
 
-    /**
-     * @function
-     * @name pc.Keyboard#isPressed
-     * @description Return true if the key is currently down.
-     * @param {Number} key The keyCode of the key to test. See the pc.KEY_* constants.
-     * @returns {Boolean} True if the key was pressed, false if not.
-     */
-    Keyboard.prototype.isPressed = function (key) {
-        var keyCode = toKeyCode(key);
-        var id = this.toKeyIdentifier(keyCode);
+        _handleKeyUp(event) {
+            const code = event.keyCode || event.charCode;
 
-        return !!(this._keymap[id]);
-    };
+            // Google Chrome auto-filling of login forms could raise a malformed event
+            if (code === undefined) return;
 
-    /**
-     * @function
-     * @name pc.Keyboard#wasPressed
-     * @description Returns true if the key was pressed since the last update.
-     * @param {Number} key The keyCode of the key to test. See the pc.KEY_* constants.
-     * @returns {Boolean} true if the key was pressed.
-     */
-    Keyboard.prototype.wasPressed = function (key) {
-        var keyCode = toKeyCode(key);
-        var id = this.toKeyIdentifier(keyCode);
+            const id = this.toKeyIdentifier(code);
 
-        return (!!(this._keymap[id]) && !!!(this._lastmap[id]));
-    };
+            delete this._keymap[id];
 
-    /**
-     * @function
-     * @name pc.Keyboard#wasReleased
-     * @description Returns true if the key was released since the last update.
-     * @param {Number} key The keyCode of the key to test. See the pc.KEY_* constants.
-     * @returns {Boolean} true if the key was pressed.
-     */
-    Keyboard.prototype.wasReleased = function (key) {
-        var keyCode = toKeyCode(key);
-        var id = this.toKeyIdentifier(keyCode);
+            // Patch on the keyIdentifier property in non-webkit browsers
+            //event.keyIdentifier = event.keyIdentifier || id;
 
-        return (!!!(this._keymap[id]) && !!(this._lastmap[id]));
-    };
+            this.fire("keyup", makeKeyboardEvent(event));
+
+            if (this.preventDefault) {
+                event.preventDefault();
+            }
+            if (this.stopPropagation) {
+                event.stopPropagation();
+            }
+        }
+
+        _handleKeyPress(event) {
+            this.fire("keypress", makeKeyboardEvent(event));
+
+            if (this.preventDefault) {
+                event.preventDefault();
+            }
+            if (this.stopPropagation) {
+                event.stopPropagation();
+            }
+        }
+
+        /**
+         * @private
+         * @function
+         * @name pc.Keyboard#update
+         * @description Called once per frame to update internal state.
+         */
+        update() {
+            let prop;
+
+            // clear all keys
+            for (prop in this._lastmap) {
+                delete this._lastmap[prop];
+            }
+
+            for (prop in this._keymap) {
+                if (this._keymap.hasOwnProperty(prop)) {
+                    this._lastmap[prop] = this._keymap[prop];
+                }
+            }
+        }
+
+        /**
+         * @function
+         * @name pc.Keyboard#isPressed
+         * @description Return true if the key is currently down.
+         * @param {Number} key The keyCode of the key to test. See the pc.KEY_* constants.
+         * @returns {Boolean} True if the key was pressed, false if not.
+         */
+        isPressed(key) {
+            const keyCode = toKeyCode(key);
+            const id = this.toKeyIdentifier(keyCode);
+
+            return !!(this._keymap[id]);
+        }
+
+        /**
+         * @function
+         * @name pc.Keyboard#wasPressed
+         * @description Returns true if the key was pressed since the last update.
+         * @param {Number} key The keyCode of the key to test. See the pc.KEY_* constants.
+         * @returns {Boolean} true if the key was pressed.
+         */
+        wasPressed(key) {
+            const keyCode = toKeyCode(key);
+            const id = this.toKeyIdentifier(keyCode);
+
+            return (!!(this._keymap[id]) && !!!(this._lastmap[id]));
+        }
+
+        /**
+         * @function
+         * @name pc.Keyboard#wasReleased
+         * @description Returns true if the key was released since the last update.
+         * @param {Number} key The keyCode of the key to test. See the pc.KEY_* constants.
+         * @returns {Boolean} true if the key was pressed.
+         */
+        wasReleased(key) {
+            const keyCode = toKeyCode(key);
+            const id = this.toKeyIdentifier(keyCode);
+
+            return (!!!(this._keymap[id]) && !!(this._lastmap[id]));
+        }
+    }
 
     return {
-        Keyboard: Keyboard,
-        KeyboardEvent: KeyboardEvent
+        Keyboard,
+        KeyboardEvent
     };
-}());
+})());

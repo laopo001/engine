@@ -1,9 +1,7 @@
-pc.extend(pc, (function () {
-    'use strict';
+pc.extend(pc, ((() => {
+    const shaderChunks = {};
 
-    var shaderChunks = {};
-
-    var attrib2Semantic = {
+    const attrib2Semantic = {
         vertex_position: pc.SEMANTIC_POSITION,
         vertex_normal: pc.SEMANTIC_NORMAL,
         vertex_tangent: pc.SEMANTIC_TANGENT,
@@ -20,22 +18,22 @@ pc.extend(pc, (function () {
         vertex_boneWeights: pc.SEMANTIC_BLENDWEIGHT
     };
 
-    shaderChunks.collectAttribs = function (vsCode) {
-        var attribs = {};
-        var attrs = 0;
+    shaderChunks.collectAttribs = vsCode => {
+        const attribs = {};
+        let attrs = 0;
 
-        var found = vsCode.indexOf("attribute");
+        let found = vsCode.indexOf("attribute");
         while (found >= 0) {
             if (found > 0 && vsCode[found-1]==="/") break;
-            var endOfLine = vsCode.indexOf(';', found);
-            var startOfAttribName = vsCode.lastIndexOf(' ', endOfLine);
-            var attribName = vsCode.substr(startOfAttribName + 1, endOfLine - (startOfAttribName + 1));
+            const endOfLine = vsCode.indexOf(';', found);
+            const startOfAttribName = vsCode.lastIndexOf(' ', endOfLine);
+            const attribName = vsCode.substr(startOfAttribName + 1, endOfLine - (startOfAttribName + 1));
 
-            var semantic = attrib2Semantic[attribName];
+            const semantic = attrib2Semantic[attribName];
             if (semantic!==undefined) {
                 attribs[attribName] = semantic;
             } else {
-                attribs[attribName] = "ATTR" + attrs;
+                attribs[attribName] = `ATTR${attrs}`;
                 attrs++;
             }
 
@@ -46,9 +44,9 @@ pc.extend(pc, (function () {
 
 
     shaderChunks.createShader = function(device, vsName, psName, useTransformFeedback) {
-        var vsCode = shaderChunks[vsName];
-        var psCode = pc.programlib.precisionCode(device) + "\n" + shaderChunks[psName];
-        var attribs = this.collectAttribs(vsCode);
+        let vsCode = shaderChunks[vsName];
+        let psCode = `${pc.programlib.precisionCode(device)}\n${shaderChunks[psName]}`;
+        const attribs = this.collectAttribs(vsCode);
 
         if (device.webgl2) {
             vsCode = pc.programlib.versionCode(device) + this.gles3VS + vsCode;
@@ -59,17 +57,17 @@ pc.extend(pc, (function () {
             attributes: attribs,
             vshader: vsCode,
             fshader: psCode,
-            useTransformFeedback: useTransformFeedback
+            useTransformFeedback
         });
     };
 
     shaderChunks.createShaderFromCode = function(device, vsCode, psCode, uName, useTransformFeedback) {
-        var shaderCache = device.programLib._cache;
-        var cached = shaderCache[uName];
+        const shaderCache = device.programLib._cache;
+        const cached = shaderCache[uName];
         if (cached !== undefined) return cached;
 
-        psCode = pc.programlib.precisionCode(device) + "\n" + (psCode || pc.programlib.dummyFragmentCode());
-        var attribs = this.collectAttribs(vsCode);
+        psCode = `${pc.programlib.precisionCode(device)}\n${psCode || pc.programlib.dummyFragmentCode()}`;
+        const attribs = this.collectAttribs(vsCode);
 
         if (device.webgl2) {
             vsCode = pc.programlib.versionCode(device) + this.gles3VS + vsCode;
@@ -80,12 +78,12 @@ pc.extend(pc, (function () {
             attributes: attribs,
             vshader: vsCode,
             fshader: psCode,
-            useTransformFeedback: useTransformFeedback
+            useTransformFeedback
         });
         return shaderCache[uName];
     };
 
     return {
-        shaderChunks: shaderChunks
+        shaderChunks
     };
-}()));
+})()));

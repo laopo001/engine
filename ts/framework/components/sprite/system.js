@@ -1,12 +1,10 @@
-pc.extend(pc, function () {
-    'use strict';
-
-    var _schema = [ 'enabled' ];
+pc.extend(pc, (() => {
+    const _schema = [ 'enabled' ];
 
     // TODO: remove this once sprites are deployed
-    var warningShown = false;
+    let warningShown = false;
 
-    var nineSliceBasePS = [
+    const nineSliceBasePS = [
         "varying vec2 vMask;",
         "varying vec2 vTiledUv;",
         "uniform vec4 innerOffset;",
@@ -15,7 +13,7 @@ pc.extend(pc, function () {
         "vec2 nineSlicedUv;"
     ].join('\n');
 
-    var nineSliceUvPs = [
+    const nineSliceUvPs = [
         "vec2 tileMask = step(vMask, vec2(0.99999));",
         "vec2 clampedUv = mix(innerOffset.xy*0.5, vec2(1.0) - innerOffset.zw*0.5, fract(vTiledUv));",
         "clampedUv = clampedUv * atlasRect.zw + atlasRect.xy;",
@@ -31,7 +29,7 @@ pc.extend(pc, function () {
      * @param {pc.Application} app The application
      * @extends pc.ComponentSystem
      */
-    var SpriteComponentSystem = function SpriteComponentSystem(app) {
+    let SpriteComponentSystem = function SpriteComponentSystem(app) {
         this.id = 'sprite';
         this.app = app;
         app.systems.add(this.id, this);
@@ -43,8 +41,8 @@ pc.extend(pc, function () {
 
         // default texture - make white so we can tint it with emissive color
         this._defaultTexture = new pc.Texture(app.graphicsDevice, {width: 1, height: 1, format: pc.PIXELFORMAT_R8_G8_B8_A8});
-        var pixels = this._defaultTexture.lock();
-        var pixelData = new Uint8Array(4);
+        const pixels = this._defaultTexture.lock();
+        const pixelData = new Uint8Array(4);
         pixelData[0] = 255.0;
         pixelData[1] = 255.0;
         pixelData[2] = 255.0;
@@ -75,20 +73,20 @@ pc.extend(pc, function () {
         // material used for 9-slicing in sliced mode
         this.default9SlicedMaterialSlicedMode = this.defaultMaterial.clone();
         this.default9SlicedMaterialSlicedMode.chunks.basePS = pc.shaderChunks.basePS + nineSliceBasePS;
-        this.default9SlicedMaterialSlicedMode.chunks.startPS = pc.shaderChunks.startPS + "nineSlicedUv = vUv0;\n";
+        this.default9SlicedMaterialSlicedMode.chunks.startPS = `${pc.shaderChunks.startPS}nineSlicedUv = vUv0;\n`;
         this.default9SlicedMaterialSlicedMode.chunks.emissivePS = pc.shaderChunks.emissivePS.replace("$UV", "nineSlicedUv");
         this.default9SlicedMaterialSlicedMode.chunks.opacityPS = pc.shaderChunks.opacityPS.replace("$UV", "nineSlicedUv");
-        this.default9SlicedMaterialSlicedMode.chunks.transformVS = "#define NINESLICED\n" + pc.shaderChunks.transformVS;
+        this.default9SlicedMaterialSlicedMode.chunks.transformVS = `#define NINESLICED\n${pc.shaderChunks.transformVS}`;
         this.default9SlicedMaterialSlicedMode.chunks.uv0VS = pc.shaderChunks.uv9SliceVS;
         this.default9SlicedMaterialSlicedMode.update();
 
         // material used for 9-slicing in tiled mode
         this.default9SlicedMaterialTiledMode = this.defaultMaterial.clone();
-        this.default9SlicedMaterialTiledMode.chunks.basePS = pc.shaderChunks.basePS + "#define NINESLICETILED\n" + nineSliceBasePS;
+        this.default9SlicedMaterialTiledMode.chunks.basePS = `${pc.shaderChunks.basePS}#define NINESLICETILED\n${nineSliceBasePS}`;
         this.default9SlicedMaterialTiledMode.chunks.startPS = pc.shaderChunks.startPS + nineSliceUvPs;
         this.default9SlicedMaterialTiledMode.chunks.emissivePS = pc.shaderChunks.emissivePS.replace("$UV", "nineSlicedUv, -1000.0");
         this.default9SlicedMaterialTiledMode.chunks.opacityPS = pc.shaderChunks.opacityPS.replace("$UV", "nineSlicedUv, -1000.0");
-        this.default9SlicedMaterialTiledMode.chunks.transformVS = "#define NINESLICED\n" + pc.shaderChunks.transformVS;
+        this.default9SlicedMaterialTiledMode.chunks.transformVS = `#define NINESLICED\n${pc.shaderChunks.transformVS}`;
         this.default9SlicedMaterialTiledMode.chunks.uv0VS = pc.shaderChunks.uv9SliceVS;
         this.default9SlicedMaterialTiledMode.update();
 
@@ -100,7 +98,7 @@ pc.extend(pc, function () {
     pc.Component._buildAccessors(pc.SpriteComponent.prototype, _schema);
 
     pc.extend(SpriteComponentSystem.prototype, {
-        initializeComponentData: function (component, data, properties) {
+        initializeComponentData(component, data, properties) {
             if (data.enabled !== undefined) {
                 component.enabled = data.enabled;
             }
@@ -158,7 +156,7 @@ pc.extend(pc, function () {
             }
 
             if (data.clips) {
-                for (var name in data.clips) {
+                for (const name in data.clips) {
                     component.addClip(data.clips[name]);
                 }
             }
@@ -181,8 +179,8 @@ pc.extend(pc, function () {
             }
         },
 
-        cloneComponent: function (entity, clone) {
-            var source = entity.sprite;
+        cloneComponent({sprite}, clone) {
+            const source = sprite;
 
             return this.addComponent(clone, {
                 enabled: source.enabled,
@@ -200,15 +198,15 @@ pc.extend(pc, function () {
             });
         },
 
-        onUpdate: function (dt) {
-            var components = this.store;
+        onUpdate(dt) {
+            const components = this.store;
 
-            for (var id in components) {
+            for (const id in components) {
                 if (components.hasOwnProperty(id)) {
-                    var component = components[id];
+                    const component = components[id];
                     // if sprite component is enabled advance its current clip
                     if (component.data.enabled && component.entity.enabled) {
-                        var sprite = component.entity.sprite;
+                        const sprite = component.entity.sprite;
                         if (sprite._currentClip) {
                             sprite._currentClip._update(dt);
                         }
@@ -217,12 +215,12 @@ pc.extend(pc, function () {
             }
         },
 
-        onBeforeRemove: function (entity, component) {
+        onBeforeRemove(entity, component) {
             component.onDestroy();
         }
     });
 
     return {
-        SpriteComponentSystem: SpriteComponentSystem
+        SpriteComponentSystem
     };
-}());
+})());

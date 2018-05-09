@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
     * @component
     * @name pc.ScriptComponent
@@ -10,14 +10,61 @@ pc.extend(pc, function () {
     * @property {ScriptType[]} scripts An array of all script instances attached to an entity. This Array shall not be modified by developer.
     */
 
-    var ScriptComponent = function ScriptComponent(system, entity) {
-        this._scripts = [ ];
-        this._scriptsIndex = { };
-        this._scriptsData = null;
-        this._oldState = true;
-        this._beingEnabled = false;
-        this.on('set_enabled', this._onSetEnabled, this);
-    };
+    class ScriptComponent {
+        constructor(system, entity) {
+            this._scripts = [ ];
+            this._scriptsIndex = { };
+            this._scriptsData = null;
+            this._oldState = true;
+            this._beingEnabled = false;
+            this.on('set_enabled', this._onSetEnabled, this);
+        }
+
+        get scripts() {
+            return this._scripts;
+        }
+
+        set scripts(value) {
+            this._scriptsData = value;
+
+            for (const key in value) {
+                if (! value.hasOwnProperty(key))
+                    continue;
+
+                const script = this._scriptsIndex[key];
+                if (script) {
+                    // existing script
+
+                    // enabled
+                    if (typeof(value[key].enabled) === 'boolean')
+                        script.enabled = !! value[key].enabled;
+
+                    // attributes
+                    if (typeof(value[key].attributes) === 'object') {
+                        for (const attr in value[key].attributes) {
+                            if (pc.createScript.reservedAttributes[attr])
+                                continue;
+
+                            if (! script.__attributes.hasOwnProperty(attr)) {
+                                // new attribute
+                                const scriptType = this.system.app.scripts.get(key);
+                                if (scriptType)
+                                    scriptType.attributes.add(attr, { });
+                            }
+
+                            // update attribute
+                            script[attr] = value[key].attributes[attr];
+                        }
+                    }
+                } else {
+                    // TODO scripts2
+                    // new script
+                    console.log(this.order);
+                }
+            }
+        }
+    }
+
     ScriptComponent = pc.inherits(ScriptComponent, pc.Component);
 
     ScriptComponent.scriptMethods = {
@@ -159,7 +206,7 @@ pc.extend(pc, function () {
     */
 
     pc.extend(ScriptComponent.prototype, {
-        onEnable: function () {
+        onEnable() {
             ScriptComponent._super.onEnable.call(this);
             this._beingEnabled = true;
             this._checkState();
@@ -171,14 +218,14 @@ pc.extend(pc, function () {
             this._beingEnabled = false;
         },
 
-        onDisable: function () {
+        onDisable() {
             ScriptComponent._super.onDisable.call(this);
             this._checkState();
         },
 
-        onPostStateChange: function() {
-            var script;
-            for (var i = 0, len = this.scripts.length; i < len; i++) {
+        onPostStateChange() {
+            let script;
+            for (let i = 0, len = this.scripts.length; i < len; i++) {
                 script = this.scripts[i];
 
                 if (script._initialized && ! script._postInitialized && script.enabled) {
@@ -193,14 +240,14 @@ pc.extend(pc, function () {
         // We also need this handler because it is fired
         // when value === old instead of onEnable and onDisable
         // which are only fired when value !== old
-        _onSetEnabled: function(prop, old, value) {
+        _onSetEnabled(prop, old, value) {
             this._beingEnabled = true;
             this._checkState();
             this._beingEnabled = false;
         },
 
-        _checkState: function() {
-            var state = this.enabled && this.entity.enabled;
+        _checkState() {
+            const state = this.enabled && this.entity.enabled;
             if (state === this._oldState)
                 return;
 
@@ -209,28 +256,28 @@ pc.extend(pc, function () {
             this.fire(state ? 'enable' : 'disable');
             this.fire('state', state);
 
-            var script;
-            for (var i = 0, len = this.scripts.length; i < len; i++) {
+            let script;
+            for (let i = 0, len = this.scripts.length; i < len; i++) {
                 script = this.scripts[i];
                 script.enabled = script._enabled;
             }
         },
 
-        _onBeforeRemove: function() {
+        _onBeforeRemove() {
             this.fire('remove');
 
             // destroy all scripts
-            var destroyed = true;
+            let destroyed = true;
             while (this.scripts.length > 0 && destroyed)
                 destroyed = this.destroy(this.scripts[0].__scriptType.__name);
         },
 
-        _onInitializeAttributes: function() {
-            for (var i = 0, len = this.scripts.length; i < len; i++)
+        _onInitializeAttributes() {
+            for (let i = 0, len = this.scripts.length; i < len; i++)
                 this.scripts[i].__initializeAttributes();
         },
 
-        _scriptMethod: function(script, method, arg) {
+        _scriptMethod(script, method, arg) {
             try {
                 script[method](arg);
             } catch (ex) {
@@ -238,7 +285,7 @@ pc.extend(pc, function () {
                 script.enabled = false;
 
                 if (! script._callbacks || ! script._callbacks.error) {
-                    console.warn('unhandled exception while calling "' + method + '" for "' + script.__scriptType.__name + '" script: ', ex);
+                    console.warn(`unhandled exception while calling "${method}" for "${script.__scriptType.__name}" script: `, ex);
                     console.error(ex);
                 }
 
@@ -247,10 +294,11 @@ pc.extend(pc, function () {
             }
         },
 
-        _onInitialize: function() {
-            var script, scripts = this._scripts;
+        _onInitialize() {
+            let script;
+            const scripts = this._scripts;
 
-            for (var i = 0, len = scripts.length; i < len; i++) {
+            for (let i = 0, len = scripts.length; i < len; i++) {
                 script = scripts[i];
                 if (! script._initialized && script.enabled) {
                     script._initialized = true;
@@ -260,24 +308,26 @@ pc.extend(pc, function () {
             }
         },
 
-        _onPostInitialize: function() {
+        _onPostInitialize() {
             this.onPostStateChange();
         },
 
-        _onUpdate: function(dt) {
-            var script, scripts = this._scripts;
+        _onUpdate(dt) {
+            let script;
+            const scripts = this._scripts;
 
-            for (var i = 0, len = scripts.length; i < len; i++) {
+            for (let i = 0, len = scripts.length; i < len; i++) {
                 script = scripts[i];
                 if (script.update && script.enabled)
                     this._scriptMethod(script, ScriptComponent.scriptMethods.update, dt);
             }
         },
 
-        _onPostUpdate: function(dt) {
-            var script, scripts = this._scripts;
+        _onPostUpdate(dt) {
+            let script;
+            const scripts = this._scripts;
 
-            for (var i = 0, len = scripts.length; i < len; i++) {
+            for (let i = 0, len = scripts.length; i < len; i++) {
                 script = scripts[i];
                 if (script.postUpdate && script.enabled)
                     this._scriptMethod(script, ScriptComponent.scriptMethods.postUpdate, dt);
@@ -295,8 +345,8 @@ pc.extend(pc, function () {
          *     // entity has script
          * }
          */
-        has: function(name) {
-            var scriptType = name;
+        has(name) {
+            let scriptType = name;
 
             // shorthand using script name
             if (typeof(scriptType) === 'string')
@@ -323,12 +373,12 @@ pc.extend(pc, function () {
          *     }
          * });
          */
-        create: function(name, args) {
-            var self = this;
+        create(name, args) {
+            const self = this;
             args = args || { };
 
-            var scriptType = name;
-            var scriptName = name;
+            let scriptType = name;
+            let scriptName = name;
 
             // shorthand using script name
             if (typeof(scriptType) === 'string') {
@@ -340,14 +390,14 @@ pc.extend(pc, function () {
             if (scriptType) {
                 if (! this._scriptsIndex[scriptType.__name] || ! this._scriptsIndex[scriptType.__name].instance) {
                     // create script instance
-                    var scriptInstance = new scriptType({
+                    const scriptInstance = new scriptType({
                         app: this.system.app,
                         entity: this.entity,
                         enabled: args.hasOwnProperty('enabled') ? args.enabled : true,
                         attributes: args.attributes || null
                     });
 
-                    var ind = -1;
+                    let ind = -1;
                     if (typeof(args.ind) === 'number' && args.ind !== -1 && this._scripts.length > args.ind)
                         ind = args.ind;
 
@@ -359,7 +409,7 @@ pc.extend(pc, function () {
 
                     this._scriptsIndex[scriptType.__name] = {
                         instance: scriptInstance,
-                        onSwap: function() {
+                        onSwap() {
                             self.swap(scriptType.__name);
                         }
                     };
@@ -370,9 +420,9 @@ pc.extend(pc, function () {
                         scriptInstance.__initializeAttributes();
 
                     this.fire('create', scriptType.__name, scriptInstance);
-                    this.fire('create:' + scriptType.__name, scriptInstance);
+                    this.fire(`create:${scriptType.__name}`, scriptInstance);
 
-                    this.system.app.scripts.on('swap:' + scriptType.__name, this._scriptsIndex[scriptType.__name].onSwap);
+                    this.system.app.scripts.on(`swap:${scriptType.__name}`, this._scriptsIndex[scriptType.__name].onSwap);
 
                     if (! args.preloading) {
 
@@ -393,14 +443,14 @@ pc.extend(pc, function () {
 
                     return scriptInstance;
                 } else {
-                    console.warn('script \'' + scriptName + '\' is already added to entity \'' + this.entity.name + '\'');
+                    console.warn(`script '${scriptName}' is already added to entity '${this.entity.name}'`);
                 }
             } else {
                 this._scriptsIndex[scriptName] = {
                     awaiting: true,
                     ind: this._scripts.length
                 };
-                console.warn('script \'' + scriptName + '\' is not found, awaiting it to be added to registry');
+                console.warn(`script '${scriptName}' is not found, awaiting it to be added to registry`);
             }
 
             return null;
@@ -415,9 +465,9 @@ pc.extend(pc, function () {
          * @example
          * entity.script.destroy('playerController');
          */
-        destroy: function(name) {
-            var scriptName = name;
-            var scriptType = name;
+        destroy(name) {
+            let scriptName = name;
+            let scriptType = name;
 
             // shorthand using script name
             if (typeof(scriptType) === 'string') {
@@ -426,22 +476,22 @@ pc.extend(pc, function () {
                     scriptName = scriptType.__name;
             }
 
-            var scriptData = this._scriptsIndex[scriptName];
+            const scriptData = this._scriptsIndex[scriptName];
             delete this._scriptsIndex[scriptName];
             if (! scriptData) return false;
 
             if (scriptData.instance) {
-                var ind = this._scripts.indexOf(scriptData.instance);
+                const ind = this._scripts.indexOf(scriptData.instance);
                 this._scripts.splice(ind, 1);
             }
 
             // remove swap event
-            this.system.app.scripts.off('swap:' + scriptName, scriptData.onSwap);
+            this.system.app.scripts.off(`swap:${scriptName}`, scriptData.onSwap);
 
             delete this[scriptName];
 
             this.fire('destroy', scriptName, scriptData.instance || null);
-            this.fire('destroy:' + scriptName, scriptData.instance || null);
+            this.fire(`destroy:${scriptName}`, scriptData.instance || null);
 
             if (scriptData.instance)
                 scriptData.instance.fire('destroy');
@@ -449,20 +499,20 @@ pc.extend(pc, function () {
             return true;
         },
 
-        swap: function(script) {
-            var scriptType = script;
+        swap(script) {
+            let scriptType = script;
 
             // shorthand using script name
             if (typeof(scriptType) === 'string')
                 scriptType = this.system.app.scripts.get(scriptType);
 
-            var old = this._scriptsIndex[scriptType.__name];
+            const old = this._scriptsIndex[scriptType.__name];
             if (! old || ! old.instance) return false;
 
-            var scriptInstanceOld = old.instance;
-            var ind = this._scripts.indexOf(scriptInstanceOld);
+            const scriptInstanceOld = old.instance;
+            const ind = this._scripts.indexOf(scriptInstanceOld);
 
-            var scriptInstance = new scriptType({
+            const scriptInstance = new scriptType({
                 app: this.system.app,
                 entity: this.entity,
                 enabled: scriptInstanceOld.enabled,
@@ -482,7 +532,7 @@ pc.extend(pc, function () {
             this._scriptMethod(scriptInstance, ScriptComponent.scriptMethods.swap, scriptInstanceOld);
 
             this.fire('swap', scriptType.__name, scriptInstance);
-            this.fire('swap:' + scriptType.__name, scriptInstance);
+            this.fire(`swap:${scriptType.__name}`, scriptInstance);
 
             return true;
         },
@@ -497,20 +547,20 @@ pc.extend(pc, function () {
          * @example
          * entity.script.move('playerController', 0);
          */
-        move: function(name, ind) {
+        move(name, ind) {
             if (ind >= this._scripts.length)
                 return false;
 
-            var scriptName = name;
+            let scriptName = name;
 
             if (typeof(scriptName) !== 'string')
                 scriptName = name.__name;
 
-            var scriptData = this._scriptsIndex[scriptName];
+            const scriptData = this._scriptsIndex[scriptName];
             if (! scriptData || ! scriptData.instance)
                 return false;
 
-            var indOld = this._scripts.indexOf(scriptData.instance);
+            const indOld = this._scripts.indexOf(scriptData.instance);
             if (indOld === -1 || indOld === ind)
                 return false;
 
@@ -518,59 +568,14 @@ pc.extend(pc, function () {
             this._scripts.splice(ind, 0, this._scripts.splice(indOld, 1)[0]);
 
             this.fire('move', scriptName, scriptData.instance, ind, indOld);
-            this.fire('move:' + scriptName, scriptData.instance, ind, indOld);
+            this.fire(`move:${scriptName}`, scriptData.instance, ind, indOld);
 
             return true;
         }
     });
 
 
-    Object.defineProperty(ScriptComponent.prototype, 'scripts', {
-        get: function() {
-            return this._scripts;
-        },
-        set: function(value) {
-            this._scriptsData = value;
-
-            for (var key in value) {
-                if (! value.hasOwnProperty(key))
-                    continue;
-
-                var script = this._scriptsIndex[key];
-                if (script) {
-                    // existing script
-
-                    // enabled
-                    if (typeof(value[key].enabled) === 'boolean')
-                        script.enabled = !! value[key].enabled;
-
-                    // attributes
-                    if (typeof(value[key].attributes) === 'object') {
-                        for (var attr in value[key].attributes) {
-                            if (pc.createScript.reservedAttributes[attr])
-                                continue;
-
-                            if (! script.__attributes.hasOwnProperty(attr)) {
-                                // new attribute
-                                var scriptType = this.system.app.scripts.get(key);
-                                if (scriptType)
-                                    scriptType.attributes.add(attr, { });
-                            }
-
-                            // update attribute
-                            script[attr] = value[key].attributes[attr];
-                        }
-                    }
-                } else {
-                    // TODO scripts2
-                    // new script
-                    console.log(this.order);
-                }
-            }
-        }
-    });
-
     return {
-        ScriptComponent: ScriptComponent
+        ScriptComponent
     };
-}());
+})());

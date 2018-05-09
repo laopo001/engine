@@ -1,6 +1,6 @@
-(function () {
+((() => {
     // Input API enums
-    var enums = {
+    const enums = {
         ACTION_MOUSE: 'mouse',
         ACTION_KEYBOARD: 'keyboard',
         ACTION_GAMEPAD: 'gamepad',
@@ -714,4 +714,4 @@
     // For backwards compatibility
     pc.input = {};
     pc.extend(pc.input, enums);
-}());
+})());

@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
      * @private
      * @component
@@ -21,7 +21,7 @@ pc.extend(pc, function () {
      * @property {Number} rollOffFactor The factor used in the falloff equation.
      */
 
-    var AudioSourceComponent = function (system, entity) {
+    let AudioSourceComponent = function (system, entity) {
         this.on("set_assets", this.onSetAssets, this);
         this.on("set_loop", this.onSetLoop, this);
         this.on("set_volume", this.onSetVolume, this);
@@ -42,7 +42,7 @@ pc.extend(pc, function () {
          * @description Begin playback of an audio asset in the component attached to an entity
          * @param {String} name The name of the Asset to play
          */
-        play: function(name) {
+        play(name) {
             if (!this.enabled || !this.entity.enabled) {
                 return;
             }
@@ -52,15 +52,15 @@ pc.extend(pc, function () {
                 this.stop();
             }
 
-            var channel;
-            var componentData = this.data;
+            let channel;
+            const componentData = this.data;
             if (componentData.sources[name]) {
                 if (!componentData['3d']) {
                     channel = this.system.manager.playSound(componentData.sources[name], componentData);
                     componentData.currentSource = name;
                     componentData.channel = channel;
                 } else {
-                    var pos = this.entity.getPosition();
+                    const pos = this.entity.getPosition();
                     channel = this.system.manager.playSound3d(componentData.sources[name], pos, componentData);
                     componentData.currentSource = name;
                     componentData.channel = channel;
@@ -74,7 +74,7 @@ pc.extend(pc, function () {
          * @name pc.AudioSourceComponent#pause
          * @description Pause playback of the audio that is playing on the Entity. Playback can be resumed by calling {@link pc.AudioSourceComponent#unpause}
          */
-        pause: function() {
+        pause() {
             if (this.channel) {
                 this.channel.pause();
             }
@@ -86,7 +86,7 @@ pc.extend(pc, function () {
          * @name pc.AudioSourceComponent#unpause
          * @description Resume playback of the audio if paused. Playback is resumed at the time it was paused.
          */
-        unpause: function () {
+        unpause() {
             if (this.channel && this.channel.paused) {
                 this.channel.unpause();
             }
@@ -98,22 +98,23 @@ pc.extend(pc, function () {
          * @name pc.AudioSourceComponent#stop
          * @description Stop playback on an Entity. Playback can not be resumed after being stopped.
          */
-        stop: function() {
+        stop() {
             if (this.channel) {
                 this.channel.stop();
                 this.channel = null;
             }
         },
 
-        onSetAssets: function (name, oldValue, newValue) {
-            var newAssets = [];
-            var i, len = newValue.length;
+        onSetAssets(name, oldValue, newValue) {
+            const newAssets = [];
+            let i;
+            const len = newValue.length;
 
             if (oldValue && oldValue.length) {
                 for (i = 0; i < oldValue.length; i++) {
                     // unsubscribe from change event for old assets
                     if (oldValue[i]) {
-                        var asset = this.system.app.assets.get(oldValue[i]);
+                        const asset = this.system.app.assets.get(oldValue[i]);
                         if (asset) {
                             asset.off('change', this.onAssetChanged, this);
                             asset.off('remove', this.onAssetRemoved, this);
@@ -128,7 +129,7 @@ pc.extend(pc, function () {
 
             if (len) {
                 for (i = 0; i < len; i++) {
-                    if (oldValue.indexOf(newValue[i]) < 0) {
+                    if (!oldValue.includes(newValue[i])) {
                         if (newValue[i] instanceof pc.Asset) {
                             newAssets.push(newValue[i].id);
                         } else {
@@ -144,19 +145,19 @@ pc.extend(pc, function () {
             }
         },
 
-        onAssetChanged: function (asset, attribute, newValue, oldValue) {
+        onAssetChanged({name}, attribute, newValue, oldValue) {
             if (attribute === 'resource') {
-                var sources = this.data.sources;
+                const sources = this.data.sources;
                 if (sources) {
-                    this.data.sources[asset.name] = newValue;
-                    if (this.data.currentSource === asset.name) {
+                    this.data.sources[name] = newValue;
+                    if (this.data.currentSource === name) {
                         // replace current sound if necessary
                         if (this.channel) {
                             if (this.channel.paused) {
-                                this.play(asset.name);
+                                this.play(name);
                                 this.pause();
                             } else {
-                                this.play(asset.name);
+                                this.play(name);
                             }
                         }
                     }
@@ -164,7 +165,7 @@ pc.extend(pc, function () {
             }
         },
 
-        onAssetRemoved: function (asset) {
+        onAssetRemoved(asset) {
             asset.off('remove', this.onAssetRemoved, this);
             if (this.data.sources[asset.name]) {
                 delete this.data.sources[asset.name];
@@ -175,7 +176,7 @@ pc.extend(pc, function () {
             }
         },
 
-        onSetLoop: function (name, oldValue, newValue) {
+        onSetLoop(name, oldValue, newValue) {
             if (oldValue != newValue) {
                 if (this.channel) {
                     this.channel.setLoop(newValue);
@@ -183,7 +184,7 @@ pc.extend(pc, function () {
             }
         },
 
-        onSetVolume: function (name, oldValue, newValue) {
+        onSetVolume(name, oldValue, newValue) {
             if (oldValue != newValue) {
                 if (this.channel) {
                     this.channel.setVolume(newValue);
@@ -191,7 +192,7 @@ pc.extend(pc, function () {
             }
         },
 
-        onSetPitch: function (name, oldValue, newValue) {
+        onSetPitch(name, oldValue, newValue) {
             if (oldValue != newValue) {
                 if (this.channel) {
                     this.channel.setPitch(newValue);
@@ -199,7 +200,7 @@ pc.extend(pc, function () {
             }
         },
 
-        onSetMaxDistance: function (name, oldValue, newValue) {
+        onSetMaxDistance(name, oldValue, newValue) {
             if (oldValue != newValue) {
                 if (this.channel instanceof pc.Channel3d) {
                     this.channel.setMaxDistance(newValue);
@@ -207,7 +208,7 @@ pc.extend(pc, function () {
             }
         },
 
-        onSetMinDistance: function (name, oldValue, newValue) {
+        onSetMinDistance(name, oldValue, newValue) {
             if (oldValue != newValue) {
                 if (this.channel instanceof pc.Channel3d) {
                     this.channel.setMinDistance(newValue);
@@ -215,7 +216,7 @@ pc.extend(pc, function () {
             }
         },
 
-        onSetRollOffFactor: function (name, oldValue, newValue) {
+        onSetRollOffFactor(name, oldValue, newValue) {
             if (oldValue != newValue) {
                 if (this.channel instanceof pc.Channel3d) {
                     this.channel.setRollOffFactor(newValue);
@@ -223,7 +224,7 @@ pc.extend(pc, function () {
             }
         },
 
-        onSetDistanceModel: function (name, oldValue, newValue) {
+        onSetDistanceModel(name, oldValue, newValue) {
             if (oldValue !== newValue) {
                 if (this.channel instanceof pc.Channel3d) {
                     this.channel.setDistanceModel(newValue);
@@ -231,11 +232,11 @@ pc.extend(pc, function () {
             }
         },
 
-        onSet3d: function (name, oldValue, newValue) {
+        onSet3d(name, oldValue, newValue) {
             if (oldValue !== newValue) {
                 if (this.system.initialized && this.currentSource) {
-                    var paused = false;
-                    var suspended = false;
+                    let paused = false;
+                    let suspended = false;
                     if (this.channel) {
                         paused = this.channel.paused;
                         suspended = this.channel.suspended;
@@ -251,16 +252,16 @@ pc.extend(pc, function () {
             }
         },
 
-        onEnable: function () {
+        onEnable() {
             AudioSourceComponent._super.onEnable.call(this);
 
             // load assets that haven't been loaded yet
-            var assets = this.data.assets;
+            const assets = this.data.assets;
             if (assets) {
-                var registry = this.system.app.assets;
+                const registry = this.system.app.assets;
 
-                for (var i = 0, len = assets.length; i < len; i++) {
-                    var asset = assets[i];
+                for (let i = 0, len = assets.length; i < len; i++) {
+                    let asset = assets[i];
                     if (! (asset instanceof pc.Asset))
                         asset = registry.get(asset);
 
@@ -279,37 +280,37 @@ pc.extend(pc, function () {
             }
         },
 
-        onDisable: function () {
+        onDisable() {
             AudioSourceComponent._super.onDisable.call(this);
             this.pause();
         },
 
-        loadAudioSourceAssets: function (ids) {
-            var self = this;
+        loadAudioSourceAssets(ids) {
+            const self = this;
 
-            var assets = ids.map(function (id) {
+            const assets = ids.map(function (id) {
                 return this.system.app.assets.get(id);
             }, this);
 
-            var sources = {};
-            var currentSource = null;
+            const sources = {};
+            let currentSource = null;
 
-            var count = assets.length;
+            let count = assets.length;
 
             // make sure progress continues even if some audio doesn't load
-            var _error = function (e) {
+            const _error = e => {
                 count--;
             };
 
             // once all assets are accounted for continue
-            var _done = function () {
+            const _done = () => {
                 this.data.sources = sources;
                 this.data.currentSource = currentSource;
 
                 if (this.enabled && this.activate && currentSource) {
                     this.onEnable();
                 }
-            }.bind(this);
+            };
 
             assets.forEach(function (asset, index) {
                 if (asset) {
@@ -325,8 +326,8 @@ pc.extend(pc, function () {
 
                     asset.off('error', _error, this);
                     asset.on('error', _error, this);
-                    asset.ready(function(asset) {
-                        sources[asset.name] = asset.resource;
+                    asset.ready(({name, resource}) => {
+                        sources[name] = resource;
                         count--;
                         if (count === 0) {
                             _done();
@@ -342,9 +343,9 @@ pc.extend(pc, function () {
                         _done();
                     }
                     // but if they are added insert them into source list
-                    this.system.app.assets.on("add:" + ids[index], function (asset) {
-                        asset.ready(function (asset) {
-                            self.data.sources[asset.name] = asset.resource;
+                    this.system.app.assets.on(`add:${ids[index]}`, asset => {
+                        asset.ready(({name, resource}) => {
+                            self.data.sources[name] = resource;
                         });
 
                         if (! asset.resource)
@@ -356,6 +357,6 @@ pc.extend(pc, function () {
     });
 
     return {
-        AudioSourceComponent: AudioSourceComponent
+        AudioSourceComponent
     };
-}());
+})());

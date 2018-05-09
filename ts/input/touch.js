@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
      * @constructor
      * @name pc.TouchEvent
@@ -11,27 +11,27 @@ pc.extend(pc, function () {
      * @property {pc.Touch[]} touches A list of all touches currently in contact with the device
      * @property {pc.Touch[]} changedTouches A list of touches that have changed since the last event
      */
-    var TouchEvent = function (device, event) {
-        this.element = event.target;
-        this.event = event;
+    class TouchEvent {
+        constructor(device, event) {
+            this.element = event.target;
+            this.event = event;
 
-        this.touches = [];
-        this.changedTouches = [];
+            this.touches = [];
+            this.changedTouches = [];
 
-        if (event) {
-            var i, l = event.touches.length;
-            for (i = 0; i < l; i++) {
-                this.touches.push(new Touch(event.touches[i]));
-            }
+            if (event) {
+                let i, l = event.touches.length;
+                for (i = 0; i < l; i++) {
+                    this.touches.push(new Touch(event.touches[i]));
+                }
 
-            l = event.changedTouches.length;
-            for (i = 0; i < l; i++) {
-                this.changedTouches.push(new Touch(event.changedTouches[i]));
+                l = event.changedTouches.length;
+                for (i = 0; i < l; i++) {
+                    this.changedTouches.push(new Touch(event.changedTouches[i]));
+                }
             }
         }
-    };
 
-    TouchEvent.prototype = {
         /**
          * @function
          * @name pc.TouchEvent#getTouchById
@@ -41,8 +41,9 @@ pc.extend(pc, function () {
          * @param {pc.Touch[]} list An array of touches to search.
          * @returns {pc.Touch} The {@link pc.Touch} object or null.
          */
-        getTouchById: function (id, list) {
-            var i, l = list.length;
+        getTouchById(id, list) {
+            let i;
+            const l = list.length;
             for (i = 0; i < l; i++) {
                 if (list[i].id === id) {
                     return list[i];
@@ -51,7 +52,7 @@ pc.extend(pc, function () {
 
             return null;
         }
-    };
+    }
 
     /**
      * @constructor
@@ -66,7 +67,7 @@ pc.extend(pc, function () {
      * @property {Touch} touch The original browser Touch object
      */
     var Touch = function (touch) {
-        var coords = pc.getTouchTargetCoords(touch);
+        const coords = pc.getTouchTargetCoords(touch);
 
         this.id = touch.identifier;
 
@@ -87,19 +88,19 @@ pc.extend(pc, function () {
      * @description Create a new touch device and attach it to an element
      * @param {Element} element The element to attach listen for events on
      */
-    var TouchDevice = function (element) {
+    class TouchDevice {
+        constructor(element) {
 
-        this._startHandler = this._handleTouchStart.bind(this);
-        this._endHandler = this._handleTouchEnd.bind(this);
-        this._moveHandler = this._handleTouchMove.bind(this);
-        this._cancelHandler = this._handleTouchCancel.bind(this);
+            this._startHandler = this._handleTouchStart.bind(this);
+            this._endHandler = this._handleTouchEnd.bind(this);
+            this._moveHandler = this._handleTouchMove.bind(this);
+            this._cancelHandler = this._handleTouchCancel.bind(this);
 
-        this.attach(element);
+            this.attach(element);
 
-        pc.events.attach(this);
-    };
+            pc.events.attach(this);
+        }
 
-    TouchDevice.prototype = {
         /**
         * @function
         * @name pc.TouchDevice#attach
@@ -107,7 +108,7 @@ pc.extend(pc, function () {
         * If the device is already attached to an element this method will detach it first
         * @param {Element} element The element to attach to
         */
-        attach: function (element) {
+        attach(element) {
             if (this._element) {
                 this.detach();
             }
@@ -118,14 +119,14 @@ pc.extend(pc, function () {
             this._element.addEventListener('touchend', this._endHandler, false);
             this._element.addEventListener('touchmove', this._moveHandler, false);
             this._element.addEventListener('touchcancel', this._cancelHandler, false);
-        },
+        }
 
         /**
         * @function
         * @name pc.TouchDevice#detach
         * @description Detach a device from the element it is attached to
         */
-        detach: function () {
+        detach() {
             if (this._element) {
                 this._element.removeEventListener('touchstart', this._startHandler, false);
                 this._element.removeEventListener('touchend', this._endHandler, false);
@@ -133,27 +134,27 @@ pc.extend(pc, function () {
                 this._element.removeEventListener('touchcancel', this._cancelHandler, false);
             }
             this._element = null;
-        },
+        }
 
-        _handleTouchStart: function (e) {
+        _handleTouchStart(e) {
             this.fire('touchstart', new TouchEvent(this, e));
-        },
+        }
 
-        _handleTouchEnd: function (e) {
+        _handleTouchEnd(e) {
             this.fire('touchend', new TouchEvent(this, e));
-        },
+        }
 
-        _handleTouchMove: function (e) {
+        _handleTouchMove(e) {
             // call preventDefault to avoid issues in Chrome Android:
             // http://wilsonpage.co.uk/touch-events-in-chrome-android/
             e.preventDefault();
             this.fire('touchmove', new TouchEvent(this, e));
-        },
+        }
 
-        _handleTouchCancel: function (e) {
+        _handleTouchCancel(e) {
             this.fire('touchcancel', new TouchEvent(this, e));
         }
-    };
+    }
 
     return {
         /**
@@ -165,14 +166,14 @@ pc.extend(pc, function () {
          * @param {Touch} touch The browser Touch object
          * @returns {Object} The co-ordinates of the touch relative to the touch.target element. In the format {x, y}
          */
-        getTouchTargetCoords: function (touch) {
-            var totalOffsetX = 0;
-            var totalOffsetY = 0;
-            var target = touch.target;
+        getTouchTargetCoords(touch) {
+            let totalOffsetX = 0;
+            let totalOffsetY = 0;
+            let target = touch.target;
             while (!(target instanceof HTMLElement)) {
                 target = target.parentNode;
             }
-            var currentElement = target;
+            let currentElement = target;
 
             do {
                 totalOffsetX += currentElement.offsetLeft - currentElement.scrollLeft;
@@ -186,7 +187,7 @@ pc.extend(pc, function () {
             };
         },
 
-        TouchDevice: TouchDevice,
-        TouchEvent: TouchEvent
+        TouchDevice,
+        TouchEvent
     };
-}());
+})());

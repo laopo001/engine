@@ -1,7 +1,7 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     // Shared math variable to avoid excessive allocation
-    var ammoTransform;
-    var ammoVec1, ammoVec2, ammoQuat, ammoOrigin;
+    let ammoTransform;
+    let ammoVec1, ammoVec2, ammoQuat, ammoOrigin;
 
     /**
      * @component
@@ -45,58 +45,57 @@ pc.extend(pc, function () {
      * </ul>
      * Defaults to pc.BODYTYPE_STATIC.
      */
-    var RigidBodyComponent = function RigidBodyComponent (system, entity) {
-        // Lazily create shared variable
-        if (typeof Ammo !== 'undefined' && !ammoTransform) {
-            ammoTransform = new Ammo.btTransform();
-            ammoVec1 = new Ammo.btVector3();
-            ammoVec2 = new Ammo.btVector3();
-            ammoQuat = new Ammo.btQuaternion();
-            ammoOrigin = new Ammo.btVector3(0, 0, 0);
+    class RigidBodyComponent {
+        constructor(system, entity) {
+            // Lazily create shared variable
+            if (typeof Ammo !== 'undefined' && !ammoTransform) {
+                ammoTransform = new Ammo.btTransform();
+                ammoVec1 = new Ammo.btVector3();
+                ammoVec2 = new Ammo.btVector3();
+                ammoQuat = new Ammo.btQuaternion();
+                ammoOrigin = new Ammo.btVector3(0, 0, 0);
+            }
+
+            this.on('set_mass', this.onSetMass, this);
+            this.on('set_linearDamping', this.onSetLinearDamping, this);
+            this.on('set_angularDamping', this.onSetAngularDamping, this);
+            this.on('set_linearFactor', this.onSetLinearFactor, this);
+            this.on('set_angularFactor', this.onSetAngularFactor, this);
+            this.on('set_friction', this.onSetFriction, this);
+            this.on('set_restitution', this.onSetRestitution, this);
+            this.on('set_type', this.onSetType, this);
+            this.on('set_group', this.onSetGroupOrMask, this);
+            this.on('set_mask', this.onSetGroupOrMask, this);
+
+            this.on('set_body', this.onSetBody, this);
+
+            // For kinematic
+            this._displacement = new pc.Vec3(0, 0, 0);
+            this._linearVelocity = new pc.Vec3(0, 0, 0);
+            this._angularVelocity = new pc.Vec3(0, 0, 0);
         }
 
-        this.on('set_mass', this.onSetMass, this);
-        this.on('set_linearDamping', this.onSetLinearDamping, this);
-        this.on('set_angularDamping', this.onSetAngularDamping, this);
-        this.on('set_linearFactor', this.onSetLinearFactor, this);
-        this.on('set_angularFactor', this.onSetAngularFactor, this);
-        this.on('set_friction', this.onSetFriction, this);
-        this.on('set_restitution', this.onSetRestitution, this);
-        this.on('set_type', this.onSetType, this);
-        this.on('set_group', this.onSetGroupOrMask, this);
-        this.on('set_mask', this.onSetGroupOrMask, this);
-
-        this.on('set_body', this.onSetBody, this);
-
-        // For kinematic
-        this._displacement = new pc.Vec3(0, 0, 0);
-        this._linearVelocity = new pc.Vec3(0, 0, 0);
-        this._angularVelocity = new pc.Vec3(0, 0, 0);
-    };
-    RigidBodyComponent = pc.inherits(RigidBodyComponent, pc.Component);
-
-    Object.defineProperty(RigidBodyComponent.prototype, "bodyType", {
-        get: function() {
+        get bodyType() {
             console.warn("WARNING: bodyType: Function is deprecated. Query type property instead.");
             return this.type;
-        },
-        set: function(type) {
+        }
+
+        set bodyType(type) {
             console.warn("WARNING: bodyType: Function is deprecated. Set type property instead.");
             this.type = type;
         }
-    });
 
-    Object.defineProperty(RigidBodyComponent.prototype, "linearVelocity", {
-        get: function() {
+        get linearVelocity() {
             if (!this.isKinematic()) {
                 if (this.body) {
-                    var vel = this.body.getLinearVelocity();
+                    const vel = this.body.getLinearVelocity();
                     this._linearVelocity.set(vel.x(), vel.y(), vel.z());
                 }
             }
             return this._linearVelocity;
-        },
-        set: function(lv) {
+        }
+
+        set linearVelocity(lv) {
             this.activate();
             if (!this.isKinematic()) {
                 if (this.body) {
@@ -106,19 +105,18 @@ pc.extend(pc, function () {
             }
             this._linearVelocity.copy(lv);
         }
-    });
 
-    Object.defineProperty(RigidBodyComponent.prototype, "angularVelocity", {
-        get: function() {
+        get angularVelocity() {
             if (!this.isKinematic()) {
                 if (this.body) {
-                    var vel = this.body.getAngularVelocity();
+                    const vel = this.body.getAngularVelocity();
                     this._angularVelocity.set(vel.x(), vel.y(), vel.z());
                 }
             }
             return this._angularVelocity;
-        },
-        set: function(av) {
+        }
+
+        set angularVelocity(av) {
             this.activate();
             if (!this.isKinematic()) {
                 if (this.body) {
@@ -128,7 +126,9 @@ pc.extend(pc, function () {
             }
             this._angularVelocity.copy(av);
         }
-    });
+    }
+
+    RigidBodyComponent = pc.inherits(RigidBodyComponent, pc.Component);
 
     pc.extend(RigidBodyComponent.prototype, {
         /**
@@ -137,9 +137,9 @@ pc.extend(pc, function () {
         * @name pc.RigidBodyComponent#createBody
         * @description If the Entity has a Collision shape attached then create a rigid body using this shape. This method destroys the existing body.
         */
-        createBody: function () {
-            var entity = this.entity;
-            var shape;
+        createBody() {
+            const entity = this.entity;
+            let shape;
 
             if (entity.collision) {
                 shape = entity.collision.shape;
@@ -158,33 +158,33 @@ pc.extend(pc, function () {
                     Ammo.destroy(this.body);
                 }
 
-                var isStaticOrKinematic = this.isStaticOrKinematic();
-                var mass = isStaticOrKinematic ? 0 : this.mass;
+                const isStaticOrKinematic = this.isStaticOrKinematic();
+                const mass = isStaticOrKinematic ? 0 : this.mass;
 
-                var localInertia = new Ammo.btVector3(0, 0, 0);
+                const localInertia = new Ammo.btVector3(0, 0, 0);
                 if (!isStaticOrKinematic) {
                     shape.calculateLocalInertia(mass, localInertia);
                 }
 
-                var pos = entity.getPosition();
-                var rot = entity.getRotation();
+                const pos = entity.getPosition();
+                const rot = entity.getRotation();
                 ammoQuat.setValue(rot.x, rot.y, rot.z, rot.w);
 
-                var startTransform = new Ammo.btTransform();
+                const startTransform = new Ammo.btTransform();
                 startTransform.setIdentity();
                 startTransform.getOrigin().setValue(pos.x, pos.y, pos.z);
                 startTransform.setRotation(ammoQuat);
 
-                var motionState = new Ammo.btDefaultMotionState(startTransform);
-                var bodyInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, shape, localInertia);
+                const motionState = new Ammo.btDefaultMotionState(startTransform);
+                const bodyInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, shape, localInertia);
 
-                var body = new Ammo.btRigidBody(bodyInfo);
+                const body = new Ammo.btRigidBody(bodyInfo);
 
                 body.setRestitution(this.restitution);
                 body.setFriction(this.friction);
                 body.setDamping(this.linearDamping, this.angularDamping);
 
-                var v;
+                let v;
                 v = this.linearFactor;
                 ammoVec1.setValue(v.x, v.y, v.z);
                 body.setLinearFactor(ammoVec1);
@@ -213,7 +213,7 @@ pc.extend(pc, function () {
         * @description Returns true if the rigid body is currently actively being simulated. i.e. not 'sleeping'
         * @returns {Boolean} True if the body is active
         */
-        isActive: function () {
+        isActive() {
             if (this.body) {
                 return this.body.isActive();
             }
@@ -226,15 +226,15 @@ pc.extend(pc, function () {
         * @name pc.RigidBodyComponent#activate
         * @description Forcibly activate the rigid body simulation
         */
-        activate: function () {
+        activate() {
             if (this.body) {
                 this.body.activate();
             }
         },
 
-        enableSimulation: function () {
+        enableSimulation() {
             if (this.entity.collision && this.entity.collision.enabled && !this.data.simulationEnabled) {
-                var body = this.body;
+                const body = this.body;
                 if (body) {
                     this.system.addBody(body, this.group, this.mask);
 
@@ -252,8 +252,8 @@ pc.extend(pc, function () {
             }
         },
 
-        disableSimulation: function () {
-            var body = this.body;
+        disableSimulation() {
+            const body = this.body;
             if (body && this.data.simulationEnabled) {
                 this.system.removeBody(body);
                 // set activation state to disable simulation to avoid body.isActive() to return
@@ -311,38 +311,38 @@ pc.extend(pc, function () {
          * // Apply the force
          * this.entity.rigidbody.applyForce(force, relativePos);
          */
-        applyForce: function () {
-            var x, y, z;
-            var px,py,pz;
-            switch (arguments.length) {
+        applyForce(...args) {
+            let x, y, z;
+            let px, py, pz;
+            switch (args.length) {
                 case 1:
-                    x = arguments[0].x;
-                    y = arguments[0].y;
-                    z = arguments[0].z;
+                    x = args[0].x;
+                    y = args[0].y;
+                    z = args[0].z;
                     break;
                 case 2:
-                    x = arguments[0].x;
-                    y = arguments[0].y;
-                    z = arguments[0].z;
-                    px = arguments[1].x;
-                    py = arguments[1].y;
-                    pz = arguments[1].z;
+                    x = args[0].x;
+                    y = args[0].y;
+                    z = args[0].z;
+                    px = args[1].x;
+                    py = args[1].y;
+                    pz = args[1].z;
                     break;
                 case 3:
-                    x = arguments[0];
-                    y = arguments[1];
-                    z = arguments[2];
+                    x = args[0];
+                    y = args[1];
+                    z = args[2];
                     break;
                 case 6:
-                    x = arguments[0];
-                    y = arguments[1];
-                    z = arguments[2];
-                    px = arguments[3];
-                    py = arguments[4];
-                    pz = arguments[5];
+                    x = args[0];
+                    y = args[1];
+                    z = args[2];
+                    px = args[3];
+                    py = args[4];
+                    pz = args[5];
                     break;
             }
-            var body = this.body;
+            const body = this.body;
             if (body) {
                 body.activate();
                 ammoVec1.setValue(x, y, z);
@@ -370,24 +370,24 @@ pc.extend(pc, function () {
          * @description Apply torque (rotational force) to the body.
          * @param {pc.Vec3} force The torque to apply, in world space.
          */
-        applyTorque: function () {
-            var x, y, z;
-            switch (arguments.length) {
+        applyTorque(...args) {
+            let x, y, z;
+            switch (args.length) {
                 case 1:
-                    x = arguments[0].x;
-                    y = arguments[0].y;
-                    z = arguments[0].z;
+                    x = args[0].x;
+                    y = args[0].y;
+                    z = args[0].z;
                     break;
                 case 3:
-                    x = arguments[0];
-                    y = arguments[1];
-                    z = arguments[2];
+                    x = args[0];
+                    y = args[1];
+                    z = args[2];
                     break;
                 default:
                     console.error('ERROR: applyTorque: function takes 1 or 3 arguments');
                     return;
             }
-            var body = this.body;
+            const body = this.body;
             if (body) {
                 body.activate();
                 ammoVec1.setValue(x, y, z);
@@ -413,38 +413,38 @@ pc.extend(pc, function () {
          * @param {pc.Vec3} impulse The impulse to apply, in world space.
          * @param {pc.Vec3} [relativePoint] The point at which to apply the impulse, in local space (relative to the entity).
          */
-        applyImpulse: function () {
-            var x, y, z;
-            var px,py,pz;
-            switch (arguments.length) {
+        applyImpulse(...args) {
+            let x, y, z;
+            let px, py, pz;
+            switch (args.length) {
                 case 1:
-                    x = arguments[0].x;
-                    y = arguments[0].y;
-                    z = arguments[0].z;
+                    x = args[0].x;
+                    y = args[0].y;
+                    z = args[0].z;
                     break;
                 case 2:
-                    x = arguments[0].x;
-                    y = arguments[0].y;
-                    z = arguments[0].z;
-                    px = arguments[1].x;
-                    py = arguments[1].y;
-                    pz = arguments[1].z;
+                    x = args[0].x;
+                    y = args[0].y;
+                    z = args[0].z;
+                    px = args[1].x;
+                    py = args[1].y;
+                    pz = args[1].z;
                     break;
                 case 3:
-                    x = arguments[0];
-                    y = arguments[1];
-                    z = arguments[2];
+                    x = args[0];
+                    y = args[1];
+                    z = args[2];
                     break;
                 case 6:
-                    x = arguments[0];
-                    y = arguments[1];
-                    z = arguments[2];
-                    px = arguments[0];
-                    py = arguments[1];
-                    pz = arguments[2];
+                    x = args[0];
+                    y = args[1];
+                    z = args[2];
+                    px = args[0];
+                    py = args[1];
+                    pz = args[2];
                     break;
             }
-            var body = this.body;
+            const body = this.body;
             if (body) {
                 body.activate();
                 ammoVec1.setValue(x, y, z);
@@ -471,24 +471,24 @@ pc.extend(pc, function () {
          * @description Apply a torque impulse (rotational force applied instantaneously) to the body.
          * @param {pc.Vec3} torqueImpulse The torque impulse to apply, in world space.
          */
-        applyTorqueImpulse: function () {
-            var x, y, z;
-            switch (arguments.length) {
+        applyTorqueImpulse(...args) {
+            let x, y, z;
+            switch (args.length) {
                 case 1:
-                    x = arguments[0].x;
-                    y = arguments[0].y;
-                    z = arguments[0].z;
+                    x = args[0].x;
+                    y = args[0].y;
+                    z = args[0].z;
                     break;
                 case 3:
-                    x = arguments[0];
-                    y = arguments[1];
-                    z = arguments[2];
+                    x = args[0];
+                    y = args[1];
+                    z = args[2];
                     break;
                 default:
                     console.error('ERROR: applyTorqueImpulse: function takes 1 or 3 arguments');
                     return;
             }
-            var body = this.body;
+            const body = this.body;
             if (body) {
                 body.activate();
                 ammoVec1.setValue(x, y, z);
@@ -502,7 +502,7 @@ pc.extend(pc, function () {
          * @description Returns true if the rigid body is of type {@link pc.BODYTYPE_STATIC}
          * @returns {Boolean} True if static
          */
-        isStatic: function () {
+        isStatic() {
             return (this.type === pc.BODYTYPE_STATIC);
         },
 
@@ -512,7 +512,7 @@ pc.extend(pc, function () {
          * @description Returns true if the rigid body is of type {@link pc.BODYTYPE_STATIC} or {@link pc.BODYTYPE_KINEMATIC}
          * @returns {Boolean} True if static or kinematic
          */
-        isStaticOrKinematic: function () {
+        isStaticOrKinematic() {
             return (this.type === pc.BODYTYPE_STATIC || this.type === pc.BODYTYPE_KINEMATIC);
         },
 
@@ -522,7 +522,7 @@ pc.extend(pc, function () {
          * @description Returns true if the rigid body is of type {@link pc.BODYTYPE_KINEMATIC}
          * @returns {Boolean} True if kinematic
          */
-        isKinematic: function () {
+        isKinematic() {
             return (this.type === pc.BODYTYPE_KINEMATIC);
         },
 
@@ -535,13 +535,13 @@ pc.extend(pc, function () {
          * This must be called after any Entity transformation functions (e.g. {@link pc.Entity#setPosition}) are called
          * in order to update the rigid body to match the Entity.
          */
-        syncEntityToBody: function () {
-            var body = this.body;
+        syncEntityToBody() {
+            const body = this.body;
             if (body) {
-                var pos = this.entity.getPosition();
-                var rot = this.entity.getRotation();
+                const pos = this.entity.getPosition();
+                const rot = this.entity.getRotation();
 
-                var transform = body.getWorldTransform();
+                const transform = body.getWorldTransform();
                 transform.getOrigin().setValue(pos.x, pos.y, pos.z);
 
                 ammoQuat.setValue(rot.x, rot.y, rot.z, rot.w);
@@ -549,7 +549,7 @@ pc.extend(pc, function () {
 
                 // update the motion state for kinematic bodies
                 if (this.isKinematic()) {
-                    var motionState = this.body.getMotionState();
+                    const motionState = this.body.getMotionState();
                     if (motionState) {
                         motionState.setWorldTransform(transform);
                     }
@@ -566,15 +566,15 @@ pc.extend(pc, function () {
          * @description Update the Entity transform from the rigid body.
          * This is called internally after the simulation is stepped, to keep the Entity transform in sync with the rigid body transform.
          */
-        syncBodyToEntity: function () {
-            var body = this.body;
+        syncBodyToEntity() {
+            const body = this.body;
             if (body.isActive()) {
-                var motionState = body.getMotionState();
+                const motionState = body.getMotionState();
                 if (motionState) {
                     motionState.getWorldTransform(ammoTransform);
 
-                    var p = ammoTransform.getOrigin();
-                    var q = ammoTransform.getRotation();
+                    const p = ammoTransform.getOrigin();
+                    const q = ammoTransform.getRotation();
                     this.entity.setPosition(p.x(), p.y(), p.z());
                     this.entity.setRotation(q.x(), q.y(), q.z(), q.w());
                 }
@@ -606,24 +606,24 @@ pc.extend(pc, function () {
         * @param {Number} [y] The new y angle value
         * @param {Number} [z] The new z angle value
         */
-        teleport: function () {
-            if (arguments.length < 3) {
-                if (arguments[0]) {
-                    this.entity.setPosition(arguments[0]);
+        teleport(...args) {
+            if (args.length < 3) {
+                if (args[0]) {
+                    this.entity.setPosition(args[0]);
                 }
-                if (arguments[1]) {
-                    if (arguments[1] instanceof pc.Quat) {
-                        this.entity.setRotation(arguments[1]);
+                if (args[1]) {
+                    if (args[1] instanceof pc.Quat) {
+                        this.entity.setRotation(args[1]);
                     } else {
-                        this.entity.setEulerAngles(arguments[1]);
+                        this.entity.setEulerAngles(args[1]);
                     }
 
                 }
             } else {
-                if (arguments.length === 6) {
-                    this.entity.setEulerAngles(arguments[3], arguments[4], arguments[5]);
+                if (args.length === 6) {
+                    this.entity.setEulerAngles(args[3], args[4], args[5]);
                 }
-                this.entity.setPosition(arguments[0], arguments[1], arguments[2]);
+                this.entity.setPosition(args[0], args[1], args[2]);
             }
             this.syncEntityToBody();
         },
@@ -636,15 +636,15 @@ pc.extend(pc, function () {
          * based on their current velocity. It is called in every frame in the main physics update loop, after the simulation is stepped.
          * @param {Number} dt Delta time for the current frame.
          */
-        _updateKinematic: function (dt) {
+        _updateKinematic(dt) {
             this._displacement.copy(this._linearVelocity).scale(dt);
             this.entity.translate(this._displacement);
 
             this._displacement.copy(this._angularVelocity).scale(dt);
             this.entity.rotate(this._displacement.x, this._displacement.y, this._displacement.z);
             if (this.body.getMotionState()) {
-                var pos = this.entity.getPosition();
-                var rot = this.entity.getRotation();
+                const pos = this.entity.getPosition();
+                const rot = this.entity.getRotation();
 
                 ammoTransform.getOrigin().setValue(pos.x, pos.y, pos.z);
                 ammoQuat.setValue(rot.x, rot.y, rot.z, rot.w);
@@ -653,7 +653,7 @@ pc.extend(pc, function () {
             }
         },
 
-        onEnable: function () {
+        onEnable() {
             RigidBodyComponent._super.onEnable.call(this);
             if (!this.body) {
                 this.createBody();
@@ -662,21 +662,21 @@ pc.extend(pc, function () {
             this.enableSimulation();
         },
 
-        onDisable: function () {
+        onDisable() {
             RigidBodyComponent._super.onDisable.call(this);
             this.disableSimulation();
         },
 
-        onSetMass: function (name, oldValue, newValue) {
-            var body = this.data.body;
+        onSetMass(name, oldValue, newValue) {
+            const body = this.data.body;
             if (body) {
-                var isEnabled = this.enabled && this.entity.enabled;
+                const isEnabled = this.enabled && this.entity.enabled;
                 if (isEnabled) {
                     this.disableSimulation();
                 }
 
-                var mass = newValue;
-                var localInertia = new Ammo.btVector3(0, 0, 0);
+                const mass = newValue;
+                const localInertia = new Ammo.btVector3(0, 0, 0);
                 body.getCollisionShape().calculateLocalInertia(mass, localInertia);
                 body.setMassProps(mass, localInertia);
                 body.updateInertiaTensor();
@@ -687,51 +687,51 @@ pc.extend(pc, function () {
             }
         },
 
-        onSetLinearDamping: function (name, oldValue, newValue) {
-            var body = this.data.body;
+        onSetLinearDamping(name, oldValue, newValue) {
+            const body = this.data.body;
             if (body) {
                 body.setDamping(newValue, this.data.angularDamping);
             }
         },
 
-        onSetAngularDamping: function (name, oldValue, newValue) {
-            var body = this.data.body;
+        onSetAngularDamping(name, oldValue, newValue) {
+            const body = this.data.body;
             if (body) {
                 body.setDamping(this.data.linearDamping, newValue);
             }
         },
 
-        onSetLinearFactor: function (name, oldValue, newValue) {
-            var body = this.data.body;
+        onSetLinearFactor(name, oldValue, {x, y, z}) {
+            const body = this.data.body;
             if (body) {
-                ammoVec1.setValue(newValue.x, newValue.y, newValue.z);
+                ammoVec1.setValue(x, y, z);
                 body.setLinearFactor(ammoVec1);
             }
         },
 
-        onSetAngularFactor: function (name, oldValue, newValue) {
-            var body = this.data.body;
+        onSetAngularFactor(name, oldValue, {x, y, z}) {
+            const body = this.data.body;
             if (body) {
-                ammoVec1.setValue(newValue.x, newValue.y, newValue.z);
+                ammoVec1.setValue(x, y, z);
                 body.setAngularFactor(ammoVec1);
             }
         },
 
-        onSetFriction: function (name, oldValue, newValue) {
-            var body = this.data.body;
+        onSetFriction(name, oldValue, newValue) {
+            const body = this.data.body;
             if (body) {
                 body.setFriction(newValue);
             }
         },
 
-        onSetRestitution: function (name, oldValue, newValue) {
-            var body = this.data.body;
+        onSetRestitution(name, oldValue, newValue) {
+            const body = this.data.body;
             if (body) {
                 body.setRestitution(newValue);
             }
         },
 
-        onSetType: function (name, oldValue, newValue) {
+        onSetType(name, oldValue, newValue) {
             if (newValue !== oldValue) {
                 this.disableSimulation();
 
@@ -752,10 +752,10 @@ pc.extend(pc, function () {
             }
         },
 
-        onSetGroupOrMask: function (name, oldValue, newValue) {
+        onSetGroupOrMask(name, oldValue, newValue) {
             if (newValue !== oldValue) {
                 // re-enabling simulation adds rigidbody back into world with new masks
-                var isEnabled = this.enabled && this.entity.enabled;
+                const isEnabled = this.enabled && this.entity.enabled;
                 if (isEnabled) {
                     this.disableSimulation();
                     this.enableSimulation();
@@ -763,7 +763,7 @@ pc.extend(pc, function () {
             }
         },
 
-        onSetBody: function (name, oldValue, newValue) {
+        onSetBody(name, oldValue, newValue) {
             if (this.body && this.data.simulationEnabled) {
                 this.body.activate();
             }
@@ -772,6 +772,6 @@ pc.extend(pc, function () {
     });
 
     return {
-        RigidBodyComponent: RigidBodyComponent
+        RigidBodyComponent
     };
-}());
+})());

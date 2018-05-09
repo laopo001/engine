@@ -1,6 +1,4 @@
-pc.extend(pc, function () {
-    'use strict';
-
+pc.extend(pc, (() => {
     /**
     * @private
     * @constructor
@@ -29,59 +27,70 @@ pc.extend(pc, function () {
     *   ...
     * };
     */
-    var TextureAtlas = function () {
-        this._texture = null;
-        this._frames = null;
-        pc.events.attach(this);
-    };
-
-    /**
-    * @private
-    * @name pc.TextureAtlas#setFrame
-    * @param {String} key The key of the frame.
-    * @param {Object} data The properties of the frame.
-    * @param {pc.Vec4} [data.rect] The u, v, width, height properties of the frame in pixels.
-    * @param {pc.Vec2} [data.pivot] The pivot of the frame - values are between 0-1.
-    * @param {pc.Vec4} [data.border] The border of the frame for 9-slicing. Values are left, bottom, right, top border in pixels.
-    * @example
-    * atlas.setFrame('1', {
-    *    rect: new pc.Vec4(0,0,128,128),
-    *    pivot: new pc.Vec2(0.5, 0.5),
-    *    border: new pc.Vec4(5, 5, 5, 5)
-    *});
-    */
-    TextureAtlas.prototype.setFrame = function (key, data) {
-        var frame = this._frames[key];
-        if (! frame) {
-            frame = {
-                rect: data.rect.clone(),
-                pivot: data.pivot.clone(),
-                border: data.border.clone()
-            };
-            this._frames[key] = frame;
-        } else {
-            frame.rect.copy(data.rect);
-            frame.pivot.copy(data.pivot);
-            frame.border.copy(data.border);
+    class TextureAtlas {
+        constructor() {
+            this._texture = null;
+            this._frames = null;
+            pc.events.attach(this);
         }
 
-        this.fire('set:frame', key.toString(), frame);
-    };
+        /**
+        * @private
+        * @name pc.TextureAtlas#setFrame
+        * @param {String} key The key of the frame.
+        * @param {Object} data The properties of the frame.
+        * @param {pc.Vec4} [data.rect] The u, v, width, height properties of the frame in pixels.
+        * @param {pc.Vec2} [data.pivot] The pivot of the frame - values are between 0-1.
+        * @param {pc.Vec4} [data.border] The border of the frame for 9-slicing. Values are left, bottom, right, top border in pixels.
+        * @example
+        * atlas.setFrame('1', {
+        *    rect: new pc.Vec4(0,0,128,128),
+        *    pivot: new pc.Vec2(0.5, 0.5),
+        *    border: new pc.Vec4(5, 5, 5, 5)
+        *});
+        */
+        setFrame(key, {rect, pivot, border}) {
+            let frame = this._frames[key];
+            if (! frame) {
+                frame = {
+                    rect: rect.clone(),
+                    pivot: pivot.clone(),
+                    border: border.clone()
+                };
+                this._frames[key] = frame;
+            } else {
+                frame.rect.copy(rect);
+                frame.pivot.copy(pivot);
+                frame.border.copy(border);
+            }
 
-    /**
-    * @private
-    * @name pc.TextureAtlas#removeFrame
-    * @param {String} key The key of the frame.
-    * @example
-    * atlas.removeFrame('1');
-    */
-    TextureAtlas.prototype.removeFrame = function (key) {
-        var frame = this._frames[key];
-        if (frame) {
-            delete this._frames[key];
-            this.fire('remove:frame', key.toString(), frame);
+            this.fire('set:frame', key.toString(), frame);
         }
-    };
+
+        /**
+        * @private
+        * @name pc.TextureAtlas#removeFrame
+        * @param {String} key The key of the frame.
+        * @example
+        * atlas.removeFrame('1');
+        */
+        removeFrame(key) {
+            const frame = this._frames[key];
+            if (frame) {
+                delete this._frames[key];
+                this.fire('remove:frame', key.toString(), frame);
+            }
+        }
+
+        get frames() {
+            return this._frames;
+        }
+
+        set frames(value) {
+            this._frames = value;
+            this.fire('set:frames', value);
+        }
+    }
 
     /**
     * @private
@@ -96,26 +105,16 @@ pc.extend(pc, function () {
     },
 
     Object.defineProperty(TextureAtlas.prototype, 'texture', {
-        get: function () {
+        get() {
             return this._texture;
         },
-        set: function (value) {
+        set(value) {
             this._texture = value;
             this.fire('set:texture', value);
         }
     });
 
-    Object.defineProperty(TextureAtlas.prototype, 'frames', {
-        get: function () {
-            return this._frames;
-        },
-        set: function (value) {
-            this._frames = value;
-            this.fire('set:frames', value);
-        }
-    });
-
     return {
-        TextureAtlas: TextureAtlas
+        TextureAtlas
     };
-}());
+})());

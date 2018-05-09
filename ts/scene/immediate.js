@@ -1,57 +1,58 @@
-pc.extend(pc.Application.prototype, function () {
+pc.extend(pc.Application.prototype, (() => {
+    const tempGraphNode = new pc.GraphNode();
+    const identityGraphNode = new pc.GraphNode();
+    const meshInstanceArray = [];
 
-    var tempGraphNode = new pc.GraphNode();
-    var identityGraphNode = new pc.GraphNode();
-    var meshInstanceArray = [];
-
-    var _deprecationWarning = false;
+    let _deprecationWarning = false;
 
 
-    var ImmediateData = function (device) {
-        this.lineVertexFormat = new pc.VertexFormat(device, [
-            { semantic: pc.SEMANTIC_POSITION, components: 3, type: pc.TYPE_FLOAT32 },
-            { semantic: pc.SEMANTIC_COLOR, components: 4, type: pc.TYPE_UINT8, normalize: true }
-        ]);
-        this.lineBatches = [];
-        this.layers = [];
-        this.layerToBatch = {};
-        this.quadMesh = null;
-        this.cubeLocalPos = null;
-        this.cubeWorldPos = null;
-        this.identityGraphNode = new pc.GraphNode();
-    };
+    class ImmediateData {
+        constructor(device) {
+            this.lineVertexFormat = new pc.VertexFormat(device, [
+                { semantic: pc.SEMANTIC_POSITION, components: 3, type: pc.TYPE_FLOAT32 },
+                { semantic: pc.SEMANTIC_COLOR, components: 4, type: pc.TYPE_UINT8, normalize: true }
+            ]);
+            this.lineBatches = [];
+            this.layers = [];
+            this.layerToBatch = {};
+            this.quadMesh = null;
+            this.cubeLocalPos = null;
+            this.cubeWorldPos = null;
+            this.identityGraphNode = new pc.GraphNode();
+        }
 
-    ImmediateData.prototype.addLayer = function (layer) {
-        var id = layer.id;
-        if (this.layers.indexOf(layer) < 0) {
-            this.layers.push(layer);
+        addLayer(layer) {
+            const id = layer.id;
+            if (!this.layers.includes(layer)) {
+                this.layers.push(layer);
+            }
+        }
+
+        getLayerIdx({id}) {
+            return this.layerToBatch[id];
+        }
+
+        addLayerIdx(idx, {id}) {
+            this.layerToBatch[id] = idx;
         }
     }
 
-    ImmediateData.prototype.getLayerIdx = function (layer) {
-        return this.layerToBatch[layer.id]
-    }
+    class LineBatch {
+        constructor() {
+            // Sensible default value; buffers will be doubled and reallocated when it's not enough
+            this.numLinesAllocated = 128;
 
-    ImmediateData.prototype.addLayerIdx = function (idx, layer) {
-        this.layerToBatch[layer.id] = idx;
-    }
+            this.vb = null;
+            this.vbRam = null;
+            this.mesh = null;
+            this.linesUsed = 0;
+            this.material = null;
+            this.meshInstance = null;
 
-    var LineBatch = function () {
-        // Sensible default value; buffers will be doubled and reallocated when it's not enough
-        this.numLinesAllocated = 128;
+            this.layer = null;
+        }
 
-        this.vb = null;
-        this.vbRam = null;
-        this.mesh = null;
-        this.linesUsed = 0;
-        this.material = null;
-        this.meshInstance = null;
-
-        this.layer = null;
-    };
-
-    LineBatch.prototype = {
-        init: function (device, vertexFormat, layer, linesToAdd) {
+        init(device, vertexFormat, layer, linesToAdd) {
             // Allocate basic stuff once per batch
             if (!this.mesh) {
                 this.mesh = new pc.Mesh();
@@ -89,14 +90,14 @@ pc.extend(pc.Application.prototype, function () {
                     this.meshInstance.cull = false;
                 }
             }
-        },
+        }
 
-        addLines: function(position, color) {
+        addLines(position, color) {
             // Append lines to buffer
-            var multiColor = !!color.length;
-            var offset = this.linesUsed * 2 * this.vertexFormat.size;
-            var clr;
-            for (var i=0; i<position.length; i++) {
+            const multiColor = !!color.length;
+            let offset = this.linesUsed * 2 * this.vertexFormat.size;
+            let clr;
+            for (let i=0; i<position.length; i++) {
                 this.vbRam.setFloat32(offset, position[i].x, true); offset += 4;
                 this.vbRam.setFloat32(offset, position[i].y, true); offset += 4;
                 this.vbRam.setFloat32(offset, position[i].z, true); offset += 4;
@@ -107,9 +108,9 @@ pc.extend(pc.Application.prototype, function () {
                 this.vbRam.setUint8(offset, clr.a * 255); offset += 1;
             }
             this.linesUsed += position.length / 2;
-        },
+        }
 
-        finalize: function() {
+        finalize() {
             // Update batch vertex buffer/issue drawcall if there are any lines
             if (this.linesUsed > 0) {
                 this.vb.setData(this.vbRam.buffer);
@@ -119,7 +120,7 @@ pc.extend(pc.Application.prototype, function () {
                 this.linesUsed = 0;
             }
         }
-    };
+    }
 
     function _initImmediate() {
         // Init global line drawing data once
@@ -137,13 +138,13 @@ pc.extend(pc.Application.prototype, function () {
 
         this._initImmediate();
 
-        var layer = options.layer;
+        const layer = options.layer;
         this._immediateData.addLayer(layer);
 
-        var idx = this._immediateData.getLayerIdx(layer);
+        let idx = this._immediateData.getLayerIdx(layer);
         if (idx === undefined) {
             // Init used batch once
-            var batch = new LineBatch();
+            const batch = new LineBatch();
             batch.init(this.graphicsDevice, this._immediateData.lineVertexFormat, layer, position.length / 2);
             batch.material.depthTest = options.depthTest;
             if (options.mask) batch.meshInstance.mask = options.mask;
@@ -225,8 +226,8 @@ pc.extend(pc.Application.prototype, function () {
      * });
      */
     function renderLine(start, end, color, arg3, arg4) {
-        var endColor = color;
-        var options;
+        let endColor = color;
+        let options;
 
         if (arg3 instanceof pc.Color) {
             // passed in end color
@@ -327,7 +328,7 @@ pc.extend(pc.Application.prototype, function () {
             }
         }
 
-        var multiColor = !!color.length;
+        const multiColor = !!color.length;
         if (multiColor) {
             if (position.length !== color.length) {
                 pc.log.error("renderLines: position/color arrays have different lengths");
@@ -346,21 +347,21 @@ pc.extend(pc.Application.prototype, function () {
     function renderWireCube(matrix, color, options) {
         // if (lineType===undefined) lineType = pc.LINEBATCH_WORLD;
 
-        var i;
+        let i;
 
         this._initImmediate();
 
         // Init cube data once
         if (!this._immediateData.cubeLocalPos) {
-            var x = 0.5;
+            const x = 0.5;
             this._immediateData.cubeLocalPos = [new pc.Vec3(-x, -x, -x), new pc.Vec3(-x, x, -x), new pc.Vec3(x, x, -x), new pc.Vec3(x, -x, -x),
                 new pc.Vec3(-x, -x, x), new pc.Vec3(-x, x, x), new pc.Vec3(x, x, x), new pc.Vec3(x, -x, x)];
             this._immediateData.cubeWorldPos = [new pc.Vec3(), new pc.Vec3(), new pc.Vec3(), new pc.Vec3(),
                 new pc.Vec3(), new pc.Vec3(), new pc.Vec3(), new pc.Vec3()];
         }
 
-        var cubeLocalPos = this._immediateData.cubeLocalPos;
-        var cubeWorldPos = this._immediateData.cubeWorldPos;
+        const cubeLocalPos = this._immediateData.cubeLocalPos;
+        const cubeWorldPos = this._immediateData.cubeWorldPos;
 
         // Transform and append lines
         for (i=0; i<8; i++) {
@@ -385,7 +386,7 @@ pc.extend(pc.Application.prototype, function () {
     }
 
     function _preRenderImmediate() {
-        for (var i = 0; i < this._immediateData.lineBatches.length; i++) {
+        for (let i = 0; i < this._immediateData.lineBatches.length; i++) {
             if (this._immediateData.lineBatches[i]) {
                 this._immediateData.lineBatches[i].finalize();
             }
@@ -393,7 +394,7 @@ pc.extend(pc.Application.prototype, function () {
     }
 
     function _postRenderImmediate() {
-        for (var i = 0; i < this._immediateData.layers.length; i++) {
+        for (let i = 0; i < this._immediateData.layers.length; i++) {
             this._immediateData.layers[i].clearMeshInstances(true);
         }
 
@@ -428,7 +429,7 @@ pc.extend(pc.Application.prototype, function () {
         tempGraphNode.worldTransform = matrix;
         tempGraphNode._dirtyWorld = tempGraphNode._dirtyNormal = false;
 
-        var instance = new pc.MeshInstance(tempGraphNode, mesh, material);
+        const instance = new pc.MeshInstance(tempGraphNode, mesh, material);
         instance.cull = false;
 
         if (options.mask) instance.mask = options.mask;
@@ -451,11 +452,11 @@ pc.extend(pc.Application.prototype, function () {
         // Init quad data once
         // if (!this._immediateData.quadMesh) {
         if (!this._immediateData.quadMesh) {
-            var format = new pc.VertexFormat(this.graphicsDevice, [
+            const format = new pc.VertexFormat(this.graphicsDevice, [
                 { semantic: pc.SEMANTIC_POSITION, components: 3, type: pc.TYPE_FLOAT32 }
             ]);
-            var quadVb = new pc.VertexBuffer(this.graphicsDevice, format, 4);
-            var iterator = new pc.VertexIterator(quadVb);
+            const quadVb = new pc.VertexBuffer(this.graphicsDevice, format, 4);
+            const iterator = new pc.VertexIterator(quadVb);
             iterator.element[pc.SEMANTIC_POSITION].set(-0.5, -0.5, 0);
             iterator.next();
             iterator.element[pc.SEMANTIC_POSITION].set(0.5, -0.5, 0);
@@ -476,7 +477,7 @@ pc.extend(pc.Application.prototype, function () {
         tempGraphNode.worldTransform = matrix;
         tempGraphNode._dirtyWorld = tempGraphNode._dirtyNormal = false;
 
-        var quad = new pc.MeshInstance(tempGraphNode, this._immediateData.quadMesh, material);
+        const quad = new pc.MeshInstance(tempGraphNode, this._immediateData.quadMesh, material);
         quad.cull = false;
         meshInstanceArray[0] = quad;
 
@@ -486,15 +487,15 @@ pc.extend(pc.Application.prototype, function () {
     }
 
     return {
-        renderMeshInstance: renderMeshInstance,
-        renderMesh: renderMesh,
-        renderLine: renderLine,
-        renderLines: renderLines,
-        renderQuad: renderQuad,
-        renderWireCube: renderWireCube,
-        _addLines: _addLines,
-        _initImmediate: _initImmediate,
-        _preRenderImmediate: _preRenderImmediate,
-        _postRenderImmediate: _postRenderImmediate
+        renderMeshInstance,
+        renderMesh,
+        renderLine,
+        renderLines,
+        renderQuad,
+        renderWireCube,
+        _addLines,
+        _initImmediate,
+        _preRenderImmediate,
+        _postRenderImmediate
     };
-}());
+})());

@@ -1,4 +1,4 @@
-pc.extend(pc, function() {
+pc.extend(pc, (() => {
 
     /**
      * @private
@@ -8,7 +8,7 @@ pc.extend(pc, function() {
      * @description Create a new data object
      * @extends pc.ComponentData
      */
-    var ModelComponentData = function () {
+    let ModelComponentData = function () {
         // serialized
         this.enabled = true;
         this.type = 'asset';
@@ -31,6 +31,6 @@ pc.extend(pc, function() {
     ModelComponentData = pc.inherits(ModelComponentData, pc.ComponentData);
 
     return {
-        ModelComponentData: ModelComponentData
+        ModelComponentData
     };
-}());
+})());

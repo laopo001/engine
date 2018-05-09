@@ -1,9 +1,7 @@
-pc.extend(pc, (function () {
-    'use strict';
-
+pc.extend(pc, ((() => {
     // Draws shaded full-screen quad in a single call
-    var _postEffectQuadVB = null;
-    var _postEffectQuadDraw = {
+    let _postEffectQuadVB = null;
+    const _postEffectQuadDraw = {
         type: pc.PRIMITIVE_TRISTRIP,
         base: 0,
         count: 4,
@@ -12,14 +10,14 @@ pc.extend(pc, (function () {
 
     function drawQuadWithShader(device, target, shader, rect, scissorRect, useBlend) {
         if (_postEffectQuadVB === null) {
-            var vertexFormat = new pc.VertexFormat(device, [{
+            const vertexFormat = new pc.VertexFormat(device, [{
                 semantic: pc.SEMANTIC_POSITION,
                 components: 2,
                 type: pc.TYPE_FLOAT32
             }]);
             _postEffectQuadVB = new pc.VertexBuffer(device, vertexFormat, 4);
 
-            var iterator = new pc.VertexIterator(_postEffectQuadVB);
+            const iterator = new pc.VertexIterator(_postEffectQuadVB);
             iterator.element[pc.SEMANTIC_POSITION].set(-1.0, -1.0);
             iterator.next();
             iterator.element[pc.SEMANTIC_POSITION].set(1.0, -1.0);
@@ -30,11 +28,11 @@ pc.extend(pc, (function () {
             iterator.end();
         }
 
-        var oldRt = device.renderTarget;
+        const oldRt = device.renderTarget;
         device.setRenderTarget(target);
         device.updateBegin();
-        var x, y, w, h;
-        var sx, sy, sw, sh;
+        let x, y, w, h;
+        let sx, sy, sw, sh;
         if (!rect) {
             w = target ? target.width : device.width;
             h = target ? target.height : device.height;
@@ -62,9 +60,9 @@ pc.extend(pc, (function () {
         device.setViewport(x, y, w, h);
         device.setScissor(sx, sy, sw, sh);
 
-        var oldDepthTest = device.getDepthTest();
-        var oldDepthWrite = device.getDepthWrite();
-        var oldCull = device.getCullMode();
+        const oldDepthTest = device.getDepthTest();
+        const oldDepthWrite = device.getDepthWrite();
+        const oldCull = device.getCullMode();
         device.setDepthTest(false);
         device.setDepthWrite(false);
         device.setCullMode(pc.CULLFACE_NONE);
@@ -86,8 +84,8 @@ pc.extend(pc, (function () {
     }
 
     return {
-        drawQuadWithShader: drawQuadWithShader,
-        destroyPostEffectQuad: destroyPostEffectQuad
+        drawQuadWithShader,
+        destroyPostEffectQuad
     };
-}()));
+})()));
 

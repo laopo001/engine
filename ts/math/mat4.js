@@ -1,7 +1,5 @@
-pc.extend(pc, (function () {
-    'use strict';
-
-    var typeNumber = 'number';
+pc.extend(pc, ((() => {
+    const typeNumber = 'number';
 
     /**
      * @constructor
@@ -25,7 +23,7 @@ pc.extend(pc, (function () {
      * @param {Number} [v14] The value in row 2, column 3.
      * @param {Number} [v15] The value in row 3, column 3.
      */
-    var Mat4 = function (v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15) {
+    const Mat4 = function (v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15) {
         if (v0 && v0.length === 16) {
             this.data = new Float32Array(v0);
             return;
@@ -71,10 +69,8 @@ pc.extend(pc, (function () {
          *
          * console.log("The result of the addition is: " a.toString());
          */
-        add2: function (lhs, rhs) {
-            var a = lhs.data,
-                b = rhs.data,
-                r = this.data;
+        add2({data}, {data}) {
+            const a = data, b = data, r = this.data;
 
             r[0] = a[0] + b[0];
             r[1] = a[1] + b[1];
@@ -109,7 +105,7 @@ pc.extend(pc, (function () {
          *
          * console.log("The result of the addition is: " a.toString());
          */
-        add: function (rhs) {
+        add(rhs) {
             return this.add2(this, rhs);
         },
 
@@ -123,7 +119,7 @@ pc.extend(pc, (function () {
          * var dst = src.clone();
          * console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
          */
-        clone: function () {
+        clone() {
             return new pc.Mat4().copy(this);
         },
 
@@ -139,9 +135,8 @@ pc.extend(pc, (function () {
          * dst.copy(src);
          * console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
          */
-        copy: function (rhs) {
-            var src = rhs.data,
-                dst = this.data;
+        copy({data}) {
+            const src = data, dst = this.data;
 
             dst[0] = src[0];
             dst[1] = src[1];
@@ -174,9 +169,8 @@ pc.extend(pc, (function () {
          * var b = new pc.Mat4();
          * console.log("The two matrices are " + (a.equals(b) ? "equal" : "different"));
          */
-        equals: function (rhs) {
-            var l = this.data,
-                r = rhs.data;
+        equals({data}) {
+            const l = this.data, r = data;
 
             return ((l[0] === r[0]) &&
                     (l[1] === r[1]) &&
@@ -205,8 +199,8 @@ pc.extend(pc, (function () {
          * var m = new pc.Mat4();
          * console.log("The matrix is " + (m.isIdentity() ? "identity" : "not identity"));
          */
-        isIdentity: function () {
-            var m = this.data;
+        isIdentity() {
+            const m = this.data;
 
             return ((m[0] === 1) &&
                     (m[1] === 0) &&
@@ -244,15 +238,30 @@ pc.extend(pc, (function () {
          *
          * console.log("The result of the multiplication is: " r.toString());
          */
-        mul2: function (lhs, rhs) {
-            var a00, a01, a02, a03,
-                a10, a11, a12, a13,
-                a20, a21, a22, a23,
-                a30, a31, a32, a33,
-                b0, b1, b2, b3,
-                a = lhs.data,
-                b = rhs.data,
-                r = this.data;
+        mul2({data}, {data}) {
+            let a00;
+            let a01;
+            let a02;
+            let a03;
+            let a10;
+            let a11;
+            let a12;
+            let a13;
+            let a20;
+            let a21;
+            let a22;
+            let a23;
+            let a30;
+            let a31;
+            let a32;
+            let a33;
+            let b0;
+            let b1;
+            let b2;
+            let b3;
+            const a = data;
+            const b = data;
+            const r = this.data;
 
             a00 = a[0];
             a01 = a[1];
@@ -325,7 +334,7 @@ pc.extend(pc, (function () {
          *
          * console.log("The result of the multiplication is: " a.toString());
          */
-        mul: function (rhs) {
+        mul(rhs) {
             return this.mul2(this, rhs);
         },
 
@@ -345,10 +354,12 @@ pc.extend(pc, (function () {
          *
          * var tv = m.transformPoint(v);
          */
-        transformPoint: function (vec, res) {
-            var x, y, z,
-                m = this.data,
-                v = vec.data;
+        transformPoint({data}, res) {
+            let x;
+            let y;
+            let z;
+            const m = this.data;
+            const v = data;
 
             res = (res === undefined) ? new pc.Vec3() : res;
 
@@ -387,10 +398,12 @@ pc.extend(pc, (function () {
          *
          * var tv = m.transformVector(v);
          */
-        transformVector: function (vec, res) {
-            var x, y, z,
-                m = this.data,
-                v = vec.data;
+        transformVector({data}, res) {
+            let x;
+            let y;
+            let z;
+            const m = this.data;
+            const v = data;
 
             res = (res === undefined) ? new pc.Vec3() : res;
 
@@ -429,10 +442,13 @@ pc.extend(pc, (function () {
          *
          * m.transformVec4(v, result);
          */
-        transformVec4: function (vec, res) {
-            var x, y, z, w,
-                m = this.data,
-                v = vec.data;
+        transformVec4({data}, res) {
+            let x;
+            let y;
+            let z;
+            let w;
+            const m = this.data;
+            const v = data;
 
             res = (res === undefined) ? new pc.Vec4() : res;
 
@@ -480,8 +496,8 @@ pc.extend(pc, (function () {
          * var up = new pc.Vec3(0, 1, 0);
          * var m = new pc.Mat4().setLookAt(position, target, up);
          */
-        setLookAt: (function () {
-            var x, y, z;
+        setLookAt: ((() => {
+            let x, y, z;
 
             x = new pc.Vec3();
             y = new pc.Vec3();
@@ -493,7 +509,7 @@ pc.extend(pc, (function () {
                 x.cross(y, z).normalize();
                 y.cross(z, x);
 
-                var r = this.data;
+                const r = this.data;
 
                 r[0]  = x.x;
                 r[1]  = x.y;
@@ -514,7 +530,7 @@ pc.extend(pc, (function () {
 
                 return this;
             };
-        }()),
+        })()),
 
         /**
          * @private
@@ -533,8 +549,8 @@ pc.extend(pc, (function () {
          * // Create a 4x4 perspective projection matrix
          * var f = pc.Mat4().setFrustum(-2, 2, -1, 1, 1, 1000);
          */
-        setFrustum: function (left, right, bottom, top, znear, zfar) {
-            var temp1, temp2, temp3, temp4, r;
+        setFrustum(left, right, bottom, top, znear, zfar) {
+            let temp1, temp2, temp3, temp4, r;
 
             temp1 = 2 * znear;
             temp2 = right - left;
@@ -576,8 +592,8 @@ pc.extend(pc, (function () {
          * // Create a 4x4 perspective projection matrix
          * var persp = pc.Mat4().setPerspective(45, 16 / 9, 1, 1000);
          */
-        setPerspective: function (fovy, aspect, znear, zfar, fovIsHorizontal) {
-            var xmax, ymax;
+        setPerspective(fovy, aspect, znear, zfar, fovIsHorizontal) {
+            let xmax, ymax;
 
             if (!fovIsHorizontal) {
                 ymax = znear * Math.tan(fovy * Math.PI / 360);
@@ -606,8 +622,8 @@ pc.extend(pc, (function () {
          * // Create a 4x4 orthographic projection matrix
          * var ortho = pc.Mat4().ortho(-2, 2, -2, 2, 1, 1000);
          */
-        setOrtho: function (left, right, bottom, top, near, far) {
-            var r = this.data;
+        setOrtho(left, right, bottom, top, near, far) {
+            const r = this.data;
 
             r[0] = 2 / (right - left);
             r[1] = 0;
@@ -641,8 +657,8 @@ pc.extend(pc, (function () {
          * // Create a 4x4 rotation matrix
          * var rm = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 90);
          */
-        setFromAxisAngle: function (axis, angle) {
-            var x, y, z, c, s, t, tx, ty, m;
+        setFromAxisAngle(axis, angle) {
+            let x, y, z, c, s, t, tx, ty, m;
 
             angle *= pc.math.DEG_TO_RAD;
 
@@ -689,8 +705,8 @@ pc.extend(pc, (function () {
          * // Create a 4x4 translation matrix
          * var tm = new pc.Mat4().setTranslate(10, 10, 10);
          */
-        setTranslate: function (x, y, z) {
-            var m = this.data;
+        setTranslate(x, y, z) {
+            const m = this.data;
 
             m[0] = 1;
             m[1] = 0;
@@ -725,8 +741,8 @@ pc.extend(pc, (function () {
          * // Create a 4x4 scale matrix
          * var sm = new pc.Mat4().setScale(10, 10, 10);
          */
-        setScale: function (x, y, z) {
-            var m = this.data;
+        setScale(x, y, z) {
+            const m = this.data;
 
             m[0] = x;
             m[1] = 0;
@@ -760,15 +776,8 @@ pc.extend(pc, (function () {
          * // Invert in place
          * rot.invert();
          */
-        invert: function () {
-            var a00, a01, a02, a03,
-                a10, a11, a12, a13,
-                a20, a21, a22, a23,
-                a30, a31, a32, a33,
-                b00, b01, b02, b03,
-                b04, b05, b06, b07,
-                b08, b09, b10, b11,
-                det, invDet, m;
+        invert() {
+            let a00, a01, a02, a03, a10, a11, a12, a13, a20, a21, a22, a23, a30, a31, a32, a33, b00, b01, b02, b03, b04, b05, b06, b07, b08, b09, b10, b11, det, invDet, m;
 
             m = this.data;
             a00 = m[0];
@@ -839,8 +848,8 @@ pc.extend(pc, (function () {
          * @param {Array} src Source array. Must have 16 values.
          * @returns {pc.Mat4} Self for chaining.
          */
-        set: function (src) {
-            var dst = this.data;
+        set(src) {
+            const dst = this.data;
             dst[0] = src[0];
             dst[1] = src[1];
             dst[2] = src[2];
@@ -870,8 +879,8 @@ pc.extend(pc, (function () {
          * m.setIdentity();
          * console.log("The matrix is " + (m.isIdentity() ? "identity" : "not identity"));
          */
-        setIdentity: function () {
-            var m = this.data;
+        setIdentity() {
+            const m = this.data;
             m[0] = 1;
             m[1] = 0;
             m[2] = 0;
@@ -909,22 +918,21 @@ pc.extend(pc, (function () {
          * var m = new pc.Mat4();
          * m.setTRS(t, r, s);
          */
-        setTRS: function (t, r, s) {
-            var tx, ty, tz, qx, qy, qz, qw, sx, sy, sz,
-                x2, y2, z2, xx, xy, xz, yy, yz, zz, wx, wy, wz, m;
+        setTRS({x, y, z}, {x, y, z, w}, {x, y, z}) {
+            let tx, ty, tz, qx, qy, qz, qw, sx, sy, sz, x2, y2, z2, xx, xy, xz, yy, yz, zz, wx, wy, wz, m;
 
-            tx = t.x;
-            ty = t.y;
-            tz = t.z;
+            tx = x;
+            ty = y;
+            tz = z;
 
-            qx = r.x;
-            qy = r.y;
-            qz = r.z;
-            qw = r.w;
+            qx = x;
+            qy = y;
+            qz = z;
+            qw = w;
 
-            sx = s.x;
-            sy = s.y;
-            sz = s.z;
+            sx = x;
+            sy = y;
+            sz = z;
 
             x2 = qx + qx;
             y2 = qy + qy;
@@ -975,8 +983,9 @@ pc.extend(pc, (function () {
          * // Transpose in place
          * m.transpose();
          */
-        transpose: function () {
-            var tmp, m = this.data;
+        transpose() {
+            let tmp;
+            const m = this.data;
 
             tmp = m[1];
             m[1] = m[4];
@@ -1005,24 +1014,23 @@ pc.extend(pc, (function () {
             return this;
         },
 
-        invertTo3x3: function (res) {
-            var a11, a21, a31, a12, a22, a32, a13, a23, a33,
-                m, r, det, idet;
+        invertTo3x3({data}) {
+            let a11, a21, a31, a12, a22, a32, a13, a23, a33, m, r, det, idet;
 
             m = this.data;
-            r = res.data;
+            r = data;
 
-            var m0 = m[0];
-            var m1 = m[1];
-            var m2 = m[2];
+            const m0 = m[0];
+            const m1 = m[1];
+            const m2 = m[2];
 
-            var m4 = m[4];
-            var m5 = m[5];
-            var m6 = m[6];
+            const m4 = m[4];
+            const m5 = m[5];
+            const m6 = m[6];
 
-            var m8 = m[8];
-            var m9 = m[9];
-            var m10 = m[10];
+            const m8 = m[8];
+            const m9 = m[9];
+            const m10 = m[10];
 
             a11 =  m10 * m5 - m6 * m9;
             a21 = -m10 * m1 + m2 * m9;
@@ -1071,7 +1079,7 @@ pc.extend(pc, (function () {
          * var t = new pc.Vec3();
          * m.getTranslation(t);
          */
-        getTranslation: function (t) {
+        getTranslation(t) {
             t = (t === undefined) ? new pc.Vec3() : t;
 
             return t.set(this.data[12], this.data[13], this.data[14]);
@@ -1091,7 +1099,7 @@ pc.extend(pc, (function () {
          * var x = new pc.Vec3();
          * m.getX(x);
          */
-        getX: function (x) {
+        getX(x) {
             x = (x === undefined) ? new pc.Vec3() : x;
 
             return x.set(this.data[0], this.data[1], this.data[2]);
@@ -1111,7 +1119,7 @@ pc.extend(pc, (function () {
          * var y = new pc.Vec3();
          * m.getY(y);
          */
-        getY: function (y) {
+        getY(y) {
             y = (y === undefined) ? new pc.Vec3() : y;
 
             return y.set(this.data[4], this.data[5], this.data[6]);
@@ -1131,7 +1139,7 @@ pc.extend(pc, (function () {
          * var z = new pc.Vec3();
          * m.getZ(z);
          */
-        getZ: function (z) {
+        getZ(z) {
             z = (z === undefined) ? new pc.Vec3() : z;
 
             return z.set(this.data[8], this.data[9], this.data[10]);
@@ -1150,8 +1158,8 @@ pc.extend(pc, (function () {
          * // Query the scale component
          * var scale = m.getScale();
          */
-        getScale: (function () {
-            var x, y, z;
+        getScale: ((() => {
+            let x, y, z;
 
             x = new pc.Vec3();
             y = new pc.Vec3();
@@ -1167,7 +1175,7 @@ pc.extend(pc, (function () {
 
                 return scale;
             };
-        }()),
+        })()),
 
         /**
          * @function
@@ -1185,8 +1193,8 @@ pc.extend(pc, (function () {
         // http://en.wikipedia.org/wiki/Rotation_matrix#Conversion_from_and_to_axis-angle
         // The 3D space is right-handed, so the rotation around each axis will be counterclockwise
         // for an observer placed so that the axis goes in his or her direction (Right-hand rule).
-        setFromEulerAngles: function (ex, ey, ez) {
-            var s1, c1, s2, c2, s3, c3, m;
+        setFromEulerAngles(ex, ey, ez) {
+            let s1, c1, s2, c2, s3, c3, m;
 
             ex *= pc.math.DEG_TO_RAD;
             ey *= pc.math.DEG_TO_RAD;
@@ -1239,11 +1247,11 @@ pc.extend(pc, (function () {
          *
          * var eulers = m.getEulerAngles();
          */
-        getEulerAngles: (function () {
-            var scale = new pc.Vec3();
+        getEulerAngles: ((() => {
+            const scale = new pc.Vec3();
 
             return function (eulers) {
-                var x, y, z, sx, sy, sz, m, halfPi;
+                let x, y, z, sx, sy, sz, m, halfPi;
 
                 eulers = (eulers === undefined) ? new pc.Vec3() : eulers;
 
@@ -1274,7 +1282,7 @@ pc.extend(pc, (function () {
 
                 return eulers.set(x, y, z).scale(pc.math.RAD_TO_DEG);
             };
-        }()),
+        })()),
 
         /**
          * @function
@@ -1286,8 +1294,8 @@ pc.extend(pc, (function () {
          * // Should output '[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]'
          * console.log(m.toString());
          */
-        toString: function () {
-            var i, t;
+        toString() {
+            let i, t;
 
             t = '[';
             for (i = 0; i < 16; i += 1) {
@@ -1308,12 +1316,10 @@ pc.extend(pc, (function () {
      * @description A constant matrix set to the identity.
      */
     Object.defineProperty(Mat4, 'IDENTITY', {
-        get: (function () {
-            var identity = new Mat4();
-            return function () {
-                return identity;
-            };
-        }())
+        get: ((() => {
+            const identity = new Mat4();
+            return () => identity;
+        })())
     });
 
     /**
@@ -1325,15 +1331,13 @@ pc.extend(pc, (function () {
      * @description A constant matrix with all elements set to 0.
      */
     Object.defineProperty(Mat4, 'ZERO', {
-        get: (function () {
-            var zero = new Mat4(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-            return function () {
-                return zero;
-            };
-        }())
+        get: ((() => {
+            const zero = new Mat4(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            return () => zero;
+        })())
     });
 
     return {
-        Mat4: Mat4
+        Mat4
     };
-}()));
+})()));

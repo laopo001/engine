@@ -1,20 +1,18 @@
-pc.extend(pc, function () {
-    'use strict';
-
-    var FolderHandler = function () {
+pc.extend(pc, (() => {
+    const FolderHandler = () => {
     };
 
     FolderHandler.prototype = {
-        load: function (url, callback) {
+        load(url, callback) {
             callback(null, null);
         },
 
-        open: function (url, data) {
+        open(url, data) {
             return data;
         }
     };
 
     return {
-        FolderHandler: FolderHandler
+        FolderHandler
     };
-}());
+})());

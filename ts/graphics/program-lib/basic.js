@@ -1,19 +1,19 @@
 pc.programlib.basic = {
-    generateKey: function (device, options) {
-        var key = 'basic';
+    generateKey(device, options) {
+        let key = 'basic';
         if (options.fog)          key += '_fog';
         if (options.alphaTest)    key += '_atst';
         if (options.vertexColors) key += '_vcol';
         if (options.diffuseMap)   key += '_diff';
-        key += '_' + options.pass;
+        key += `_${options.pass}`;
         return key;
     },
 
-    createShaderDefinition: function (device, options) {
+    createShaderDefinition(device, options) {
         /////////////////////////
         // GENERATE ATTRIBUTES //
         /////////////////////////
-        var attributes = {
+        const attributes = {
             vertex_position: pc.SEMANTIC_POSITION
         };
         if (options.skin) {
@@ -27,12 +27,12 @@ pc.programlib.basic = {
             attributes.vertex_texCoord0 = pc.SEMANTIC_TEXCOORD0;
         }
 
-        var chunks = pc.shaderChunks;
+        const chunks = pc.shaderChunks;
 
         ////////////////////////////
         // GENERATE VERTEX SHADER //
         ////////////////////////////
-        var code = '';
+        let code = '';
 
         // VERTEX SHADER DECLARATIONS
         code += chunks.transformDeclVS;
@@ -83,7 +83,7 @@ pc.programlib.basic = {
 
         code += pc.programlib.end();
 
-        var vshader = code;
+        const vshader = code;
 
         //////////////////////////////
         // GENERATE FRAGMENT SHADER //
@@ -144,12 +144,12 @@ pc.programlib.basic = {
 
         code += pc.programlib.end();
 
-        var fshader = code;
+        const fshader = code;
 
         return {
-            attributes: attributes,
-            vshader: vshader,
-            fshader: fshader
+            attributes,
+            vshader,
+            fshader
         };
     }
 };

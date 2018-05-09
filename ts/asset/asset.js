@@ -1,9 +1,8 @@
-pc.extend(pc, function () {
-
+pc.extend(pc, (() => {
     // auto incrementing number for asset ids
-    var assetIdCounter = 0;
+    let assetIdCounter = 0;
 
-    var ABSOLUTE_URL = new RegExp(
+    const ABSOLUTE_URL = new RegExp(
         '^' + // beginning of the url
         '\\s*' +  // ignore leading spaces (some browsers trim the url automatically, but we can't assume that)
         '(?:' +  // beginning of protocol scheme (non-captured regex group)
@@ -54,67 +53,67 @@ pc.extend(pc, function () {
      * @property {Boolean} loaded True if the resource is loaded. e.g. if asset.resource is not null
      * @property {pc.AssetRegistry} registry The asset registry that this Asset belongs to
      */
-    var Asset = function (name, type, file, data) {
-        this._id = ++assetIdCounter;
+    class Asset {
+        constructor(name, type, file, data) {
+            this._id = ++assetIdCounter;
 
-        this.name = name || '';
-        this.type = type;
-        this.tags = new pc.Tags(this);
-        this._preload = false;
+            this.name = name || '';
+            this.type = type;
+            this.tags = new pc.Tags(this);
+            this._preload = false;
 
-        this.variants = new pc.AssetVariants(this);
+            this.variants = new pc.AssetVariants(this);
 
-        this._file = null;
-        this._data = data || { };
+            this._file = null;
+            this._data = data || { };
 
-        // This is where the loaded resource will be
-        // this.resource = null;
-        this._resources = [ ];
+            // This is where the loaded resource will be
+            // this.resource = null;
+            this._resources = [ ];
 
-        // is resource loaded
-        this.loaded = false;
-        this.loading = false;
+            // is resource loaded
+            this.loaded = false;
+            this.loading = false;
 
-        this.registry = null;
+            this.registry = null;
 
-        pc.events.attach(this);
+            pc.events.attach(this);
 
-        if (file) this.file = file;
-    };
+            if (file) this.file = file;
+        }
 
-    /**
-    * @event
-    * @name pc.Asset#load
-    * @description Fired when the asset has completed loading
-    * @param {pc.Asset} asset The asset that was loaded
-    */
+        /**
+        * @event
+        * @name pc.Asset#load
+        * @description Fired when the asset has completed loading
+        * @param {pc.Asset} asset The asset that was loaded
+        */
 
-    /**
-    * @event
-    * @name pc.Asset#remove
-    * @description Fired when the asset is removed from the asset registry
-    * @param {pc.Asset} asset The asset that was removed
-    */
+        /**
+        * @event
+        * @name pc.Asset#remove
+        * @description Fired when the asset is removed from the asset registry
+        * @param {pc.Asset} asset The asset that was removed
+        */
 
-    /**
-    * @event
-    * @name pc.Asset#error
-    * @description Fired if the asset encounters an error while loading
-    * @param {String} err The error message
-    * @param {pc.Asset} asset The asset that generated the error
-    */
+        /**
+        * @event
+        * @name pc.Asset#error
+        * @description Fired if the asset encounters an error while loading
+        * @param {String} err The error message
+        * @param {pc.Asset} asset The asset that generated the error
+        */
 
-    /**
-    * @event
-    * @name pc.Asset#change
-    * @description Fired when one of the asset properties `file`, `data`, `resource` or `resources` is changed
-    * @param {pc.Asset} asset The asset that was loaded
-    * @param {String} property The name of the property that changed
-    * @param {*} value The new property value
-    * @param {*} oldValue The old property value
-    */
+        /**
+        * @event
+        * @name pc.Asset#change
+        * @description Fired when one of the asset properties `file`, `data`, `resource` or `resources` is changed
+        * @param {pc.Asset} asset The asset that was loaded
+        * @param {String} property The name of the property that changed
+        * @param {*} value The new property value
+        * @param {*} oldValue The old property value
+        */
 
-    Asset.prototype = {
         /**
         * @name pc.Asset#getFileUrl
         * @function
@@ -124,32 +123,32 @@ pc.extend(pc, function () {
         * var assets = app.assets.find("My Image", "texture");
         * var img = "&lt;img src='" + assets[0].getFileUrl() + "'&gt;";
         */
-        getFileUrl: function () {
-            var file = this.getPreferredFile();
+        getFileUrl() {
+            const file = this.getPreferredFile();
 
             if (! file || ! file.url)
                 return null;
 
-            var url = file.url;
+            let url = file.url;
 
             if (this.registry && this.registry.prefix && ! ABSOLUTE_URL.test(url))
                 url = this.registry.prefix + url;
 
             // add file hash to avoid hard-caching problems
             if (this.type !== 'script' && file.hash) {
-                var separator = url.indexOf('?') !== -1 ? '&' : '?';
-                url += separator + 't=' + file.hash;
+                const separator = url.includes('?') ? '&' : '?';
+                url += `${separator}t=${file.hash}`;
             }
 
             return url;
-        },
+        }
 
-        getPreferredFile: function() {
+        getPreferredFile() {
             if (! this.file)
                 return null;
 
             if (this.type === 'texture' || this.type === 'textureatlas') {
-                var device = this.registry._loader.getHandler('texture')._device;
+                const device = this.registry._loader.getHandler('texture')._device;
 
                 if (this.variants.pvr && device.extCompressedTexturePVRTC) {
                     return this.variants.pvr;
@@ -161,7 +160,7 @@ pc.extend(pc, function () {
             }
 
             return this.file;
-        },
+        }
 
         /**
         * @function
@@ -175,19 +174,19 @@ pc.extend(pc, function () {
         * });
         * app.assets.load(asset);
         */
-        ready: function (callback, scope) {
+        ready(callback, scope) {
             scope = scope || this;
 
             if (this.resource) {
                 callback.call(scope, this);
             } else {
-                this.once("load", function (asset) {
+                this.once("load", asset => {
                     callback.call(scope, asset);
                 });
             }
-        },
+        }
 
-        reload: function() {
+        reload() {
             // no need to be reloaded
             if (! this.loaded)
                 return;
@@ -198,7 +197,7 @@ pc.extend(pc, function () {
                 this.loaded = false;
                 this.registry.load(this);
             }
-        },
+        }
 
         /**
         * @function
@@ -209,12 +208,12 @@ pc.extend(pc, function () {
         * asset.unload();
         * // asset.resource is null
         */
-        unload: function () {
+        unload() {
             if (! this.loaded && ! this.resource)
                 return;
 
             this.fire('unload', this);
-            this.registry.fire('unload:' + this.id, this);
+            this.registry.fire(`unload:${this.id}`, this);
 
             if (this.resource && this.resource.destroy)
                 this.resource.destroy();
@@ -227,33 +226,28 @@ pc.extend(pc, function () {
                 this.registry._loader.clearCache(this.getFileUrl(), this.type);
             }
         }
-    };
 
-
-    Object.defineProperty(Asset.prototype, 'id', {
-        get: function() {
+        get id() {
             return this._id;
-        },
+        }
 
-        set: function (value) {
+        set id(value) {
             this._id = value;
             if (value > assetIdCounter)
                 assetIdCounter = value;
         }
-    });
 
-    Object.defineProperty(Asset.prototype, 'file', {
-        get: function() {
+        get file() {
             return this._file;
-        },
+        }
 
-        set: function (value) {
+        set file(value) {
             // fire change event when the file changes
             // so that we reload it if necessary
             // set/unset file property of file hash been changed
-            var key;
-            var valueAsBool = !!value;
-            var fileAsBool = !!this._file;
+            let key;
+            const valueAsBool = !!value;
+            const fileAsBool = !!this._file;
             if (valueAsBool !== fileAsBool || (value && this._file && value.hash !== this._file)) {
                 if (value) {
                     if (! this._file)
@@ -297,17 +291,15 @@ pc.extend(pc, function () {
                 }
             }
         }
-    });
 
-    Object.defineProperty(Asset.prototype, 'data', {
-        get: function () {
+        get data() {
             return this._data;
-        },
+        }
 
-        set: function (value) {
+        set data(value) {
             // fire change event when data changes
             // because the asset might need reloading if that happens
-            var old = this._data;
+            const old = this._data;
             this._data = value;
             if (value !== old) {
                 this.fire('change', this, 'data', value, old);
@@ -316,37 +308,32 @@ pc.extend(pc, function () {
                     this.registry._loader.patch(this, this.registry);
             }
         }
-    });
 
-    Object.defineProperty(Asset.prototype, 'resource', {
-        get: function () {
+        get resource() {
             return this._resources[0];
-        },
+        }
 
-        set: function (value) {
-            var _old = this._resources[0];
+        set resource(value) {
+            const _old = this._resources[0];
             this._resources[0] = value;
             this.fire('change', this, 'resource', value, _old);
         }
-    });
 
-    Object.defineProperty(Asset.prototype, 'resources', {
-        get: function () {
+        get resources() {
             return this._resources;
-        },
+        }
 
-        set: function (value) {
-            var _old = this._resources;
+        set resources(value) {
+            const _old = this._resources;
             this._resources = value;
             this.fire('change', this, 'resources', value, _old);
         }
-    });
 
-    Object.defineProperty(Asset.prototype, 'preload', {
-        get: function () {
+        get preload() {
             return this._preload;
-        },
-        set: function (value) {
+        }
+
+        set preload(value) {
             value = !!value;
             if (this._preload === value)
                 return;
@@ -355,10 +342,10 @@ pc.extend(pc, function () {
             if (this._preload && !this.loaded && !this.loading && this.registry)
                 this.registry.load(this);
         }
-    });
+    }
 
     return {
-        Asset: Asset,
+        Asset,
         ASSET_ANIMATION: 'animation',
         ASSET_AUDIO: 'audio',
         ASSET_IMAGE: 'image',
@@ -372,6 +359,6 @@ pc.extend(pc, function () {
         ASSET_CSS: 'css',
         ASSET_HTML: 'html',
         ASSET_SCRIPT: 'script',
-        ABSOLUTE_URL: ABSOLUTE_URL
+        ABSOLUTE_URL
     };
-}());
+})());

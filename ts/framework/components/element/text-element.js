@@ -1,64 +1,294 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
+    class TextElement {
+        constructor(element) {
+            this._element = element;
+            this._system = element.system;
+            this._entity = element.entity;
 
-    var TextElement = function TextElement (element) {
-        this._element = element;
-        this._system = element.system;
-        this._entity = element.entity;
+            // public
+            this._text = "";
 
-        // public
-        this._text = "";
+            this._fontAsset = null;
+            this._font = null;
 
-        this._fontAsset = null;
-        this._font = null;
+            this._color = new pc.Color(1,1,1,1);
 
-        this._color = new pc.Color(1,1,1,1);
+            this._spacing = 1;
+            this._fontSize = 32;
+            this._lineHeight = 32;
+            this._wrapLines = false;
 
-        this._spacing = 1;
-        this._fontSize = 32;
-        this._lineHeight = 32;
-        this._wrapLines = false;
+            this._drawOrder = 0;
 
-        this._drawOrder = 0;
+            this._alignment = new pc.Vec2(0.5, 0.5);
 
-        this._alignment = new pc.Vec2(0.5, 0.5);
+            this._autoWidth = true;
+            this._autoHeight = true;
 
-        this._autoWidth = true;
-        this._autoHeight = true;
+            this.width = 0;
+            this.height = 0;
 
-        this.width = 0;
-        this.height = 0;
+            // private
+            this._node = new pc.GraphNode();
+            this._model = new pc.Model();
+            this._model.graph = this._node;
+            this._entity.addChild(this._node);
 
-        // private
-        this._node = new pc.GraphNode();
-        this._model = new pc.Model();
-        this._model.graph = this._node;
-        this._entity.addChild(this._node);
+            this._meshInfo = [];
+            this._material = null;
 
-        this._meshInfo = [];
-        this._material = null;
+            this._noResize = false; // flag used to disable resizing events
 
-        this._noResize = false; // flag used to disable resizing events
+            this._currentMaterialType = null; // save the material type (screenspace or not) to prevent overwriting
+            this._maskedMaterialSrc = null; // saved material that was assigned before element was masked
 
-        this._currentMaterialType = null; // save the material type (screenspace or not) to prevent overwriting
-        this._maskedMaterialSrc = null; // saved material that was assigned before element was masked
+            // initialize based on screen
+            this._onScreenChange(this._element.screen);
 
-        // initialize based on screen
-        this._onScreenChange(this._element.screen);
+            // start listening for element events
+            element.on('resize', this._onParentResize, this);
+            this._element.on('set:screen', this._onScreenChange, this);
+            element.on('screen:set:screenspace', this._onScreenSpaceChange, this);
+            element.on('set:draworder', this._onDrawOrderChange, this);
+            element.on('set:pivot', this._onPivotChange, this);
+        }
 
-        // start listening for element events
-        element.on('resize', this._onParentResize, this);
-        this._element.on('set:screen', this._onScreenChange, this);
-        element.on('screen:set:screenspace', this._onScreenSpaceChange, this);
-        element.on('set:draworder', this._onDrawOrderChange, this);
-        element.on('set:pivot', this._onPivotChange, this);
-    };
+        get text() {
+            return this._text;
+        }
 
-    var LINE_BREAK_CHAR = /^[\r\n]$/;
-    var WHITESPACE_CHAR = /^[ \t]$/;
-    var WORD_BOUNDARY_CHAR = /^[ \t\-]$/;
+        set text(value) {
+            const str = value.toString();
+            if (this._text !== str) {
+                if (this._font) {
+                    this._updateText(str);
+                }
+                this._text = str;
+            }
+        }
+
+        get color() {
+            return this._color;
+        }
+
+        set color({data}) {
+            this._color.data[0] = data[0];
+            this._color.data[1] = data[1];
+            this._color.data[2] = data[2];
+
+            if (this._model) {
+                for (let i = 0, len = this._model.meshInstances.length; i<len; i++) {
+                    const mi = this._model.meshInstances[i];
+                    mi.setParameter('material_emissive', this._color.data3);
+                }
+            }
+        }
+
+        get opacity() {
+            return this._color.data[3];
+        }
+
+        set opacity(value) {
+            this._color.data[3] = value;
+
+            if (this._model) {
+                for (let i = 0, len = this._model.meshInstances.length; i<len; i++) {
+                    const mi = this._model.meshInstances[i];
+                    mi.setParameter('material_opacity', value);
+                }
+            }
+        }
+
+        get lineHeight() {
+            return this._lineHeight;
+        }
+
+        set lineHeight(value) {
+            const _prev = this._lineHeight;
+            this._lineHeight = value;
+            if (_prev !== value && this._font) {
+                this._updateText();
+            }
+        }
+
+        get wrapLines() {
+            return this._wrapLines;
+        }
+
+        set wrapLines(value) {
+            const _prev = this._wrapLines;
+            this._wrapLines = value;
+            if (_prev !== value && this._font) {
+                this._updateText();
+            }
+        }
+
+        get lines() {
+            return this._lineContents;
+        }
+
+        get spacing() {
+            return this._spacing;
+        }
+
+        set spacing(value) {
+            const _prev = this._spacing;
+            this._spacing = value;
+            if (_prev !== value && this._font) {
+                this._updateText();
+            }
+        }
+
+        get fontSize() {
+            return this._fontSize;
+        }
+
+        set fontSize(value) {
+            const _prev = this._fontSize;
+            this._fontSize = value;
+            if (_prev !== value && this._font) {
+                this._updateText();
+            }
+        }
+
+        set fontAsset(value) {
+            const assets = this._system.app.assets;
+            let _id = value;
+
+            if (value instanceof pc.Asset) {
+                _id = value.id;
+            }
+
+            if (this._fontAsset !== _id) {
+                if (this._fontAsset) {
+                    const _prev = assets.get(this._fontAsset);
+
+                    if (_prev) {
+                        _prev.off("load", this._onFontLoad, this);
+                        _prev.off("change", this._onFontChange, this);
+                        _prev.off("remove", this._onFontRemove, this);
+                    }
+                }
+
+                this._fontAsset = _id;
+                if (this._fontAsset) {
+                    const asset = assets.get(this._fontAsset);
+                    if (! asset) {
+                        assets.on(`add:${this._fontAsset}`, this._onFontAdded, this);
+                    } else {
+                        this._bindFont(asset);
+                    }
+                }
+            }
+        }
+
+        get font() {
+            return this._font;
+        }
+
+        set font(value) {
+            let i;
+            let len;
+
+            this._font = value;
+            if (! value) return;
+
+            // make sure we have as many meshInfo entries
+            // as the number of font textures
+            for (i = 0, len = this._font.textures.length; i<len; i++) {
+                if (! this._meshInfo[i]) {
+                    this._meshInfo[i] = {
+                        count: 0,
+                        quad: 0,
+                        lines: {},
+                        positions: [],
+                        normals: [],
+                        uvs: [],
+                        indices: [],
+                        meshInstance: null
+                    };
+                } else {
+                    // keep existing entry but set correct parameters to mesh instance
+                    const mi = this._meshInfo[i].meshInstance;
+                    if (mi) {
+                        mi.setParameter("font_sdfIntensity", this._font.intensity);
+                        mi.setParameter("font_pxrange", this._getPxRange(this._font));
+                        mi.setParameter("font_textureWidth", this._font.data.info.maps[i].width);
+                        mi.setParameter("texture_msdfMap", this._font.textures[i]);
+                    }
+                }
+            }
+
+            // destroy any excess mesh instances
+            let removedModel = false;
+            for (i = this._font.textures.length; i < this._meshInfo.length; i++) {
+                if (this._meshInfo[i].meshInstance) {
+                    if (! removedModel) {
+                        // remove model from scene so that excess mesh instances are removed
+                        // from the scene as well
+                        this._element.removeModelFromLayers(this._model);
+                        removedModel = true;
+                    }
+                    this._removeMeshInstance(this._meshInfo[i].meshInstance);
+                }
+            }
+
+            if (this._meshInfo.length > this._font.textures.length)
+                this._meshInfo.length = this._font.textures.length;
+
+            this._updateText();
+        }
+
+        get alignment() {
+            return this._alignment;
+        }
+
+        set alignment(value) {
+            if (value instanceof pc.Vec2) {
+                this._alignment.set(value.x, value.y);
+            } else {
+                this._alignment.set(value[0], value[1]);
+            }
+
+            if (this._font)
+                this._updateText();
+        }
+
+        get autoWidth() {
+            return this._autoWidth;
+        }
+
+        set autoWidth(value) {
+            this._autoWidth = value;
+
+            // change width of element to match text width but only if the element
+            // does not have split horizontal anchors
+            if (value && Math.abs(this._element.anchor.x - this._element.anchor.z) < 0.0001) {
+                this._element.width = this.width;
+            }
+        }
+
+        get autoHeight() {
+            return this._autoHeight;
+        }
+
+        set autoHeight(value) {
+            this._autoHeight = value;
+
+            // change height of element to match text height but only if the element
+            // does not have split vertical anchors
+            if (value && Math.abs(this._element.anchor.y - this._element.anchor.w) < 0.0001) {
+                this._element.height = this.height;
+            }
+        }
+    }
+
+    const LINE_BREAK_CHAR = /^[\r\n]$/;
+    const WHITESPACE_CHAR = /^[ \t]$/;
+    const WORD_BOUNDARY_CHAR = /^[ \t\-]$/;
 
     pc.extend(TextElement.prototype, {
-        destroy: function () {
+        destroy() {
             if (this._model) {
                 this._element.removeModelFromLayers(this._model);
                 this._model.destroy();
@@ -72,12 +302,12 @@ pc.extend(pc, function () {
             this._element.off('set:pivot', this._onPivotChange, this);
         },
 
-        _onParentResize: function (width, height) {
+        _onParentResize(width, height) {
             if (this._noResize) return;
             if (this._font) this._updateText(this._text);
         },
 
-        _onScreenChange: function (screen) {
+        _onScreenChange(screen) {
             if (screen) {
                 this._updateMaterial(screen.screen.screenSpace);
             } else {
@@ -85,16 +315,16 @@ pc.extend(pc, function () {
             }
         },
 
-        _onScreenSpaceChange: function (value) {
+        _onScreenSpaceChange(value) {
             this._updateMaterial(value);
         },
 
-        _onDrawOrderChange: function (order) {
+        _onDrawOrderChange(order) {
             this._drawOrder = order;
 
             if (this._model) {
-                var i;
-                var len;
+                let i;
+                let len;
 
                 for (i = 0, len = this._model.meshInstances.length; i<len; i++) {
                     this._model.meshInstances[i].drawOrder = order;
@@ -102,32 +332,32 @@ pc.extend(pc, function () {
             }
         },
 
-        _onPivotChange: function (pivot) {
+        _onPivotChange(pivot) {
             if (this._font)
                 this._updateText();
         },
 
-        _updateText: function (text) {
-            var i;
-            var len;
+        _updateText(text) {
+            let i;
+            let len;
 
             if (text === undefined) text = this._text;
 
-            var textLength = text.length;
+            let textLength = text.length;
             // handle null string
             if (textLength === 0) {
                 textLength = 1;
                 text = " ";
             }
 
-            var charactersPerTexture = {};
+            const charactersPerTexture = {};
 
             for (i = 0; i<textLength; i++) {
-                var code = text.charCodeAt(i);
-                var info = this._font.data.chars[code];
+                const code = text.charCodeAt(i);
+                const info = this._font.data.chars[code];
                 if (! info) continue;
 
-                var map = info.map;
+                const map = info.map;
 
                 if (! charactersPerTexture[map])
                     charactersPerTexture[map] = 0;
@@ -135,13 +365,13 @@ pc.extend(pc, function () {
                 charactersPerTexture[map]++;
             }
 
-            var removedModel = false;
+            let removedModel = false;
 
-            var screenSpace = (this._element.screen && this._element.screen.screen.screenSpace);
+            const screenSpace = (this._element.screen && this._element.screen.screen.screenSpace);
 
             for (i = 0, len = this._meshInfo.length; i<len; i++) {
-                var l = charactersPerTexture[i] || 0;
-                var meshInfo = this._meshInfo[i];
+                const l = charactersPerTexture[i] || 0;
+                const meshInfo = this._meshInfo[i];
 
                 if (meshInfo.count !== l) {
                     if (! removedModel) {
@@ -166,7 +396,7 @@ pc.extend(pc, function () {
                     }
 
                     // set up indices and normals whose values don't change when we call _updateMeshes
-                    for (var v = 0; v < l; v++) {
+                    for (let v = 0; v < l; v++) {
                         // create index and normal arrays since they don't change
                         // if the length doesn't change
                         meshInfo.indices[v*3*2+0] = v*4;
@@ -193,9 +423,9 @@ pc.extend(pc, function () {
                         meshInfo.normals[v*4*3+11] = -1;
                     }
 
-                    var mesh = pc.createMesh(this._system.app.graphicsDevice, meshInfo.positions, {uvs: meshInfo.uvs, normals: meshInfo.normals, indices: meshInfo.indices});
+                    const mesh = pc.createMesh(this._system.app.graphicsDevice, meshInfo.positions, {uvs: meshInfo.uvs, normals: meshInfo.normals, indices: meshInfo.indices});
 
-                    var mi = new pc.MeshInstance(this._node, mesh, this._material);
+                    const mi = new pc.MeshInstance(this._node, mesh, this._material);
                     mi.castShadow = false;
                     mi.receiveShadow = false;
 
@@ -231,11 +461,11 @@ pc.extend(pc, function () {
             this._updateMeshes(text);
         },
 
-        _removeMeshInstance: function (meshInstance) {
-            var ib;
-            var iblen;
+        _removeMeshInstance(meshInstance) {
+            let ib;
+            let iblen;
 
-            var oldMesh = meshInstance.mesh;
+            const oldMesh = meshInstance.mesh;
             if (oldMesh) {
                 if (oldMesh.vertexBuffer) {
                     oldMesh.vertexBuffer.destroy();
@@ -247,26 +477,26 @@ pc.extend(pc, function () {
                 }
             }
 
-            var idx = this._model.meshInstances.indexOf(meshInstance);
+            const idx = this._model.meshInstances.indexOf(meshInstance);
             if (idx !== -1)
                 this._model.meshInstances.splice(idx, 1);
         },
 
-        _setMaterial: function (material) {
-            var i;
-            var len;
+        _setMaterial(material) {
+            let i;
+            let len;
 
             this._material = material;
             if (this._model) {
                 for (i = 0, len = this._model.meshInstances.length; i<len; i++) {
-                    var mi = this._model.meshInstances[i];
+                    const mi = this._model.meshInstances[i];
                     mi.material = material;
                 }
             }
         },
 
-        _updateMaterial: function (screenSpace) {
-            var cull;
+        _updateMaterial(screenSpace) {
+            let cull;
 
             if (screenSpace) {
                 this._material = this._system.defaultScreenSpaceTextMaterial;
@@ -277,8 +507,8 @@ pc.extend(pc, function () {
             }
 
             if (this._model) {
-                for (var i = 0, len = this._model.meshInstances.length; i<len; i++) {
-                    var mi = this._model.meshInstances[i];
+                for (let i = 0, len = this._model.meshInstances.length; i<len; i++) {
+                    const mi = this._model.meshInstances[i];
                     mi.cull = cull;
                     mi.material = this._material;
                     mi.screenSpace = screenSpace;
@@ -286,42 +516,42 @@ pc.extend(pc, function () {
             }
         },
 
-        _updateMeshes: function (text) {
-            var json = this._font.data;
-            var self = this;
+        _updateMeshes(text) {
+            const json = this._font.data;
+            const self = this;
 
             this.width = 0;
             this.height = 0;
             this._lineWidths = [];
             this._lineContents = [];
 
-            var l = text.length;
-            var _x = 0; // cursors
-            var _xMinusTrailingWhitespace = 0;
-            var _y = 0;
-            var _z = 0;
+            const l = text.length;
+            let _x = 0; // cursors
+            let _xMinusTrailingWhitespace = 0;
+            let _y = 0;
+            const _z = 0;
 
-            var lines = 1;
-            var wordStartX = 0;
-            var wordStartIndex = 0;
-            var lineStartIndex = 0;
-            var numWordsThisLine = 0;
-            var numCharsThisLine = 0;
-            var splitHorizontalAnchors = Math.abs(this._element.anchor.x - this._element.anchor.z) >= 0.0001;
+            let lines = 1;
+            let wordStartX = 0;
+            let wordStartIndex = 0;
+            let lineStartIndex = 0;
+            let numWordsThisLine = 0;
+            let numCharsThisLine = 0;
+            const splitHorizontalAnchors = Math.abs(this._element.anchor.x - this._element.anchor.z) >= 0.0001;
 
-            var maxLineWidth = this._element.width;
+            let maxLineWidth = this._element.width;
             if ((this.autoWidth && !splitHorizontalAnchors) || !this._wrapLines) {
                 maxLineWidth = Number.POSITIVE_INFINITY;
             }
 
             // todo: move this into font asset?
             // calculate max font extents from all available chars
-            var fontMinY = 0;
-            var fontMaxY = 0;
-            var scale = 1;
-            var MAGIC = 32;
+            let fontMinY = 0;
+            let fontMaxY = 0;
+            let scale = 1;
+            const MAGIC = 32;
 
-            var char, charCode, data, i, quad;
+            let char, charCode, data, i, quad;
 
             // TODO: Optimize this as it loops through all the chars in the asset
             // every time the text changes...
@@ -356,16 +586,16 @@ pc.extend(pc, function () {
                 char = text.charAt(i);
                 charCode = text.charCodeAt(i);
 
-                var x = 0;
-                var y = 0;
-                var advance = 0;
-                var quadsize = 1;
-                var glyphMinX = 0;
-                var glyphWidth = 0;
+                let x = 0;
+                let y = 0;
+                let advance = 0;
+                let quadsize = 1;
+                let glyphMinX = 0;
+                let glyphWidth = 0;
 
                 data = json.chars[charCode];
                 if (data && data.scale) {
-                    var size = (data.width + data.height) / 2;
+                    const size = (data.width + data.height) / 2;
                     scale = (size/MAGIC) * this._fontSize / size;
                     quadsize = (size/MAGIC) * this._fontSize / data.scale;
                     advance = data.xadvance * scale;
@@ -387,9 +617,9 @@ pc.extend(pc, function () {
                     quadsize = this._fontSize;
                 }
 
-                var isLineBreak = LINE_BREAK_CHAR.test(char);
-                var isWordBoundary = WORD_BOUNDARY_CHAR.test(char);
-                var isWhitespace = WHITESPACE_CHAR.test(char);
+                const isLineBreak = LINE_BREAK_CHAR.test(char);
+                const isWordBoundary = WORD_BOUNDARY_CHAR.test(char);
+                const isWhitespace = WHITESPACE_CHAR.test(char);
 
                 if (isLineBreak) {
                     breakLine(i, _xMinusTrailingWhitespace);
@@ -398,8 +628,8 @@ pc.extend(pc, function () {
                     continue;
                 }
 
-                var meshInfo = this._meshInfo[(data && data.map) || 0];
-                var candidateLineWidth = _x + glyphWidth + glyphMinX;
+                const meshInfo = this._meshInfo[(data && data.map) || 0];
+                const candidateLineWidth = _x + glyphWidth + glyphMinX;
 
                 // If we've exceeded the maximum line width, move everything from the beginning of
                 // the current word onwards down onto a new line.
@@ -411,7 +641,7 @@ pc.extend(pc, function () {
                         breakLine(i, _xMinusTrailingWhitespace);
                     } else {
                         // Move back to the beginning of the current word.
-                        var backtrack = Math.max(i - wordStartIndex, 0);
+                        const backtrack = Math.max(i - wordStartIndex, 0);
                         i -= backtrack + 1;
                         meshInfo.lines[lines-1] -= backtrack;
                         meshInfo.quad -= backtrack;
@@ -463,7 +693,7 @@ pc.extend(pc, function () {
 
                 numCharsThisLine++;
 
-                var uv = this._getUv(charCode);
+                const uv = this._getUv(charCode);
 
                 meshInfo.uvs[quad*4*2+0] = uv[0];
                 meshInfo.uvs[quad*4*2+1] = uv[1];
@@ -494,19 +724,19 @@ pc.extend(pc, function () {
             this._noResize = false;
 
             // offset for pivot and alignment
-            var hp = this._element.pivot.data[0];
-            var vp = this._element.pivot.data[1];
-            var ha = this._alignment.x;
-            var va = this._alignment.y;
+            const hp = this._element.pivot.data[0];
+            const vp = this._element.pivot.data[1];
+            const ha = this._alignment.x;
+            const va = this._alignment.y;
 
             for (i = 0; i < this._meshInfo.length; i++) {
                 if (this._meshInfo[i].count === 0) continue;
 
-                var prevQuad = 0;
-                for (var line in this._meshInfo[i].lines) {
-                    var index = this._meshInfo[i].lines[line];
-                    var hoffset = - hp * this._element.width + ha * (this._element.width - this._lineWidths[parseInt(line,10)]);
-                    var voffset = (1 - vp) * this._element.height - fontMaxY - (1 - va) * (this._element.height - this.height);
+                let prevQuad = 0;
+                for (const line in this._meshInfo[i].lines) {
+                    const index = this._meshInfo[i].lines[line];
+                    const hoffset = - hp * this._element.width + ha * (this._element.width - this._lineWidths[parseInt(line,10)]);
+                    const voffset = (1 - vp) * this._element.height - fontMaxY - (1 - va) * (this._element.height - this.height);
 
                     for (quad = prevQuad; quad <= index; quad++) {
                         this._meshInfo[i].positions[quad*4*3] += hoffset;
@@ -524,9 +754,9 @@ pc.extend(pc, function () {
                 }
 
                 // update vertex buffer
-                var numVertices = this._meshInfo[i].quad*4;
-                var it = new pc.VertexIterator(this._meshInfo[i].meshInstance.mesh.vertexBuffer);
-                for (var v = 0; v < numVertices; v++) {
+                const numVertices = this._meshInfo[i].quad*4;
+                const it = new pc.VertexIterator(this._meshInfo[i].meshInstance.mesh.vertexBuffer);
+                for (let v = 0; v < numVertices; v++) {
                     it.element[pc.SEMANTIC_POSITION].set(this._meshInfo[i].positions[v*3+0], this._meshInfo[i].positions[v*3+1], this._meshInfo[i].positions[v*3+2]);
                     it.element[pc.SEMANTIC_TEXCOORD0].set(this._meshInfo[i].uvs[v*2+0], this._meshInfo[i].uvs[v*2+1]);
                     it.next();
@@ -540,15 +770,15 @@ pc.extend(pc, function () {
             }
         },
 
-        _onFontAdded: function (asset) {
-            this._system.app.assets.off('add:' + asset.id, this._onFontAdded, this);
+        _onFontAdded(asset) {
+            this._system.app.assets.off(`add:${asset.id}`, this._onFontAdded, this);
 
             if (asset.id === this._fontAsset) {
                 this._bindFont(asset);
             }
         },
 
-        _bindFont: function (asset) {
+        _bindFont(asset) {
             asset.on("load", this._onFontLoad, this);
             asset.on("change", this._onFontChange, this);
             asset.on("remove", this._onFontRemove, this);
@@ -560,21 +790,21 @@ pc.extend(pc, function () {
             }
         },
 
-        _onFontLoad: function (asset) {
-            if (this.font !== asset.resource) {
-                this.font = asset.resource;
+        _onFontLoad({resource}) {
+            if (this.font !== resource) {
+                this.font = resource;
             }
         },
 
-        _onFontChange: function (asset, name, _new, _old) {
+        _onFontChange(asset, name, _new, _old) {
             if (name === 'data') {
                 this._font.data = _new;
 
-                var maps = this._font.data.info.maps.length;
-                for (var i = 0; i<maps; i++) {
+                const maps = this._font.data.info.maps.length;
+                for (let i = 0; i<maps; i++) {
                     if (! this._meshInfo[i]) continue;
 
-                    var mi = this._meshInfo[i].meshInstance;
+                    const mi = this._meshInfo[i].meshInstance;
                     if (mi) {
                         mi.setParameter("font_sdfIntensity", this._font.intensity);
                         mi.setParameter("font_pxrange", this._getPxRange(this._font));
@@ -584,15 +814,15 @@ pc.extend(pc, function () {
             }
         },
 
-        _onFontRemove: function (asset) {
+        _onFontRemove(asset) {
 
         },
 
-        _getPxRange: function (font) {
+        _getPxRange(font) {
             // calculate pxrange from range and scale properties on a character
-            var keys = Object.keys(this._font.data.chars);
-            for (var i = 0; i < keys.length; i++) {
-                var char = this._font.data.chars[keys[i]];
+            const keys = Object.keys(this._font.data.chars);
+            for (let i = 0; i < keys.length; i++) {
+                const char = this._font.data.chars[keys[i]];
                 if (char.scale && char.range) {
                     return char.scale * char.range;
                 }
@@ -600,8 +830,8 @@ pc.extend(pc, function () {
             return 2; // default
         },
 
-        _getUv: function (char) {
-            var data = this._font.data;
+        _getUv(char) {
+            const data = this._font.data;
 
             if (!data.chars[char]) {
                 // missing char - return "space" if we have it
@@ -612,18 +842,18 @@ pc.extend(pc, function () {
                 return [0,0,1,1];
             }
 
-            var map = data.chars[char].map;
-            var width = data.info.maps[map].width;
-            var height = data.info.maps[map].height;
+            const map = data.chars[char].map;
+            const width = data.info.maps[map].width;
+            const height = data.info.maps[map].height;
 
-            var x = data.chars[char].x;
-            var y =  data.chars[char].y;
+            const x = data.chars[char].x;
+            const y =  data.chars[char].y;
 
-            var x1 = x;
-            var y1 = y;
-            var x2 = (x + data.chars[char].width);
-            var y2 = (y - data.chars[char].height);
-            var edge = 1 - (data.chars[char].height / height);
+            const x1 = x;
+            const y1 = y;
+            const x2 = (x + data.chars[char].width);
+            const y2 = (y - data.chars[char].height);
+            const edge = 1 - (data.chars[char].height / height);
             return [
                 x1 / width,
                 edge - (y1 / height), // bottom left
@@ -633,280 +863,21 @@ pc.extend(pc, function () {
             ];
         },
 
-        onEnable: function () {
+        onEnable() {
             if (this._model) {
                 this._element.addModelToLayers(this._model);
             }
         },
 
-        onDisable: function () {
+        onDisable() {
             if (this._model) {
                 this._element.removeModelFromLayers(this._model);
             }
         }
     });
 
-    Object.defineProperty(TextElement.prototype, "text", {
-        get: function () {
-            return this._text;
-        },
-
-        set: function (value) {
-            var str = value.toString();
-            if (this._text !== str) {
-                if (this._font) {
-                    this._updateText(str);
-                }
-                this._text = str;
-            }
-        }
-    });
-
-    Object.defineProperty(TextElement.prototype, "color", {
-        get: function () {
-            return this._color;
-        },
-
-        set: function (value) {
-            this._color.data[0] = value.data[0];
-            this._color.data[1] = value.data[1];
-            this._color.data[2] = value.data[2];
-
-            if (this._model) {
-                for (var i = 0, len = this._model.meshInstances.length; i<len; i++) {
-                    var mi = this._model.meshInstances[i];
-                    mi.setParameter('material_emissive', this._color.data3);
-                }
-            }
-        }
-    });
-
-    Object.defineProperty(TextElement.prototype, "opacity", {
-        get: function () {
-            return this._color.data[3];
-        },
-
-        set: function (value) {
-            this._color.data[3] = value;
-
-            if (this._model) {
-                for (var i = 0, len = this._model.meshInstances.length; i<len; i++) {
-                    var mi = this._model.meshInstances[i];
-                    mi.setParameter('material_opacity', value);
-                }
-            }
-        }
-    });
-
-    Object.defineProperty(TextElement.prototype, "lineHeight", {
-        get: function () {
-            return this._lineHeight;
-        },
-
-        set: function (value) {
-            var _prev = this._lineHeight;
-            this._lineHeight = value;
-            if (_prev !== value && this._font) {
-                this._updateText();
-            }
-        }
-    });
-
-    Object.defineProperty(TextElement.prototype, "wrapLines", {
-        get: function () {
-            return this._wrapLines;
-        },
-
-        set: function (value) {
-            var _prev = this._wrapLines;
-            this._wrapLines = value;
-            if (_prev !== value && this._font) {
-                this._updateText();
-            }
-        }
-    });
-
-    Object.defineProperty(TextElement.prototype, "lines", {
-        get: function () {
-            return this._lineContents;
-        }
-    });
-
-    Object.defineProperty(TextElement.prototype, "spacing", {
-        get: function () {
-            return this._spacing;
-        },
-
-        set: function (value) {
-            var _prev = this._spacing;
-            this._spacing = value;
-            if (_prev !== value && this._font) {
-                this._updateText();
-            }
-        }
-    });
-
-    Object.defineProperty(TextElement.prototype, "fontSize", {
-        get: function () {
-            return this._fontSize;
-        },
-
-        set: function (value) {
-            var _prev = this._fontSize;
-            this._fontSize = value;
-            if (_prev !== value && this._font) {
-                this._updateText();
-            }
-        }
-    });
-
-    Object.defineProperty(TextElement.prototype, "fontAsset", {
-        get function () {
-            return this._fontAsset;
-        },
-
-        set: function (value) {
-            var assets = this._system.app.assets;
-            var _id = value;
-
-            if (value instanceof pc.Asset) {
-                _id = value.id;
-            }
-
-            if (this._fontAsset !== _id) {
-                if (this._fontAsset) {
-                    var _prev = assets.get(this._fontAsset);
-
-                    if (_prev) {
-                        _prev.off("load", this._onFontLoad, this);
-                        _prev.off("change", this._onFontChange, this);
-                        _prev.off("remove", this._onFontRemove, this);
-                    }
-                }
-
-                this._fontAsset = _id;
-                if (this._fontAsset) {
-                    var asset = assets.get(this._fontAsset);
-                    if (! asset) {
-                        assets.on('add:' + this._fontAsset, this._onFontAdded, this);
-                    } else {
-                        this._bindFont(asset);
-                    }
-                }
-            }
-        }
-    });
-
-    Object.defineProperty(TextElement.prototype, "font", {
-        get: function () {
-            return this._font;
-        },
-
-        set: function (value) {
-            var i;
-            var len;
-
-            this._font = value;
-            if (! value) return;
-
-            // make sure we have as many meshInfo entries
-            // as the number of font textures
-            for (i = 0, len = this._font.textures.length; i<len; i++) {
-                if (! this._meshInfo[i]) {
-                    this._meshInfo[i] = {
-                        count: 0,
-                        quad: 0,
-                        lines: {},
-                        positions: [],
-                        normals: [],
-                        uvs: [],
-                        indices: [],
-                        meshInstance: null
-                    };
-                } else {
-                    // keep existing entry but set correct parameters to mesh instance
-                    var mi = this._meshInfo[i].meshInstance;
-                    if (mi) {
-                        mi.setParameter("font_sdfIntensity", this._font.intensity);
-                        mi.setParameter("font_pxrange", this._getPxRange(this._font));
-                        mi.setParameter("font_textureWidth", this._font.data.info.maps[i].width);
-                        mi.setParameter("texture_msdfMap", this._font.textures[i]);
-                    }
-                }
-            }
-
-            // destroy any excess mesh instances
-            var removedModel = false;
-            for (i = this._font.textures.length; i < this._meshInfo.length; i++) {
-                if (this._meshInfo[i].meshInstance) {
-                    if (! removedModel) {
-                        // remove model from scene so that excess mesh instances are removed
-                        // from the scene as well
-                        this._element.removeModelFromLayers(this._model);
-                        removedModel = true;
-                    }
-                    this._removeMeshInstance(this._meshInfo[i].meshInstance);
-                }
-            }
-
-            if (this._meshInfo.length > this._font.textures.length)
-                this._meshInfo.length = this._font.textures.length;
-
-            this._updateText();
-        }
-    });
-
-    Object.defineProperty(TextElement.prototype, "alignment", {
-        get: function () {
-            return this._alignment;
-        },
-
-        set: function (value) {
-            if (value instanceof pc.Vec2) {
-                this._alignment.set(value.x, value.y);
-            } else {
-                this._alignment.set(value[0], value[1]);
-            }
-
-            if (this._font)
-                this._updateText();
-        }
-    });
-
-    Object.defineProperty(TextElement.prototype, "autoWidth", {
-        get: function () {
-            return this._autoWidth;
-        },
-
-        set: function (value) {
-            this._autoWidth = value;
-
-            // change width of element to match text width but only if the element
-            // does not have split horizontal anchors
-            if (value && Math.abs(this._element.anchor.x - this._element.anchor.z) < 0.0001) {
-                this._element.width = this.width;
-            }
-        }
-    });
-
-    Object.defineProperty(TextElement.prototype, "autoHeight", {
-        get: function () {
-            return this._autoHeight;
-        },
-
-        set: function (value) {
-            this._autoHeight = value;
-
-            // change height of element to match text height but only if the element
-            // does not have split vertical anchors
-            if (value && Math.abs(this._element.anchor.y - this._element.anchor.w) < 0.0001) {
-                this._element.height = this.height;
-            }
-        }
-    });
-
     return {
-        TextElement: TextElement
+        TextElement
     };
-}());
+})());
 

@@ -1,5 +1,4 @@
-pc.extend(pc, function () {
-
+pc.extend(pc, (() => {
     /**
      * @private
      * @constructor
@@ -19,37 +18,37 @@ pc.extend(pc, function () {
      * @property {Boolean} isPlaying Whether the animation is currently playing.
      * @property {Boolean} isPaused Whether the animation is currently paused.
      */
-    var SpriteAnimationClip = function (component, data) {
-        this._component = component;
+    class SpriteAnimationClip {
+        constructor(component, {spriteAsset, name, fps, loop}) {
+            this._component = component;
 
-        this._frame = 0;
-        this._sprite = null;
-        this._spriteAsset = null;
-        this.spriteAsset = data.spriteAsset;
+            this._frame = 0;
+            this._sprite = null;
+            this._spriteAsset = null;
+            this.spriteAsset = spriteAsset;
 
-        this.name = data.name;
-        this.fps = data.fps || 0;
-        this.loop = data.loop || false;
+            this.name = name;
+            this.fps = fps || 0;
+            this.loop = loop || false;
 
-        this._playing = false;
-        this._paused = false;
+            this._playing = false;
+            this._paused = false;
 
-        this._time = 0;
+            this._time = 0;
 
-        pc.events.attach(this);
-    };
+            pc.events.attach(this);
+        }
 
-    SpriteAnimationClip.prototype = {
         // When sprite asset is added bind it
-        _onSpriteAssetAdded: function (asset) {
-            this._component.system.app.assets.off('add:' + asset.id, this._onSpriteAssetAdded, this);
+        _onSpriteAssetAdded(asset) {
+            this._component.system.app.assets.off(`add:${asset.id}`, this._onSpriteAssetAdded, this);
             if (this._spriteAsset === asset.id) {
                 this._bindSpriteAsset(asset);
             }
-        },
+        }
 
         // Hook up event handlers on sprite asset
-        _bindSpriteAsset: function (asset) {
+        _bindSpriteAsset(asset) {
             asset.on("load", this._onSpriteAssetLoad, this);
             asset.on("remove", this._onSpriteAssetRemove, this);
 
@@ -58,55 +57,55 @@ pc.extend(pc, function () {
             } else {
                 this._component.system.app.assets.load(asset);
             }
-        },
+        }
 
         // When sprite asset is loaded make sure the texture atlas asset is loaded too
         // If so then set the sprite, otherwise wait for the atlas to be loaded first
-        _onSpriteAssetLoad: function (asset) {
-            if (! asset.resource) {
+        _onSpriteAssetLoad({resource, data}) {
+            if (! resource) {
                 this.sprite = null;
             } else {
-                if (! asset.resource.atlas) {
-                    var atlasAssetId = asset.data.textureAtlasAsset;
-                    var assets = this._component.system.app.assets;
-                    assets.off('load:' + atlasAssetId, this._onTextureAtlasLoad, this);
-                    assets.once('load:' + atlasAssetId, this._onTextureAtlasLoad, this);
+                if (! resource.atlas) {
+                    const atlasAssetId = data.textureAtlasAsset;
+                    const assets = this._component.system.app.assets;
+                    assets.off(`load:${atlasAssetId}`, this._onTextureAtlasLoad, this);
+                    assets.once(`load:${atlasAssetId}`, this._onTextureAtlasLoad, this);
                 } else {
-                    this.sprite = asset.resource;
+                    this.sprite = resource;
                 }
             }
-        },
+        }
 
         // When atlas is loaded try to reset the sprite asset
-        _onTextureAtlasLoad: function (atlasAsset) {
-            var spriteAsset = this._spriteAsset;
+        _onTextureAtlasLoad(atlasAsset) {
+            const spriteAsset = this._spriteAsset;
             if (spriteAsset instanceof pc.Asset) {
                 this._onSpriteAssetLoad(spriteAsset);
             } else {
                 this._onSpriteAssetLoad(this._component.system.app.assets.get(spriteAsset));
             }
-        },
+        }
 
-        _onSpriteAssetRemove: function (asset) {
+        _onSpriteAssetRemove(asset) {
             this.sprite = null;
-        },
+        }
 
         // If the meshes are re-created make sure
         // we update them in the mesh instance
-        _onSpriteMeshesChange: function () {
+        _onSpriteMeshesChange() {
             if (this._component.currentClip === this) {
                 this._component._showFrame(this.frame);
             }
-        },
+        }
 
         // Update frame if ppu changes for 9-sliced sprites
-        _onSpritePpuChanged: function () {
+        _onSpritePpuChanged() {
             if (this._component.currentClip === this) {
                 if (this.sprite.renderMode !== pc.SPRITE_RENDERMODE_SIMPLE) {
                     this._component._showFrame(this.frame);
                 }
             }
-        },
+        }
 
         /**
         * @private
@@ -115,18 +114,18 @@ pc.extend(pc, function () {
         * @param {Number} dt The delta time
         * @description Advances the animation looping if necessary
         */
-        _update: function (dt) {
+        _update(dt) {
             if (this.fps === 0) return;
             if (!this._playing || this._paused || ! this._sprite) return;
 
-            var dir = this.fps < 0 ? -1 : 1;
-            var time = this._time + dt * this._component.speed * dir;
-            var duration = this.duration;
-            var end = (time > duration || time < 0);
+            const dir = this.fps < 0 ? -1 : 1;
+            const time = this._time + dt * this._component.speed * dir;
+            const duration = this.duration;
+            const end = (time > duration || time < 0);
 
             this._setTime(time);
 
-            var frame = this.frame;
+            let frame = this.frame;
             if (this._sprite) {
                 frame = Math.floor(this._sprite.frameKeys.length * this._time / duration);
             } else {
@@ -148,11 +147,11 @@ pc.extend(pc, function () {
                     this._component.fire('end', this);
                 }
             }
-        },
+        }
 
-        _setTime: function (value) {
+        _setTime(value) {
             this._time = value;
-            var duration = this.duration;
+            const duration = this.duration;
             if (this._time < 0) {
                 if (this.loop) {
                     this._time = this._time % duration + duration;
@@ -166,9 +165,9 @@ pc.extend(pc, function () {
                     this._time = duration;
                 }
             }
-        },
+        }
 
-        _setFrame: function (value) {
+        _setFrame(value) {
             if (this._sprite) {
                 // clamp frame
                 this._frame = pc.math.clamp(value, 0, this._sprite.frameKeys.length - 1);
@@ -179,9 +178,9 @@ pc.extend(pc, function () {
             if (this._component.currentClip === this) {
                 this._component._showFrame(this._frame);
             }
-        },
+        }
 
-        _destroy: function () {
+        _destroy() {
             // remove sprite
             if (this._sprite)
                 this._sprite = null;
@@ -189,7 +188,7 @@ pc.extend(pc, function () {
             // remove sprite asset
             if (this._spriteAsset)
                 this._spriteAsset = null;
-        },
+        }
 
         /**
         * @private
@@ -197,7 +196,7 @@ pc.extend(pc, function () {
         * @name pc.SpriteAnimationClip#play
         * @description Plays the animation. If it's already playing then this does nothing.
         */
-        play: function () {
+        play() {
             if (this._playing)
                 return;
 
@@ -207,7 +206,7 @@ pc.extend(pc, function () {
 
             this.fire('play');
             this._component.fire('play', this);
-        },
+        }
 
         /**
         * @private
@@ -215,7 +214,7 @@ pc.extend(pc, function () {
         * @name pc.SpriteAnimationClip#pause
         * @description Pauses the animation.
         */
-        pause: function () {
+        pause() {
             if (! this._playing || this._paused)
                 return;
 
@@ -223,7 +222,7 @@ pc.extend(pc, function () {
 
             this.fire('pause');
             this._component.fire('pause', this);
-        },
+        }
 
         /**
         * @private
@@ -231,13 +230,13 @@ pc.extend(pc, function () {
         * @name pc.SpriteAnimationClip#resume
         * @description Resumes the paused animation.
         */
-        resume: function () {
+        resume() {
             if (! this._paused) return;
 
             this._paused = false;
             this.fire('resume');
             this._component.fire('resume', this);
-        },
+        }
 
         /**
         * @private
@@ -245,7 +244,7 @@ pc.extend(pc, function () {
         * @name pc.SpriteAnimationClip#stop
         * @description Stops the animation and resets the animation to the first frame.
         */
-        stop: function () {
+        stop() {
             if (! this._playing) return;
 
             this._playing = false;
@@ -256,16 +255,14 @@ pc.extend(pc, function () {
             this.fire('stop');
             this._component.fire('stop', this);
         }
-    };
 
-
-    Object.defineProperty(SpriteAnimationClip.prototype, "spriteAsset", {
-        get: function () {
+        get spriteAsset() {
             return this._spriteAsset;
-        },
-        set: function (value) {
-            var assets = this._component.system.app.assets;
-            var id = value;
+        }
+
+        set spriteAsset(value) {
+            const assets = this._component.system.app.assets;
+            let id = value;
 
             if (value instanceof pc.Asset) {
                 id = value.id;
@@ -274,14 +271,14 @@ pc.extend(pc, function () {
             if (this._spriteAsset !== id) {
                 if (this._spriteAsset) {
                     // clean old event listeners
-                    var prev = assets.get(this._spriteAsset);
+                    const prev = assets.get(this._spriteAsset);
                     if (prev) {
                         prev.off("load", this._onSpriteAssetLoad, this);
                         prev.off("remove", this._onSpriteAssetRemove, this);
 
-                        var atlasAssetId = prev.data && prev.data.textureAtlasAsset;
+                        const atlasAssetId = prev.data && prev.data.textureAtlasAsset;
                         if (atlasAssetId) {
-                            assets.off('load:' + atlasAssetId, this._onTextureAtlasLoad, this);
+                            assets.off(`load:${atlasAssetId}`, this._onTextureAtlasLoad, this);
                         }
                     }
                 }
@@ -290,10 +287,10 @@ pc.extend(pc, function () {
 
                 // bind sprite asset
                 if (this._spriteAsset) {
-                    var asset = assets.get(this._spriteAsset);
+                    const asset = assets.get(this._spriteAsset);
                     if (! asset) {
                         this.sprite = null;
-                        assets.on('add:' + this._spriteAsset, this._onSpriteAssetAdded, this);
+                        assets.on(`add:${this._spriteAsset}`, this._onSpriteAssetAdded, this);
                     } else {
                         this._bindSpriteAsset(asset);
                     }
@@ -302,13 +299,12 @@ pc.extend(pc, function () {
                 }
             }
         }
-    });
 
-    Object.defineProperty(SpriteAnimationClip.prototype, "sprite", {
-        get: function () {
+        get sprite() {
             return this._sprite;
-        },
-        set: function (value) {
+        }
+
+        set sprite(value) {
             if (this._sprite) {
                 this._sprite.off('set:meshes', this._onSpriteMeshesChange, this);
                 this._sprite.off('set:pixelsPerUnit', this._onSpritePpuChanged, this);
@@ -331,7 +327,7 @@ pc.extend(pc, function () {
             }
 
             if (this._component.currentClip === this) {
-                var mi;
+                let mi;
 
                 // if we are clearing the sprite clear old mesh instance parameters
                 if (!value || !value.atlas) {
@@ -370,50 +366,41 @@ pc.extend(pc, function () {
                 }
             }
         }
-    });
 
-    Object.defineProperty(SpriteAnimationClip.prototype, "frame", {
-        get: function () {
+        get frame() {
             return this._frame;
-        },
+        }
 
-        set: function (value) {
+        set frame(value) {
             this._setFrame(value);
 
             // update time to start of frame
-            var fps = this.fps || Number.MIN_VALUE;
+            const fps = this.fps || Number.MIN_VALUE;
             this._setTime(this._frame / fps);
         }
-    });
 
-    Object.defineProperty(SpriteAnimationClip.prototype, "isPlaying", {
-        get: function () {
+        get isPlaying() {
             return this._playing;
         }
-    });
 
-    Object.defineProperty(SpriteAnimationClip.prototype, "isPaused", {
-        get: function () {
+        get isPaused() {
             return this._paused;
         }
-    });
 
-    Object.defineProperty(SpriteAnimationClip.prototype, "duration" , {
-        get: function () {
+        get duration() {
             if (this._sprite) {
-                var fps = this.fps || Number.MIN_VALUE;
+                const fps = this.fps || Number.MIN_VALUE;
                 return this._sprite.frameKeys.length / Math.abs(fps);
             } else {
                 return 0;
             }
         }
-    });
 
-    Object.defineProperty(SpriteAnimationClip.prototype, "time", {
-        get: function () {
+        get time() {
             return this._time;
-        },
-        set: function (value) {
+        }
+
+        set time(value) {
             this._setTime(value);
 
             if (this._sprite) {
@@ -422,12 +409,12 @@ pc.extend(pc, function () {
                 this.frame = 0;
             }
         }
-    });
+    }
 
     return {
-        SpriteAnimationClip: SpriteAnimationClip
+        SpriteAnimationClip
     };
-}());
+})());
 
 
 // Events Documentation

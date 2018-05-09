@@ -1,23 +1,21 @@
-pc.extend(pc, function () {
-    'use strict';
+pc.extend(pc, (() => {
+    class FontHandler {
+        constructor(loader) {
+            this._loader = loader;
+        }
 
-    var FontHandler = function (loader) {
-        this._loader = loader;
-    };
-
-    FontHandler.prototype = {
-        load: function (url, callback, asset) {
-            var self = this;
+        load(url, callback, asset) {
+            const self = this;
             if (pc.path.getExtension(url) === '.json') {
                 // load json data then load texture of same name
-                pc.http.get(url, function (err, response) {
+                pc.http.get(url, (err, response) => {
                     if (!err) {
-                        self._loadTextures(url.replace('.json', '.png'), response, function (err, textures) {
+                        self._loadTextures(url.replace('.json', '.png'), response, (err, textures) => {
                             if (err) return callback(err);
 
                             callback(null, {
                                 data: response,
-                                textures: textures
+                                textures
                             });
                         });
                     } else {
@@ -28,22 +26,22 @@ pc.extend(pc, function () {
             } else {
                 this._loadTextures(url, asset && asset.data, callback);
             }
-        },
+        }
 
-        _loadTextures: function (url, data, callback) {
-            var numTextures = 1;
-            var numLoaded = 0;
-            var error = null;
+        _loadTextures(url, data, callback) {
+            let numTextures = 1;
+            let numLoaded = 0;
+            let error = null;
 
             if (data && data.version >= 2) {
                 numTextures = data.info.maps.length;
             }
 
-            var textures = new Array(numTextures);
-            var loader = this._loader;
+            const textures = new Array(numTextures);
+            const loader = this._loader;
 
-            var loadTexture = function (index) {
-                var onLoaded = function (err, texture) {
+            const loadTexture = index => {
+                const onLoaded = (err, texture) => {
                     if (error) return;
 
                     if (err) {
@@ -62,16 +60,16 @@ pc.extend(pc, function () {
                 if (index === 0) {
                     loader.load(url, "texture", onLoaded);
                 } else {
-                    loader.load(url.replace('.png', index + '.png'), "texture", onLoaded);
+                    loader.load(url.replace('.png', `${index}.png`), "texture", onLoaded);
                 }
             };
 
-            for (var i = 0; i < numTextures; i++)
+            for (let i = 0; i < numTextures; i++)
                 loadTexture(i);
-        },
+        }
 
-        open: function (url, data, asset) {
-            var font;
+        open(url, data, asset) {
+            let font;
             if (data.textures) {
                 // both data and textures exist
                 font = new pc.Font(data.textures, data.data);
@@ -80,12 +78,12 @@ pc.extend(pc, function () {
                 font = new pc.Font(data, null);
             }
             return font;
-        },
+        }
 
-        patch: function (asset, assets) {
+        patch(asset, assets) {
             // if not already set, get font data block from asset
             // and assign to font resource
-            var font = asset.resource;
+            const font = asset.resource;
             if (!font.data && asset.data) {
                 // font data present in asset but not in font
                 font.data = asset.data;
@@ -94,9 +92,9 @@ pc.extend(pc, function () {
                 asset.data = font.data;
             }
         }
-    };
+    }
 
     return {
-        FontHandler: FontHandler
+        FontHandler
     };
-}());
+})());

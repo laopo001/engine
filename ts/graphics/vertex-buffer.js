@@ -1,6 +1,4 @@
-pc.extend(pc, function () {
-    'use strict';
-
+pc.extend(pc, (() => {
     /**
      * @constructor
      * @name pc.VertexBuffer
@@ -13,49 +11,49 @@ pc.extend(pc, function () {
      * @param {Number} [usage] The usage type of the vertex buffer (see pc.BUFFER_*).
      * @param {ArrayBuffer} [initialData] Initial data.
      */
-    var VertexBuffer = function (graphicsDevice, format, numVertices, usage, initialData) {
-        // Initialize optional parameters
-        // By default, vertex buffers are static (better for performance since buffer data can be cached in VRAM)
-        this.usage = usage || pc.BUFFER_STATIC;
+    class VertexBuffer {
+        constructor(graphicsDevice, format, numVertices, usage, initialData) {
+            // Initialize optional parameters
+            // By default, vertex buffers are static (better for performance since buffer data can be cached in VRAM)
+            this.usage = usage || pc.BUFFER_STATIC;
 
-        // Store the vertex format
-        this.format = format;
+            // Store the vertex format
+            this.format = format;
 
-        // Store the number of vertices
-        this.numVertices = numVertices;
+            // Store the number of vertices
+            this.numVertices = numVertices;
 
-        // Calculate the size
-        this.numBytes = format.size * numVertices;
-        graphicsDevice._vram.vb += this.numBytes;
+            // Calculate the size
+            this.numBytes = format.size * numVertices;
+            graphicsDevice._vram.vb += this.numBytes;
 
-        // Create the WebGL vertex buffer object
-        this.device = graphicsDevice;
+            // Create the WebGL vertex buffer object
+            this.device = graphicsDevice;
 
-        // Allocate the storage
-        if (initialData) {
-            this.setData(initialData);
-        } else {
-            this.storage = new ArrayBuffer(this.numBytes);
+            // Allocate the storage
+            if (initialData) {
+                this.setData(initialData);
+            } else {
+                this.storage = new ArrayBuffer(this.numBytes);
+            }
+
+            this.device.buffers.push(this);
         }
 
-        this.device.buffers.push(this);
-    };
-
-    VertexBuffer.prototype = {
         /**
          * @function
          * @name pc.VertexBuffer#destroy
          * @description Frees resources associated with this vertex buffer.
          */
-        destroy: function () {
-            var device = this.device;
-            var idx = device.buffers.indexOf(this);
+        destroy() {
+            const device = this.device;
+            const idx = device.buffers.indexOf(this);
             if (idx !== -1) {
                 device.buffers.splice(idx, 1);
             }
 
             if (this.bufferId) {
-                var gl = device.gl;
+                const gl = device.gl;
                 gl.deleteBuffer(this.bufferId);
                 device._vram.vb -= this.storage.byteLength;
                 this.bufferId = null;
@@ -65,12 +63,12 @@ pc.extend(pc, function () {
                 device.vertexBuffers.length = 0;
                 device.vbOffsets.length = 0;
                 device.attributesInvalidated = true;
-                for (var loc in device.enabledAttributes) {
+                for (const loc in device.enabledAttributes) {
                     gl.disableVertexAttribArray(loc);
                 }
                 device.enabledAttributes = {};
             }
-        },
+        }
 
         /**
          * @function
@@ -78,9 +76,9 @@ pc.extend(pc, function () {
          * @description Returns the data format of the specified vertex buffer.
          * @returns {pc.VertexFormat} The data format of the specified vertex buffer.
          */
-        getFormat: function () {
+        getFormat() {
             return this.format;
-        },
+        }
 
         /**
          * @function
@@ -91,9 +89,9 @@ pc.extend(pc, function () {
          * and used at most a few times (pc.BUFFER_STREAM).
          * @returns {Number} The usage type of the vertex buffer (see pc.BUFFER_*).
          */
-        getUsage: function () {
+        getUsage() {
             return this.usage;
-        },
+        }
 
         /**
          * @function
@@ -101,9 +99,9 @@ pc.extend(pc, function () {
          * @description Returns the number of vertices stored in the specified vertex buffer.
          * @returns {Number} The number of vertices stored in the vertex buffer.
          */
-        getNumVertices: function () {
+        getNumVertices() {
             return this.numVertices;
-        },
+        }
 
         /**
          * @function
@@ -111,9 +109,9 @@ pc.extend(pc, function () {
          * @description Returns a mapped memory block representing the content of the vertex buffer.
          * @returns {ArrayBuffer} An array containing the byte data stored in the vertex buffer.
          */
-        lock: function () {
+        lock() {
             return this.storage;
-        },
+        }
 
         /**
          * @function
@@ -121,15 +119,15 @@ pc.extend(pc, function () {
          * @description Notifies the graphics engine that the client side copy of the vertex buffer's
          * memory can be returned to the control of the graphics driver.
          */
-        unlock: function () {
+        unlock() {
             // Upload the new vertex data
-            var gl = this.device.gl;
+            const gl = this.device.gl;
 
             if (!this.bufferId) {
                 this.bufferId = gl.createBuffer();
             }
 
-            var glUsage;
+            let glUsage;
             switch (this.usage) {
                 case pc.BUFFER_STATIC:
                     glUsage = gl.STATIC_DRAW;
@@ -151,20 +149,20 @@ pc.extend(pc, function () {
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.bufferId);
             gl.bufferData(gl.ARRAY_BUFFER, this.storage, glUsage);
-        },
+        }
 
-        setData: function (data) {
+        setData(data) {
             if (data.byteLength !== this.numBytes) {
-                console.error("VertexBuffer: wrong initial data size: expected " + this.numBytes + ", got " + data.byteLength);
+                console.error(`VertexBuffer: wrong initial data size: expected ${this.numBytes}, got ${data.byteLength}`);
                 return false;
             }
             this.storage = data;
             this.unlock();
             return true;
         }
-    };
+    }
 
     return {
-        VertexBuffer: VertexBuffer
+        VertexBuffer
     };
-}());
+})());

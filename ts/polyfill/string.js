@@ -4,9 +4,9 @@ if (! String.prototype.startsWith) {
         enumerable: false,
         configurable: true,
         writable: true,
-        value: function(str) {
-            var that = this;
-            for (var i = 0, ceil = str.length; i < ceil; i++)
+        value(str) {
+            const that = this;
+            for (let i = 0, ceil = str.length; i < ceil; i++)
                 if (that[i] !== str[i]) return false;
             return true;
         }
@@ -19,9 +19,9 @@ if (! String.prototype.endsWith) {
         enumerable: false,
         configurable: true,
         writable: true,
-        value: function(str) {
-            var that = this;
-            for (var i = 0, ceil = str.length; i < ceil; i++)
+        value(str) {
+            const that = this;
+            for (let i = 0, ceil = str.length; i < ceil; i++)
                 if (that[i + that.length - ceil] !== str[i])
                     return false;
             return true;
@@ -31,7 +31,6 @@ if (! String.prototype.endsWith) {
 
 if (!String.prototype.includes) {
     String.prototype.includes = function(search, start) {
-        'use strict';
         if (typeof start !== 'number') {
             start = 0;
         }

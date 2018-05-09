@@ -1,7 +1,7 @@
-pc.extend(pc, function() {
+pc.extend(pc, (() => {
 
     // properties that do not need rebuilding the particle system
-    var SIMPLE_PROPERTIES = [
+    const SIMPLE_PROPERTIES = [
         'emitterExtents',
         'emitterRadius',
         'loop',
@@ -11,7 +11,7 @@ pc.extend(pc, function() {
     ];
 
     // properties that need rebuilding the particle system
-    var COMPLEX_PROPERTIES = [
+    const COMPLEX_PROPERTIES = [
         'numParticles',
         'lifetime',
         'rate',
@@ -38,7 +38,7 @@ pc.extend(pc, function() {
         'localSpace'
     ];
 
-    var GRAPH_PROPERTIES = [
+    const GRAPH_PROPERTIES = [
         'scaleGraph',
         'scaleGraph2',
 
@@ -58,13 +58,13 @@ pc.extend(pc, function() {
         'rotationSpeedGraph2'
     ];
 
-    var ASSET_PROPERTIES = [
+    const ASSET_PROPERTIES = [
         'colorMapAsset',
         'normalMapAsset',
         'mesh'
     ];
 
-    var depthLayer;
+    let depthLayer;
 
     /**
      * @component
@@ -137,7 +137,7 @@ pc.extend(pc, function() {
      * @property {Array} layers An array of layer IDs ({@link pc.Layer#id}) to which this particle system should belong.
      * Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
      */
-    var ParticleSystemComponent = function ParticleSystemComponent(system, entity) {
+    let ParticleSystemComponent = function ParticleSystemComponent(system, entity) {
         this.on("set_colorMapAsset", this.onSetColorMapAsset, this);
         this.on("set_normalMapAsset", this.onSetNormalMapAsset, this);
         this.on("set_mesh", this.onSetMesh, this);
@@ -146,17 +146,17 @@ pc.extend(pc, function() {
         this.on("set_depthSoftening", this.onSetDepthSoftening, this);
         this.on("set_layers", this.onSetLayers, this);
 
-        SIMPLE_PROPERTIES.forEach(function (prop) {
-            this.on('set_' + prop, this.onSetSimpleProperty, this);
-        }.bind(this));
+        SIMPLE_PROPERTIES.forEach(prop => {
+            this.on(`set_${prop}`, this.onSetSimpleProperty, this);
+        });
 
-        COMPLEX_PROPERTIES.forEach(function (prop) {
-            this.on('set_' + prop, this.onSetComplexProperty, this);
-        }.bind(this));
+        COMPLEX_PROPERTIES.forEach(prop => {
+            this.on(`set_${prop}`, this.onSetComplexProperty, this);
+        });
 
-        GRAPH_PROPERTIES.forEach(function (prop) {
-            this.on('set_' + prop, this.onSetGraphProperty, this);
-        }.bind(this));
+        GRAPH_PROPERTIES.forEach(prop => {
+            this.on(`set_${prop}`, this.onSetGraphProperty, this);
+        });
 
         this._requestedDepth = false;
     };
@@ -164,10 +164,10 @@ pc.extend(pc, function() {
     ParticleSystemComponent = pc.inherits(ParticleSystemComponent, pc.Component);
 
     pc.extend(ParticleSystemComponent.prototype, {
-        addModelToLayers: function() {
+        addModelToLayers() {
             if (!this.data.model) return;
-            var layer;
-            for (var i=0; i<this.layers.length; i++) {
+            let layer;
+            for (let i=0; i<this.layers.length; i++) {
                 layer = this.system.app.scene.layers.getLayerById(this.layers[i]);
                 if (!layer) continue;
                 layer.addMeshInstances(this.data.model.meshInstances);
@@ -175,19 +175,19 @@ pc.extend(pc, function() {
             }
         },
 
-        removeModelFromLayers: function(model) {
+        removeModelFromLayers(model) {
             if (!this.data.model) return;
-            var layer;
-            for (var i=0; i<this.layers.length; i++) {
+            let layer;
+            for (let i=0; i<this.layers.length; i++) {
                 layer = this.system.app.scene.layers.getLayerById(this.layers[i]);
                 if (!layer) continue;
                 layer.removeMeshInstances(this.data.model.meshInstances);
             }
         },
 
-        onSetLayers: function (name, oldValue, newValue) {
+        onSetLayers(name, oldValue, newValue) {
             if (!this.data.model) return;
-            var i, layer;
+            let i, layer;
             for (i=0; i<oldValue.length; i++) {
                 layer = this.system.app.scene.layers.getLayerById(oldValue[i]);
                 if (!layer) continue;
@@ -201,7 +201,7 @@ pc.extend(pc, function() {
             }
         },
 
-        onLayersChanged: function(oldComp, newComp) {
+        onLayersChanged(oldComp, newComp) {
             this.addModelToLayers();
             oldComp.off("add", this.onLayerAdded, this);
             oldComp.off("remove", this.onLayerRemoved, this);
@@ -209,24 +209,24 @@ pc.extend(pc, function() {
             newComp.on("remove", this.onLayerRemoved, this);
         },
 
-        onLayerAdded: function(layer) {
+        onLayerAdded(layer) {
             if (!this.data.model) return;
-            var index = this.layers.indexOf(layer.id);
+            const index = this.layers.indexOf(layer.id);
             if (index < 0) return;
             layer.addMeshInstances(this.data.model.meshInstances);
         },
 
-        onLayerRemoved: function(layer) {
+        onLayerRemoved(layer) {
             if (!this.data.model) return;
-            var index = this.layers.indexOf(layer.id);
+            const index = this.layers.indexOf(layer.id);
             if (index < 0) return;
             layer.removeMeshInstances(this.data.model.meshInstances);
         },
 
-        onSetColorMapAsset: function (name, oldValue, newValue) {
-            var self = this;
-            var asset;
-            var assets = this.system.app.assets;
+        onSetColorMapAsset(name, oldValue, newValue) {
+            const self = this;
+            let asset;
+            const assets = this.system.app.assets;
             if (oldValue) {
                 asset = assets.get(oldValue);
                 if (asset) {
@@ -243,17 +243,17 @@ pc.extend(pc, function() {
                 asset = assets.get(newValue);
                 if (asset) {
                     asset.on('remove', this.onColorMapRemoved, this);
-                    asset.ready(function (asset) {
-                        self.colorMap = asset.resource;
+                    asset.ready(({resource}) => {
+                        self.colorMap = resource;
                     });
                     if (self.enabled && self.entity.enabled) {
                         assets.load(asset);
                     }
                 } else {
-                    assets.once("add:" + newValue, function (asset) {
+                    assets.once(`add:${newValue}`, function (asset) {
                         asset.on('remove', this.onColorMapRemoved, this);
-                        asset.ready(function (asset) {
-                            self.colorMap = asset.resource;
+                        asset.ready(({resource}) => {
+                            self.colorMap = resource;
                         });
 
                         if (self.enabled && self.entity.enabled) {
@@ -266,15 +266,15 @@ pc.extend(pc, function() {
             }
         },
 
-        onColorMapRemoved: function (asset) {
+        onColorMapRemoved(asset) {
             asset.off('remove', this.onColorMapRemoved, this);
             this.colorMapAsset = null;
         },
 
-        onSetNormalMapAsset: function (name, oldValue, newValue) {
-            var self = this;
-            var asset;
-            var assets = this.system.app.assets;
+        onSetNormalMapAsset(name, oldValue, newValue) {
+            const self = this;
+            let asset;
+            const assets = this.system.app.assets;
 
             if (oldValue) {
                 asset = assets.get(oldValue);
@@ -292,18 +292,18 @@ pc.extend(pc, function() {
                 asset = assets.get(newValue);
                 if (asset) {
                     asset.on('remove', this.onNormalMapRemoved, this);
-                    asset.ready(function (asset) {
-                        self.normalMap = asset.resource;
+                    asset.ready(({resource}) => {
+                        self.normalMap = resource;
                     });
 
                     if (self.enabled && self.entity.enabled) {
                         assets.load(asset);
                     }
                 } else {
-                    assets.once("add:" + newValue, function (asset) {
+                    assets.once(`add:${newValue}`, function (asset) {
                         asset.on('remove', this.onNormalMapRemoved, this);
-                        asset.ready(function (asset) {
-                            self.normalMap = asset.resource;
+                        asset.ready(({resource}) => {
+                            self.normalMap = resource;
                         });
 
                         if (self.enabled && self.entity.enabled) {
@@ -316,15 +316,15 @@ pc.extend(pc, function() {
             }
         },
 
-        onNormalMapRemoved: function (asset) {
+        onNormalMapRemoved(asset) {
             asset.off('remove', this.onNormalMapRemoved, this);
             this.normalMapAsset = null;
         },
 
-        onSetMesh: function (name, oldValue, newValue) {
-            var self = this;
-            var asset;
-            var assets = this.system.app.assets;
+        onSetMesh(name, oldValue, newValue) {
+            const self = this;
+            let asset;
+            const assets = this.system.app.assets;
 
             if (oldValue && typeof(oldValue) === 'number') {
                 asset = assets.get(oldValue);
@@ -343,18 +343,18 @@ pc.extend(pc, function() {
                     asset = assets.get(newValue);
                     if (asset) {
                         asset.on('remove', this.onMeshRemoved, this);
-                        asset.ready(function (asset) {
-                            self._onMeshChanged(asset.resource);
+                        asset.ready(({resource}) => {
+                            self._onMeshChanged(resource);
                         });
 
                         if (self.enabled && self.entity.enabled) {
                             assets.load(asset);
                         }
                     } else {
-                        assets.once('add:' + newValue, function (asset) {
+                        assets.once(`add:${newValue}`, function (asset) {
                             asset.on('remove', this.onMeshRemoved, this);
-                            asset.ready(function (asset) {
-                                self._onMeshChanged(asset.resource);
+                            asset.ready(({resource}) => {
+                                self._onMeshChanged(resource);
                             });
 
                             if (self.enabled && self.entity.enabled) {
@@ -372,7 +372,7 @@ pc.extend(pc, function() {
             }
         },
 
-        _onMeshChanged: function (mesh) {
+        _onMeshChanged(mesh) {
             if (mesh && ! (mesh instanceof pc.Mesh)) {
                 if (mesh.meshInstances[0]) {
                     mesh = mesh.meshInstances[0].mesh;
@@ -390,19 +390,19 @@ pc.extend(pc, function() {
             }
         },
 
-        onMeshRemoved: function (asset) {
+        onMeshRemoved(asset) {
             asset.off('remove', this.onMeshRemoved, this);
             this.mesh = null;
         },
 
-        onSetLoop: function (name, oldValue, newValue) {
+        onSetLoop(name, oldValue, newValue) {
             if (this.emitter) {
                 this.emitter[name] = newValue;
                 this.emitter.resetTime();
             }
         },
 
-        onSetBlendType: function (name, oldValue, newValue) {
+        onSetBlendType(name, oldValue, newValue) {
             if (this.emitter) {
                 this.emitter[name] = newValue;
                 this.emitter.material.blendType = newValue;
@@ -411,7 +411,7 @@ pc.extend(pc, function() {
             }
         },
 
-        _requestDepth: function () {
+        _requestDepth() {
             if (this._requestedDepth) return;
             if (!depthLayer) depthLayer = this.system.app.scene.layers.getLayerById(pc.LAYERID_DEPTH);
             if (depthLayer) {
@@ -420,7 +420,7 @@ pc.extend(pc, function() {
             }
         },
 
-        _releaseDepth: function () {
+        _releaseDepth() {
             if (!this._requestedDepth) return;
             if (depthLayer) {
                 depthLayer.decrementCounter();
@@ -428,7 +428,7 @@ pc.extend(pc, function() {
             }
         },
 
-        onSetDepthSoftening: function (name, oldValue, newValue) {
+        onSetDepthSoftening(name, oldValue, newValue) {
             if (oldValue !== newValue) {
                 if (newValue) {
                     if (this.enabled && this.entity.enabled) this._requestDepth();
@@ -445,14 +445,14 @@ pc.extend(pc, function() {
             }
         },
 
-        onSetSimpleProperty: function (name, oldValue, newValue) {
+        onSetSimpleProperty(name, oldValue, newValue) {
             if (this.emitter) {
                 this.emitter[name] = newValue;
                 this.emitter.resetMaterial();
             }
         },
 
-        onSetComplexProperty: function (name, oldValue, newValue) {
+        onSetComplexProperty(name, oldValue, newValue) {
             if (this.emitter) {
                 this.emitter[name] = newValue;
                 this.reset();
@@ -461,7 +461,7 @@ pc.extend(pc, function() {
             }
         },
 
-        onSetGraphProperty: function (name, oldValue, newValue) {
+        onSetGraphProperty(name, oldValue, newValue) {
             if (this.emitter) {
                 this.emitter[name] = newValue;
                 this.emitter.rebuildGraphs();
@@ -470,13 +470,13 @@ pc.extend(pc, function() {
         },
 
 
-        onEnable: function() {
+        onEnable() {
             // load any assets that haven't been loaded yet
-            for (var i = 0, len = ASSET_PROPERTIES.length; i < len; i++) {
-                var asset = this.data[ASSET_PROPERTIES[i]];
+            for (let i = 0, len = ASSET_PROPERTIES.length; i < len; i++) {
+                let asset = this.data[ASSET_PROPERTIES[i]];
                 if (asset) {
                     if (! (asset instanceof pc.Asset)) {
-                        var id = parseInt(asset, 10);
+                        const id = parseInt(asset, 10);
                         if (id >= 0) {
                             asset = this.system.app.assets.get(asset);
                         } else {
@@ -490,10 +490,10 @@ pc.extend(pc, function() {
                 }
             }
 
-            var firstRun = false;
+            let firstRun = false;
             if (! this.emitter) {
 
-                var mesh = this.data.mesh;
+                let mesh = this.data.mesh;
                 // mesh might be an asset id of an asset
                 // that hasn't been loaded yet
                 if (! (mesh instanceof pc.Mesh))
@@ -552,7 +552,7 @@ pc.extend(pc, function() {
                     intensity: this.data.intensity,
                     depthSoftening: this.data.depthSoftening,
                     scene: this.system.app.scene,
-                    mesh: mesh,
+                    mesh,
                     depthWrite: this.data.depthWrite,
                     noFog: this.data.noFog,
                     node: this.entity,
@@ -589,7 +589,7 @@ pc.extend(pc, function() {
             ParticleSystemComponent._super.onEnable.call(this);
         },
 
-        onDisable: function() {
+        onDisable() {
             ParticleSystemComponent._super.onDisable.call(this);
 
             this.system.app.scene.off("set:layers", this.onLayersChanged, this);
@@ -609,7 +609,7 @@ pc.extend(pc, function() {
         * @name pc.ParticleSystemComponent#reset
         * @description Resets particle state, doesn't affect playing.
         */
-        reset: function() {
+        reset() {
             if (this.emitter) {
                 this.emitter.reset();
             }
@@ -620,7 +620,7 @@ pc.extend(pc, function() {
         * @name pc.ParticleSystemComponent#stop
         * @description Disables the emission of new particles, lets existing to finish their simulation.
         */
-        stop: function() {
+        stop() {
             if (this.emitter) {
                 this.emitter.loop = false;
                 this.emitter.resetTime();
@@ -633,7 +633,7 @@ pc.extend(pc, function() {
         * @name pc.ParticleSystemComponent#pause
         * @description Freezes the simulation.
         */
-        pause: function() {
+        pause() {
             this.data.paused = true;
         },
 
@@ -642,7 +642,7 @@ pc.extend(pc, function() {
         * @name pc.ParticleSystemComponent#unpause
         * @description Unfreezes the simulation.
         */
-        unpause: function () {
+        unpause() {
             this.data.paused = false;
         },
 
@@ -651,7 +651,7 @@ pc.extend(pc, function() {
         * @name pc.ParticleSystemComponent#play
         * @description Enables/unfreezes the simulation.
         */
-        play: function() {
+        play() {
             this.data.paused = false;
             if (this.emitter) {
                 this.emitter.meshInstance.visible = true;
@@ -666,7 +666,7 @@ pc.extend(pc, function() {
         * @description Checks if simulation is in progress.
         * @returns {Boolean} true if the particle system is currently playing and false otherwise.
         */
-        isPlaying: function() {
+        isPlaying() {
             if (this.data.paused) {
                 return false;
             } else {
@@ -686,8 +686,8 @@ pc.extend(pc, function() {
         * @name pc.ParticleSystemComponent#rebuild
         * @description Rebuilds all data used by this particle system.
         */
-        rebuild: function() {
-            var enabled = this.enabled;
+        rebuild() {
+            const enabled = this.enabled;
             this.enabled = false;
             if (this.emitter) {
                 this.emitter.rebuild(); // worst case: required to rebuild buffers/shaders
@@ -700,6 +700,6 @@ pc.extend(pc, function() {
 
 
     return {
-        ParticleSystemComponent: ParticleSystemComponent
+        ParticleSystemComponent
     };
-}());
+})());

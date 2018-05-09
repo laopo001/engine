@@ -1,33 +1,31 @@
-pc.extend(pc, function () {
-    'use strict';
-
+pc.extend(pc, (() => {
     // checks if user is running IE
-    var ie = (function () {
-        var ua = window.navigator.userAgent;
+    const ie = ((() => {
+        const ua = window.navigator.userAgent;
 
-        var msie = ua.indexOf('MSIE ');
+        const msie = ua.indexOf('MSIE ');
         if (msie > 0) {
             // IE 10 or older => return version number
             return parseInt(ua.substring(msie + 5, ua.indexOf('.', msie)), 10);
         }
 
-        var trident = ua.indexOf('Trident/');
+        const trident = ua.indexOf('Trident/');
         if (trident > 0) {
             // IE 11 => return version number
-            var rv = ua.indexOf('rv:');
+            const rv = ua.indexOf('rv:');
             return parseInt(ua.substring(rv + 3, ua.indexOf('.', rv)), 10);
         }
 
         return false;
-    })();
+    }))();
 
-    var AudioHandler = function (manager) {
-        this.manager = manager;
-    };
+    class AudioHandler {
+        constructor(manager) {
+            this.manager = manager;
+        }
 
-    AudioHandler.prototype = {
-        _isSupported: function (url) {
-            var toMIME = {
+        _isSupported(url) {
+            const toMIME = {
                 '.ogg': 'audio/ogg',
                 '.mp3': 'audio/mpeg',
                 '.wav': 'audio/x-wav',
@@ -37,22 +35,22 @@ pc.extend(pc, function () {
                 '.aac': 'audio/aac'
             };
 
-            var ext = pc.path.getExtension(url);
+            const ext = pc.path.getExtension(url);
 
             if (toMIME[ext]) {
                 return true;
             } else {
                 return false;
             }
-        },
+        }
 
-        load: function (url, callback) {
-            var success = function (resource) {
+        load(url, callback) {
+            const success = resource => {
                 callback(null, new pc.Sound(resource));
             };
 
-            var error = function (msg) {
-                msg = msg || 'Error loading audio url: ' + url;
+            const error = msg => {
+                msg = msg || `Error loading audio url: ${url}`;
                 console.warn(msg);
                 callback(msg);
             };
@@ -67,14 +65,12 @@ pc.extend(pc, function () {
             } else {
                 error(null);
             }
-        },
+        }
 
-        open: function (url, data) {
+        open(url, data) {
             return data;
         }
-    };
 
-    if (pc.SoundManager.hasAudioContext()) {
         /**
          * @private
          * @function
@@ -85,15 +81,15 @@ pc.extend(pc, function () {
          * just want to continue without errors even if the audio is not loaded.
          * @param {Function} error Function to be called if there was an error while loading the audio asset
          */
-        AudioHandler.prototype._createSound = function (url, success, error) {
-            var manager = this.manager;
+        _createSound(url, success, error) {
+            const manager = this.manager;
 
             if (! manager.context) {
                 error('Audio manager has no audio context');
                 return;
             }
 
-            pc.http.get(url, function (err, response) {
+            pc.http.get(url, (err, response) => {
                 if (err) {
                     error(err);
                     return;
@@ -101,9 +97,8 @@ pc.extend(pc, function () {
 
                 manager.context.decodeAudioData(response, success, error);
             });
-        };
+        }
 
-    } else if (pc.SoundManager.hasAudio()) {
         /**
          * @private
          * @function
@@ -114,8 +109,8 @@ pc.extend(pc, function () {
          * just want to continue without errors even if the audio is not loaded.
          * @param {Function} error Function to be called if there was an error while loading the audio asset
          */
-        AudioHandler.prototype._createSound = function (url, success, error) {
-            var audio = null;
+        _createSound(url, success, error) {
+            let audio = null;
 
             try {
                 audio = new Audio();
@@ -131,7 +126,7 @@ pc.extend(pc, function () {
                 document.body.appendChild(audio);
             }
 
-            var onReady = function () {
+            const onReady = () => {
                 audio.removeEventListener('canplaythrough', onReady);
 
                 // remove from DOM no longer necessary
@@ -142,7 +137,7 @@ pc.extend(pc, function () {
                 success(audio);
             };
 
-            audio.onerror = function () {
+            audio.onerror = () => {
                 audio.onerror = null;
 
                 // remove from DOM no longer necessary
@@ -155,10 +150,12 @@ pc.extend(pc, function () {
 
             audio.addEventListener('canplaythrough', onReady);
             audio.src = url;
-        };
+        }
     }
 
+    if (pc.SoundManager.hasAudioContext()) {} else if (pc.SoundManager.hasAudio()) {}
+
     return {
-        AudioHandler: AudioHandler
+        AudioHandler
     };
-}());
+})());

@@ -1,11 +1,11 @@
-pc.extend(pc, function () {
-    var JSON_ADDRESS_MODE = {
+pc.extend(pc, (() => {
+    const JSON_ADDRESS_MODE = {
         "repeat": pc.ADDRESS_REPEAT,
         "clamp": pc.ADDRESS_CLAMP_TO_EDGE,
         "mirror": pc.ADDRESS_MIRRORED_REPEAT
     };
 
-    var JSON_FILTER_MODE = {
+    const JSON_FILTER_MODE = {
         "nearest": pc.FILTER_NEAREST,
         "linear": pc.FILTER_LINEAR,
         "nearest_mip_nearest": pc.FILTER_NEAREST_MIPMAP_NEAREST,
@@ -14,32 +14,32 @@ pc.extend(pc, function () {
         "linear_mip_linear": pc.FILTER_LINEAR_MIPMAP_LINEAR
     };
 
-    var regexFrame = /^data\.frames\.(\d+)$/;
+    const regexFrame = /^data\.frames\.(\d+)$/;
 
-    var TextureAtlasHandler = function (loader) {
-        this._loader = loader;
-    };
+    class TextureAtlasHandler {
+        constructor(loader) {
+            this._loader = loader;
+        }
 
-    TextureAtlasHandler.prototype = {
         // Load the texture atlas texture using the texture resource loader
-        load: function (url, callback) {
-            var self = this;
-            var handler = this._loader.getHandler("texture");
+        load(url, callback) {
+            const self = this;
+            const handler = this._loader.getHandler("texture");
 
             // if supplied with a json file url (probably engine-only)
             // load json data then load texture of same name
             if (pc.path.getExtension(url) === '.json') {
-                pc.http.get(url, function (err, response) {
+                pc.http.get(url, (err, response) => {
                     if (!err) {
                         // load texture
-                        var textureUrl = url.replace('.json', '.png');
-                        self._loader.load(textureUrl, "texture", function (err, texture) {
+                        const textureUrl = url.replace('.json', '.png');
+                        self._loader.load(textureUrl, "texture", (err, texture) => {
                             if (err) {
                                 callback(err);
                             } else {
                                 callback(null, {
                                     data: response,
-                                    texture: texture
+                                    texture
                                 });
                             }
                         });
@@ -50,24 +50,24 @@ pc.extend(pc, function () {
             } else {
                 return handler.load(url, callback);
             }
-        },
+        }
 
         // Create texture atlas resource using the texture from the texture loader
-        open: function (url, data) {
-            var resource = new pc.TextureAtlas();
+        open(url, data) {
+            const resource = new pc.TextureAtlas();
             if (data.texture && data.data) {
                 resource.texture = data.texture;
                 resource.__data = data.data; // store data temporarily to be copied into asset
             } else {
-                var handler = this._loader.getHandler("texture");
-                var texture = handler.open(url, data);
+                const handler = this._loader.getHandler("texture");
+                const texture = handler.open(url, data);
                 if (! texture) return null;
                 resource.texture = texture;
             }
             return resource;
-        },
+        }
 
-        patch: function (asset, assets) {
+        patch(asset, assets) {
             if (asset.resource.__data) {
                 // engine-only, so copy temporary asset data from texture atlas into asset and delete temp property
                 if (asset.resource.__data.minfilter !== undefined) asset.data.minfilter = asset.resource.__data.minfilter;
@@ -84,7 +84,7 @@ pc.extend(pc, function () {
             }
 
             // pass texture data
-            var texture = asset.resource.texture;
+            const texture = asset.resource.texture;
             if (texture) {
                 texture.name = asset.name;
 
@@ -106,7 +106,7 @@ pc.extend(pc, function () {
                 if (asset.data.hasOwnProperty('anisotropy') && texture.anisotropy !== asset.data.anisotropy)
                     texture.anisotropy = asset.data.anisotropy;
 
-                var rgbm = !!asset.data.rgbm;
+                const rgbm = !!asset.data.rgbm;
                 if (asset.data.hasOwnProperty('rgbm') && texture.rgbm !== rgbm)
                     texture.rgbm = rgbm;
             }
@@ -114,9 +114,9 @@ pc.extend(pc, function () {
             asset.resource.texture = texture;
 
             // set frames
-            var frames = {};
-            for (var key in asset.data.frames) {
-                var frame = asset.data.frames[key];
+            const frames = {};
+            for (const key in asset.data.frames) {
+                const frame = asset.data.frames[key];
                 frames[key] = {
                     rect: new pc.Vec4(frame.rect),
                     pivot: new pc.Vec2(frame.pivot),
@@ -127,13 +127,13 @@ pc.extend(pc, function () {
 
             asset.off('change', this._onAssetChange, this);
             asset.on('change', this._onAssetChange, this);
-        },
+        }
 
-        _onAssetChange: function (asset, attribute, value) {
+        _onAssetChange({resource}, attribute, value) {
             if (attribute === 'data' || attribute === 'data.frames') {
                 // set frames
-                var frames = {};
-                for (var key in value.frames) {
+                const frames = {};
+                for (const key in value.frames) {
                     var frame = value.frames[key];
                     frames[key] = {
                         rect: new pc.Vec4(frame.rect),
@@ -141,34 +141,34 @@ pc.extend(pc, function () {
                         border: new pc.Vec4(frame.border)
                     };
                 }
-                asset.resource.frames = frames;
+                resource.frames = frames;
             } else {
-                var match = attribute.match(regexFrame);
+                const match = attribute.match(regexFrame);
                 if (match) {
-                    var frameKey = match[1];
+                    const frameKey = match[1];
 
                     if (value) {
                         // add or update frame
-                        if (! asset.resource.frames[frameKey]) {
-                            asset.resource.frames[frameKey] = {
+                        if (! resource.frames[frameKey]) {
+                            resource.frames[frameKey] = {
                                 rect: new pc.Vec4(value.rect),
                                 pivot: new pc.Vec2(value.pivot),
                                 border: new pc.Vec4(value.border)
                             }
                         } else {
-                            var frame = asset.resource.frames[frameKey];
+                            var frame = resource.frames[frameKey];
                             frame.rect.set(value.rect[0], value.rect[1], value.rect[2], value.rect[3]);
                             frame.pivot.set(value.pivot[0], value.pivot[1]);
                             frame.border.set(value.border[0], value.border[1], value.border[2], value.border[3]);
                         }
 
-                        asset.resource.fire('set:frame', frameKey, asset.resource.frames[frameKey]);
+                        resource.fire('set:frame', frameKey, resource.frames[frameKey]);
 
                     } else {
                         // delete frame
-                        if (asset.resource.frames[frameKey]) {
-                            delete asset.resource.frames[frameKey];
-                            asset.resource.fire('remove:frame', frameKey);
+                        if (resource.frames[frameKey]) {
+                            delete resource.frames[frameKey];
+                            resource.fire('remove:frame', frameKey);
                         }
                     }
 
@@ -177,10 +177,9 @@ pc.extend(pc, function () {
 
 
         }
-    };
+    }
 
     return {
-        TextureAtlasHandler: TextureAtlasHandler
+        TextureAtlasHandler
     };
-
-}());
+})());

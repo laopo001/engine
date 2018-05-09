@@ -1,10 +1,8 @@
-pc.extend(pc, function () {
-    'use strict';
-
+pc.extend(pc, (() => {
     // default maxDistance, same as Web Audio API
-    var MAX_DISTANCE = 10000;
+    const MAX_DISTANCE = 10000;
 
-    var SoundInstance3d;
+    let SoundInstance3d;
 
     if (pc.SoundManager.hasAudioContext()) {
         /**
@@ -51,7 +49,7 @@ pc.extend(pc, function () {
         SoundInstance3d = pc.inherits(SoundInstance3d, pc.SoundInstance);
 
         SoundInstance3d.prototype = pc.extend(SoundInstance3d.prototype, {
-            _initializeNodes: function () {
+            _initializeNodes() {
                 this.gain = this._manager.context.createGain();
                 this.panner = this._manager.context.createPanner();
                 this.panner.connect(this.gain);
@@ -62,83 +60,83 @@ pc.extend(pc, function () {
         });
 
         Object.defineProperty(SoundInstance3d.prototype, 'position', {
-            get: function () {
+            get() {
                 return this._position;
             },
-            set: function (position) {
+            set(position) {
                 this._position.copy(position);
                 this.panner.setPosition(position.x, position.y, position.z);
             }
         });
 
         Object.defineProperty(SoundInstance3d.prototype, 'velocity', {
-            get: function () {
+            get() {
                 return this._velocity;
             },
-            set: function (velocity) {
+            set(velocity) {
                 this._velocity.copy(velocity);
                 this.panner.setVelocity(velocity.x, velocity.y, velocity.z);
             }
         });
 
         Object.defineProperty(SoundInstance3d.prototype, 'maxDistance', {
-            get: function () {
+            get() {
                 return this.panner.maxDistance;
             },
-            set: function (value) {
+            set(value) {
                 this.panner.maxDistance = value;
             }
         });
 
         Object.defineProperty(SoundInstance3d.prototype, 'refDistance', {
-            get: function () {
+            get() {
                 return this.panner.refDistance;
             },
-            set: function (value) {
+            set(value) {
                 this.panner.refDistance = value;
             }
         });
 
         Object.defineProperty(SoundInstance3d.prototype, 'rollOffFactor', {
-            get: function () {
+            get() {
                 return this.panner.rolloffFactor;
             },
-            set: function (value) {
+            set(value) {
                 this.panner.rolloffFactor = value;
             }
         });
 
         Object.defineProperty(SoundInstance3d.prototype, 'distanceModel', {
-            get: function () {
+            get() {
                 return this.panner.distanceModel;
             },
-            set: function (value) {
+            set(value) {
                 this.panner.distanceModel = value;
             }
         });
 
     } else if (pc.SoundManager.hasAudio()) {
         // temp vector storage
-        var offset = new pc.Vec3();
+        let offset = new pc.Vec3();
 
         // Fall off function which should be the same as the one in the Web Audio API
         // Taken from https://developer.mozilla.org/en-US/docs/Web/API/PannerNode/distanceModel
-        var fallOff = function (posOne, posTwo, refDistance, maxDistance, rollOffFactor, distanceModel) {
+        const fallOff = (posOne, posTwo, refDistance, maxDistance, rollOffFactor, distanceModel) => {
             offset = offset.sub2(posOne, posTwo);
-            var distance = offset.length();
+            const distance = offset.length();
 
             if (distance < refDistance) {
                 return 1;
             } else if (distance > maxDistance) {
                 return 0;
             } else {
-                var result = 0;
+                let result = 0;
                 if (distanceModel === pc.DISTANCE_LINEAR) {
                     result = 1 - rollOffFactor * (distance - refDistance) / (maxDistance - refDistance);
                 } else if (distanceModel === pc.DISTANCE_INVERSE) {
                     result = refDistance / (refDistance + rollOffFactor * (distance - refDistance));
                 } else if (distanceModel === pc.DISTANCE_EXPONENTIAL) {
-                    result = Math.pow(distance / refDistance, -rollOffFactor);
+                    result = distance / refDistance ** -rollOffFactor;
                 }
 
                 return pc.math.clamp(result, 0, 1);
@@ -165,20 +163,20 @@ pc.extend(pc, function () {
         SoundInstance3d = pc.inherits(SoundInstance3d, pc.SoundInstance);
 
         Object.defineProperty(SoundInstance3d.prototype, 'position', {
-            get: function () {
+            get() {
                 return this._position;
             },
-            set: function (position) {
+            set(position) {
                 this._position.copy(position);
 
                 if (this.source) {
-                    var listener = this._manager.listener;
+                    const listener = this._manager.listener;
 
-                    var lpos = listener.getPosition();
+                    const lpos = listener.getPosition();
 
-                    var factor = fallOff(lpos, this._position, this.refDistance, this.maxDistance, this.rollOffFactor, this.distanceModel);
+                    const factor = fallOff(lpos, this._position, this.refDistance, this.maxDistance, this.rollOffFactor, this.distanceModel);
 
-                    var v = this.volume;
+                    const v = this.volume;
 
                     this.source.volume = v * factor * this._manager.volume;
                 }
@@ -186,54 +184,54 @@ pc.extend(pc, function () {
         });
 
         Object.defineProperty(SoundInstance3d.prototype, 'velocity', {
-            get: function () {
+            get() {
                 return this._velocity;
             },
-            set: function (velocity) {
+            set(velocity) {
                 this._velocity.copy(velocity);
             }
         });
 
         Object.defineProperty(SoundInstance3d.prototype, 'maxDistance', {
-            get: function () {
+            get() {
                 return this._maxDistance;
             },
-            set: function (value) {
+            set(value) {
                 this._maxDistance = value;
             }
         });
 
         Object.defineProperty(SoundInstance3d.prototype, 'refDistance', {
-            get: function () {
+            get() {
                 return this._refDistance;
             },
-            set: function (value) {
+            set(value) {
                 this._refDistance = value;
             }
         });
 
         Object.defineProperty(SoundInstance3d.prototype, 'rollOffFactor', {
-            get: function () {
+            get() {
                 return this._rollOffFactor;
             },
-            set: function (value) {
+            set(value) {
                 this._rollOffFactor = value;
             }
         });
 
         Object.defineProperty(SoundInstance3d.prototype, 'distanceModel', {
-            get: function () {
+            get() {
                 return this._distanceModel;
             },
-            set: function (value) {
+            set(value) {
                 this._distanceModel = value;
             }
         });
     } else {
-        SoundInstance3d = function () { };
+        SoundInstance3d = () => { };
     }
 
     return {
-        SoundInstance3d: SoundInstance3d
+        SoundInstance3d
     };
-}());
+})());

@@ -1,6 +1,4 @@
-pc.extend(pc, (function () {
-    'use strict';
-
+pc.extend(pc, ((() => {
     /**
      * @constructor
      * @name pc.Quat
@@ -11,78 +9,78 @@ pc.extend(pc, (function () {
      * @param {Number} [z] The quaternion's z component. Default value 0.
      * @param {Number} [w] The quaternion's w component. Default value 1.
      */
-    var Quat = function (x, y, z, w) {
-        if (x && x.length === 4) {
-            this.x = x[0];
-            this.y = x[1];
-            this.z = x[2];
-            this.w = x[3];
-        } else {
-            this.x = (x === undefined) ? 0 : x;
-            this.y = (y === undefined) ? 0 : y;
-            this.z = (z === undefined) ? 0 : z;
-            this.w = (w === undefined) ? 1 : w;
+    class Quat {
+        constructor(x, y, z, w) {
+            if (x && x.length === 4) {
+                this.x = x[0];
+                this.y = x[1];
+                this.z = x[2];
+                this.w = x[3];
+            } else {
+                this.x = (x === undefined) ? 0 : x;
+                this.y = (y === undefined) ? 0 : y;
+                this.z = (z === undefined) ? 0 : z;
+                this.w = (w === undefined) ? 1 : w;
+            }
         }
-    };
 
-    /**
-     * @field
-     * @type Number
-     * @name pc.Quat#x
-     * @description The x component of the quaternion.
-     * @example
-     * var quat = new pc.Quat();
-     *
-     * // Get x
-     * var x = quat.x;
-     *
-     * // Set x
-     * quat.x = 0;
-     */
-    /**
-     * @field
-     * @type Number
-     * @name pc.Quat#y
-     * @description The y component of the quaternion.
-     * @example
-     * var quat = new pc.Quat();
-     *
-     * // Get y
-     * var y = quat.y;
-     *
-     * // Set y
-     * quat.y = 0;
-     */
-    /**
-     * @field
-     * @type Number
-     * @name pc.Quat#z
-     * @description The z component of the quaternion.
-     * @example
-     * var quat = new pc.Quat();
-     *
-     * // Get z
-     * var z = quat.z;
-     *
-     * // Set z
-     * quat.z = 0;
-     */
-    /**
-     * @field
-     * @type Number
-     * @name pc.Quat#w
-     * @description The w component of the quaternion.
-     * @example
-     * var quat = new pc.Quat();
-     *
-     * // Get w
-     * var w = quat.w;
-     *
-     * // Set w
-     * quat.w = 0;
-     */
+        /**
+         * @field
+         * @type Number
+         * @name pc.Quat#x
+         * @description The x component of the quaternion.
+         * @example
+         * var quat = new pc.Quat();
+         *
+         * // Get x
+         * var x = quat.x;
+         *
+         * // Set x
+         * quat.x = 0;
+         */
+        /**
+         * @field
+         * @type Number
+         * @name pc.Quat#y
+         * @description The y component of the quaternion.
+         * @example
+         * var quat = new pc.Quat();
+         *
+         * // Get y
+         * var y = quat.y;
+         *
+         * // Set y
+         * quat.y = 0;
+         */
+        /**
+         * @field
+         * @type Number
+         * @name pc.Quat#z
+         * @description The z component of the quaternion.
+         * @example
+         * var quat = new pc.Quat();
+         *
+         * // Get z
+         * var z = quat.z;
+         *
+         * // Set z
+         * quat.z = 0;
+         */
+        /**
+         * @field
+         * @type Number
+         * @name pc.Quat#w
+         * @description The w component of the quaternion.
+         * @example
+         * var quat = new pc.Quat();
+         *
+         * // Get w
+         * var w = quat.w;
+         *
+         * // Set w
+         * quat.w = 0;
+         */
 
-    Quat.prototype = {
         /**
          * @function
          * @name pc.Quat#clone
@@ -94,17 +92,17 @@ pc.extend(pc, (function () {
          *
          * console.log("The result of the cloning is: " + q.toString());
          */
-        clone: function () {
+        clone() {
             return new pc.Quat(this.x, this.y, this.z, this.w);
-        },
+        }
 
-        conjugate: function () {
+        conjugate() {
             this.x *= -1;
             this.y *= -1;
             this.z *= -1;
 
             return this;
-        },
+        }
 
         /**
          * @function
@@ -118,14 +116,14 @@ pc.extend(pc, (function () {
          * dst.copy(src, src);
          * console.log("The two quaternions are " + (src.equals(dst) ? "equal" : "different"));
          */
-        copy: function (rhs) {
-            this.x = rhs.x;
-            this.y = rhs.y;
-            this.z = rhs.z;
-            this.w = rhs.w;
+        copy({x, y, z, w}) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.w = w;
 
             return this;
-        },
+        }
 
         /**
          * @function
@@ -138,9 +136,9 @@ pc.extend(pc, (function () {
          * var b = new pc.Quat();
          * console.log("The two quaternions are " + (a.equals(b) ? "equal" : "different"));
          */
-        equals: function (rhs) {
-            return ((this.x === rhs.x) && (this.y === rhs.y) && (this.z === rhs.z) && (this.w === rhs.w));
-        },
+        equals({x, y, z, w}) {
+            return (this.x === x) && (this.y === y) && (this.z === z) && (this.w === w);
+        }
 
         /**
          * @function
@@ -162,9 +160,9 @@ pc.extend(pc, (function () {
          * // Should output [0, 1, 0]
          * console.log(v.toString());
          */
-        getAxisAngle: function (axis) {
-            var rad = Math.acos(this.w) * 2;
-            var s = Math.sin(rad / 2);
+        getAxisAngle(axis) {
+            let rad = Math.acos(this.w) * 2;
+            const s = Math.sin(rad / 2);
             if (s !== 0) {
                 axis.x = this.x / s;
                 axis.y = this.y / s;
@@ -183,7 +181,7 @@ pc.extend(pc, (function () {
                 axis.z = 0;
             }
             return rad * pc.math.RAD_TO_DEG;
-        },
+        }
 
         /**
          * @function
@@ -193,8 +191,8 @@ pc.extend(pc, (function () {
          * @returns {pc.Vec3} The 3-dimensional vector holding the Euler angles that
          * correspond to the supplied quaternion.
          */
-        getEulerAngles: function (eulers) {
-            var x, y, z, qx, qy, qz, qw, a2;
+        getEulerAngles(eulers) {
+            let x, y, z, qx, qy, qz, qw, a2;
 
             eulers = (eulers === undefined) ? new pc.Vec3() : eulers;
 
@@ -219,7 +217,7 @@ pc.extend(pc, (function () {
             }
 
             return eulers.set(x, y, z).scale(pc.math.RAD_TO_DEG);
-        },
+        }
 
         /**
          * @function
@@ -233,9 +231,9 @@ pc.extend(pc, (function () {
          * // Invert in place
          * rot.invert();
          */
-        invert: function () {
+        invert() {
             return this.conjugate().normalize();
-        },
+        }
 
         /**
          * @function
@@ -248,8 +246,8 @@ pc.extend(pc, (function () {
          * // Should output 5
          * console.log("The length of the quaternion is: " + len);
          */
-        length: function () {
-            var x, y, z, w;
+        length() {
+            let x, y, z, w;
 
             x = this.x;
             y = this.y;
@@ -257,7 +255,7 @@ pc.extend(pc, (function () {
             w = this.w;
 
             return Math.sqrt(x * x + y * y + z * z + w * w);
-        },
+        }
 
         /**
          * @function
@@ -270,10 +268,10 @@ pc.extend(pc, (function () {
          * // Should output 25
          * console.log("The length squared of the quaternion is: " + lenSq);
          */
-        lengthSq: function () {
-            var x, y, z, w;
+        lengthSq() {
+            let x, y, z, w;
             return x * x + y * y + z * z + w * w;
-        },
+        }
 
         /**
          * @function
@@ -291,18 +289,18 @@ pc.extend(pc, (function () {
          *
          * console.log("The result of the multiplication is: " a.toString());
          */
-        mul: function (rhs) {
-            var q1x, q1y, q1z, q1w, q2x, q2y, q2z, q2w;
+        mul({x, y, z, w}) {
+            let q1x, q1y, q1z, q1w, q2x, q2y, q2z, q2w;
 
             q1x = this.x;
             q1y = this.y;
             q1z = this.z;
             q1w = this.w;
 
-            q2x = rhs.x;
-            q2y = rhs.y;
-            q2z = rhs.z;
-            q2w = rhs.w;
+            q2x = x;
+            q2y = y;
+            q2z = z;
+            q2w = w;
 
             this.x = q1w * q2x + q1x * q2w + q1y * q2z - q1z * q2y;
             this.y = q1w * q2y + q1y * q2w + q1z * q2x - q1x * q2z;
@@ -310,7 +308,7 @@ pc.extend(pc, (function () {
             this.w = q1w * q2w - q1x * q2x - q1y * q2y - q1z * q2z;
 
             return this;
-        },
+        }
 
         /**
          * @function
@@ -330,18 +328,18 @@ pc.extend(pc, (function () {
          *
          * console.log("The result of the multiplication is: " r.toString());
          */
-        mul2: function (lhs, rhs) {
-            var q1x, q1y, q1z, q1w, q2x, q2y, q2z, q2w;
+        mul2({x, y, z, w}, {x, y, z, w}) {
+            let q1x, q1y, q1z, q1w, q2x, q2y, q2z, q2w;
 
-            q1x = lhs.x;
-            q1y = lhs.y;
-            q1z = lhs.z;
-            q1w = lhs.w;
+            q1x = x;
+            q1y = y;
+            q1z = z;
+            q1w = w;
 
-            q2x = rhs.x;
-            q2y = rhs.y;
-            q2z = rhs.z;
-            q2w = rhs.w;
+            q2x = x;
+            q2y = y;
+            q2z = z;
+            q2w = w;
 
             this.x = q1w * q2x + q1x * q2w + q1y * q2z - q1z * q2y;
             this.y = q1w * q2y + q1y * q2w + q1z * q2x - q1x * q2z;
@@ -349,7 +347,7 @@ pc.extend(pc, (function () {
             this.w = q1w * q2w - q1x * q2x - q1y * q2y - q1z * q2z;
 
             return this;
-        },
+        }
 
         /**
          * @function
@@ -364,8 +362,8 @@ pc.extend(pc, (function () {
          * // Should output 0, 0, 0, 1
          * console.log("The result of the vector normalization is: " + v.toString());
          */
-        normalize: function () {
-            var len = this.length();
+        normalize() {
+            let len = this.length();
             if (len === 0) {
                 this.x = this.y = this.z = 0;
                 this.w = 1;
@@ -378,7 +376,7 @@ pc.extend(pc, (function () {
             }
 
             return this;
-        },
+        }
 
         /**
          * @function
@@ -396,14 +394,14 @@ pc.extend(pc, (function () {
          * // Should output 1, 0, 0, 0
          * console.log("The result of the vector set is: " + q.toString());
          */
-        set: function (x, y, z, w) {
+        set(x, y, z, w) {
             this.x = x;
             this.y = y;
             this.z = z;
             this.w = w;
 
             return this;
-        },
+        }
 
         /**
          * @function
@@ -416,21 +414,21 @@ pc.extend(pc, (function () {
          * var q = new pc.Quat();
          * q.setFromAxisAngle(pc.Vec3.UP, 90);
          */
-        setFromAxisAngle: function (axis, angle) {
-            var sa, ca;
+        setFromAxisAngle({x, y, z}, angle) {
+            let sa, ca;
 
             angle *= 0.5 * pc.math.DEG_TO_RAD;
 
             sa = Math.sin(angle);
             ca = Math.cos(angle);
 
-            this.x = sa * axis.x;
-            this.y = sa * axis.y;
-            this.z = sa * axis.z;
+            this.x = sa * x;
+            this.y = sa * y;
+            this.z = sa * z;
             this.w = ca;
 
             return this;
-        },
+        }
 
         /**
          * @function
@@ -444,8 +442,8 @@ pc.extend(pc, (function () {
          * var q = new pc.Quat();
          * q.setFromEulerAngles(45, 90, 180);
          */
-        setFromEulerAngles: function (ex, ey, ez) {
-            var sx, cx, sy, cy, sz, cz, halfToRad;
+        setFromEulerAngles(ex, ey, ez) {
+            let sx, cx, sy, cy, sz, cz, halfToRad;
 
             halfToRad = 0.5 * pc.math.DEG_TO_RAD;
             ex *= halfToRad;
@@ -465,7 +463,7 @@ pc.extend(pc, (function () {
             this.w = cx * cy * cz + sx * sy * sz;
 
             return this;
-        },
+        }
 
         /**
          * @function
@@ -482,9 +480,8 @@ pc.extend(pc, (function () {
          * // Convert to a quaternion
          * var q = new pc.Quat().setFromMat4(rot);
          */
-        setFromMat4: function (m) {
-            var m00, m01, m02, m10, m11, m12, m20, m21, m22,
-                tr, s, rs, lx, ly, lz;
+        setFromMat4(m) {
+            let m00, m01, m02, m10, m11, m12, m20, m21, m22, tr, s, rs, lx, ly, lz;
 
             m = m.data;
 
@@ -571,7 +568,7 @@ pc.extend(pc, (function () {
             }
 
             return this;
-        },
+        }
 
         /**
          * @function
@@ -593,21 +590,21 @@ pc.extend(pc, (function () {
          * result = new pc.Quat().slerp(q1, q2, 0.5); // Return the midpoint interpolant
          * result = new pc.Quat().slerp(q1, q2, 1);   // Return q2
          */
-        slerp: function (lhs, rhs, alpha) {
+        slerp({x, y, z, w}, {x, y, z, w}, alpha) {
             // Algorithm sourced from:
             // http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/
-            var lx, ly, lz, lw, rx, ry, rz, rw;
-            lx = lhs.x;
-            ly = lhs.y;
-            lz = lhs.z;
-            lw = lhs.w;
-            rx = rhs.x;
-            ry = rhs.y;
-            rz = rhs.z;
-            rw = rhs.w;
+            let lx, ly, lz, lw, rx, ry, rz, rw;
+            lx = x;
+            ly = y;
+            lz = z;
+            lw = w;
+            rx = x;
+            ry = y;
+            rz = z;
+            rw = w;
 
             // Calculate angle between them.
-            var cosHalfTheta = lw * rw + lx * rx + ly * ry + lz * rz;
+            let cosHalfTheta = lw * rw + lx * rx + ly * ry + lz * rz;
 
             if (cosHalfTheta < 0) {
                 rw = -rw;
@@ -627,8 +624,8 @@ pc.extend(pc, (function () {
             }
 
             // Calculate temporary values.
-            var halfTheta = Math.acos(cosHalfTheta);
-            var sinHalfTheta = Math.sqrt(1 - cosHalfTheta * cosHalfTheta);
+            const halfTheta = Math.acos(cosHalfTheta);
+            const sinHalfTheta = Math.sqrt(1 - cosHalfTheta * cosHalfTheta);
 
             // If theta = 180 degrees then result is not fully defined
             // we could rotate around any axis normal to qa or qb
@@ -640,8 +637,8 @@ pc.extend(pc, (function () {
                 return this;
             }
 
-            var ratioA = Math.sin((1 - alpha) * halfTheta) / sinHalfTheta;
-            var ratioB = Math.sin(alpha * halfTheta) / sinHalfTheta;
+            const ratioA = Math.sin((1 - alpha) * halfTheta) / sinHalfTheta;
+            const ratioB = Math.sin(alpha * halfTheta) / sinHalfTheta;
 
             // Calculate Quaternion.
             this.w = (lw * ratioA + rw * ratioB);
@@ -649,7 +646,7 @@ pc.extend(pc, (function () {
             this.y = (ly * ratioA + ry * ratioB);
             this.z = (lz * ratioA + rz * ratioB);
             return this;
-        },
+        }
 
         /**
          * @function
@@ -667,19 +664,19 @@ pc.extend(pc, (function () {
          *
          * var tv = q.transformVector(v);
          */
-        transformVector: function (vec, res) {
+        transformVector(vec, res) {
             if (res === undefined) {
                 res = new pc.Vec3();
             }
 
-            var x = vec.x, y = vec.y, z = vec.z;
-            var qx = this.x, qy = this.y, qz = this.z, qw = this.w;
+            const x = vec.x, y = vec.y, z = vec.z;
+            const qx = this.x, qy = this.y, qz = this.z, qw = this.w;
 
             // calculate quat * vec
-            var ix = qw * x + qy * z - qz * y;
-            var iy = qw * y + qz * x - qx * z;
-            var iz = qw * z + qx * y - qy * x;
-            var iw = -qx * x - qy * y - qz * z;
+            const ix = qw * x + qy * z - qz * y;
+            const iy = qw * y + qz * x - qx * z;
+            const iz = qw * z + qx * y - qy * x;
+            const iw = -qx * x - qy * y - qz * z;
 
             // calculate result * inverse quat
             res.x = ix * qw + iw * -qx + iy * -qz - iz * -qy;
@@ -687,7 +684,7 @@ pc.extend(pc, (function () {
             res.z = iz * qw + iw * -qz + ix * -qy - iy * -qx;
 
             return res;
-        },
+        }
 
         /**
          * @function
@@ -699,10 +696,10 @@ pc.extend(pc, (function () {
          * // Should output '[0, 0, 0, 1]'
          * console.log(v.toString());
          */
-        toString: function () {
-            return "[" + this.x + ", " + this.y + ", " + this.z + ", " + this.w + "]";
+        toString() {
+            return `[${this.x}, ${this.y}, ${this.z}, ${this.w}]`;
         }
-    };
+    }
 
     /**
      * @field
@@ -713,12 +710,10 @@ pc.extend(pc, (function () {
      * @description A constant quaternion set to [0, 0, 0, 1] (the identity).
      */
     Object.defineProperty(Quat, 'IDENTITY', {
-        get: (function () {
-            var identity = new Quat();
-            return function () {
-                return identity;
-            };
-        }())
+        get: ((() => {
+            const identity = new Quat();
+            return () => identity;
+        })())
     });
 
     /**
@@ -730,15 +725,13 @@ pc.extend(pc, (function () {
      * @description A constant quaternion set to [0, 0, 0, 0].
      */
     Object.defineProperty(Quat, 'ZERO', {
-        get: (function () {
-            var zero = new Quat(0, 0, 0, 0);
-            return function () {
-                return zero;
-            };
-        }())
+        get: ((() => {
+            const zero = new Quat(0, 0, 0, 0);
+            return () => zero;
+        })())
     });
 
     return {
-        Quat: Quat
+        Quat
     };
-}()));
+})()));

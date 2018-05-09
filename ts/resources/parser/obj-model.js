@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
     * Sample Obj model parser. This is not added to applications by default.
     *
@@ -16,11 +16,11 @@ pc.extend(pc, function () {
     * this.app.assets.add(asset);
     * this.app.assets.load(asset);
     */
-    var ObjModelParser = function (device) {
-        this._device = device;
-    };
+    class ObjModelParser {
+        constructor(device) {
+            this._device = device;
+        }
 
-    ObjModelParser.prototype = {
         /**
         * First draft obj parser
         * probably doesn't handle a lot of the obj spec
@@ -29,9 +29,9 @@ pc.extend(pc, function () {
         * - assigns default material to all meshes
         * - doesn't created indexed geometry
         */
-        parse: function (input) {
+        parse(input) {
             // expanded vert, uv and normal values from face indices
-            var parsed = {
+            const parsed = {
                 default: {
                     verts: [],
                     normals: [],
@@ -39,14 +39,14 @@ pc.extend(pc, function () {
                     indices: []
                 }
             };
-            var group = "default"; // current group
-            var lines = input.split("\n");
-            var verts = [], normals = [], uvs = [];
-            var i;
+            let group = "default"; // current group
+            const lines = input.split("\n");
+            const verts = [], normals = [], uvs = [];
+            let i;
 
             for (i = 0; i < lines.length; i++) {
-                var line = lines[i].trim();
-                var parts = line.split( /\s+/ );
+                const line = lines[i].trim();
+                const parts = line.split( /\s+/ );
 
                 if (line[0] === 'v') {
                     if (parts[0] === 'v') {
@@ -67,7 +67,7 @@ pc.extend(pc, function () {
                         };
                     }
                 } else if (line[0] === 'f') {
-                    var p, r;
+                    let p, r;
                     if (parts.length === 4) {
                         //triangles
                         for (p = 1; p < parts.length; p++) {
@@ -79,9 +79,9 @@ pc.extend(pc, function () {
 
                     } else if (parts.length === 5) {
                         //quads
-                        var order = [1,2,3,3,4,1]; // split quad into to triangles;
+                        const order = [1,2,3,3,4,1]; // split quad into to triangles;
                         p = 1;
-                        for (var o = 0; o < order.length; o++) {
+                        for (let o = 0; o < order.length; o++) {
                             p = order[o];
                             r = this._parseIndices(parts[p]);
                             parsed[group].verts.push(verts[r[0]*3], verts[r[0]*3+1], verts[r[0]*3+2]); // expand uvs from indices
@@ -96,43 +96,43 @@ pc.extend(pc, function () {
                 }
             }
 
-            var model = new pc.Model();
-            var groupNames = Object.keys(parsed);
-            var root = new pc.GraphNode();
+            const model = new pc.Model();
+            const groupNames = Object.keys(parsed);
+            const root = new pc.GraphNode();
             // create a new mesh instance for each "group"
             for (i = 0; i < groupNames.length; i++) {
-                var currentGroup = parsed[groupNames[i]];
+                const currentGroup = parsed[groupNames[i]];
                 if (!currentGroup.verts.length) continue;
                 if (currentGroup.verts.length > 65535) {
                     console.warn("Warning: mesh with more than 65535 vertices");
                 }
-                var mesh = pc.createMesh(this._device, currentGroup.verts, {
+                const mesh = pc.createMesh(this._device, currentGroup.verts, {
                     normals: currentGroup.normals,
                     uvs: currentGroup.uvs
                 });
-                var mi = new pc.MeshInstance(new pc.GraphNode(), mesh, pc.ModelHandler.DEFAULT_MATERIAL);
+                const mi = new pc.MeshInstance(new pc.GraphNode(), mesh, pc.ModelHandler.DEFAULT_MATERIAL);
                 model.meshInstances.push(mi);
                 root.addChild(mi.node);
             }
             model.graph = root;
             model.getGraph().syncHierarchy();
             return model;
-        },
+        }
 
-        _parseIndices: function (str) {
-            var result = [];
-            var indices = str.split("/");
-            for (var i = 0; i < 3; i++) {
+        _parseIndices(str) {
+            const result = [];
+            const indices = str.split("/");
+            for (let i = 0; i < 3; i++) {
                 if (indices[i]) {
                     result[i] = parseInt(indices[i],10)-1; // convert to 0-indexed
                 }
             }
             return result;
         }
-    };
+    }
 
 
     return {
-        ObjModelParser: ObjModelParser
+        ObjModelParser
     };
-}());
+})());

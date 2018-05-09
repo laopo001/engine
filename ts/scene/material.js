@@ -1,5 +1,5 @@
-pc.extend(pc, function () {
-    var id = 0;
+pc.extend(pc, (() => {
+    let id = 0;
 
     /**
      * @constructor
@@ -55,61 +55,60 @@ pc.extend(pc, function () {
      * @property {Number} depthBias Offsets the output depth buffer value. Useful for decals to prevent z-fighting.
      * @property {Number} slopeDepthBias Same as {@link pc.Material#depthBias}, but also depends on the slope of the triangle relative to the camera.
      */
-    var Material = function Material() {
-        this.name = "Untitled";
-        this.id = id++;
-        this._shader = null;
-        this.variants = {};
+    class Material {
+        constructor() {
+            this.name = "Untitled";
+            this.id = id++;
+            this._shader = null;
+            this.variants = {};
 
-        this.parameters = {};
+            this.parameters = {};
 
-        // Render states
-        this.alphaTest = 0;
-        this.alphaToCoverage = false;
+            // Render states
+            this.alphaTest = 0;
+            this.alphaToCoverage = false;
 
-        this.blend = false;
-        this.blendSrc = pc.BLENDMODE_ONE;
-        this.blendDst = pc.BLENDMODE_ZERO;
-        this.blendEquation = pc.BLENDEQUATION_ADD;
+            this.blend = false;
+            this.blendSrc = pc.BLENDMODE_ONE;
+            this.blendDst = pc.BLENDMODE_ZERO;
+            this.blendEquation = pc.BLENDEQUATION_ADD;
 
-        this.separateAlphaBlend = false;
-        this.blendSrcAlpha = pc.BLENDMODE_ONE;
-        this.blendDstAlpha = pc.BLENDMODE_ZERO;
-        this.blendAlphaEquation = pc.BLENDEQUATION_ADD;
+            this.separateAlphaBlend = false;
+            this.blendSrcAlpha = pc.BLENDMODE_ONE;
+            this.blendDstAlpha = pc.BLENDMODE_ZERO;
+            this.blendAlphaEquation = pc.BLENDEQUATION_ADD;
 
-        this.cull = pc.CULLFACE_BACK;
+            this.cull = pc.CULLFACE_BACK;
 
-        this.depthTest = true;
-        this.depthWrite = true;
-        this.stencilFront = null;
-        this.stencilBack = null;
+            this.depthTest = true;
+            this.depthWrite = true;
+            this.stencilFront = null;
+            this.stencilBack = null;
 
-        this.depthBias = 0;
-        this.slopeDepthBias = 0;
+            this.depthBias = 0;
+            this.slopeDepthBias = 0;
 
-        this.redWrite = true;
-        this.greenWrite = true;
-        this.blueWrite = true;
-        this.alphaWrite = true;
+            this.redWrite = true;
+            this.greenWrite = true;
+            this.blueWrite = true;
+            this.alphaWrite = true;
 
-        this.meshInstances = []; // The mesh instances referencing this material
+            this.meshInstances = []; // The mesh instances referencing this material
 
-        this._shaderVersion = 0;
-        this._scene = null;
-        this._dirtyBlend = false;
-    };
+            this._shaderVersion = 0;
+            this._scene = null;
+            this._dirtyBlend = false;
+        }
 
-    Object.defineProperty(Material.prototype, 'shader', {
-        get: function () {
+        get shader() {
             return this._shader;
-        },
-        set: function (shader) {
+        }
+
+        set shader(shader) {
             this.setShader(shader);
         }
-    });
 
-    Object.defineProperty(Material.prototype, 'blendType', {
-        get: function () {
+        get blendType() {
             if ((!this.blend) &&
                 (this.blendSrc === pc.BLENDMODE_ONE) &&
                 (this.blendDst === pc.BLENDMODE_ZERO) &&
@@ -163,9 +162,10 @@ pc.extend(pc, function () {
             } else {
                 return pc.BLEND_NORMAL;
             }
-        },
-        set: function (type) {
-            var prevBlend = this.blend !== pc.BLEND_NONE;
+        }
+
+        set blendType(type) {
+            const prevBlend = this.blend !== pc.BLEND_NONE;
             switch (type) {
                 case pc.BLEND_NONE:
                     this.blend = false;
@@ -237,294 +237,295 @@ pc.extend(pc, function () {
             }
             this._updateMeshInstanceKeys();
         }
-    });
 
-    Material.prototype._cloneInternal = function (clone) {
-        clone.name = this.name;
-        clone.id = id++;
-        clone.variants = { }; // ?
-        clone.shader = this.shader;
-        clone.parameters = { };
+        _cloneInternal(clone) {
+            clone.name = this.name;
+            clone.id = id++;
+            clone.variants = { }; // ?
+            clone.shader = this.shader;
+            clone.parameters = { };
 
-        // and need copy parameters of that shader
-        for (var parameterName in this.parameters) {
-            if (this.parameters.hasOwnProperty(parameterName))
-                clone.parameters[parameterName] = { scopeId: null, data: this.parameters[parameterName].data, passFlags: this.parameters[parameterName].passFlags };
+            // and need copy parameters of that shader
+            for (const parameterName in this.parameters) {
+                if (this.parameters.hasOwnProperty(parameterName))
+                    clone.parameters[parameterName] = { scopeId: null, data: this.parameters[parameterName].data, passFlags: this.parameters[parameterName].passFlags };
+            }
+
+            // Render states
+            clone.alphaTest = this.alphaTest;
+            clone.alphaToCoverage = this.alphaToCoverage;
+
+            clone.blend = this.blend;
+            clone.blendSrc = this.blendSrc;
+            clone.blendDst = this.blendDst;
+            clone.blendEquation = this.blendEquation;
+
+            clone.separateAlphaBlend = this.separateAlphaBlend;
+            clone.blendSrcAlpha = this.blendSrcAlpha;
+            clone.blendDstAlpha = this.blendDstAlpha;
+            clone.blendAlphaEquation = this.blendAlphaEquation;
+
+            clone.cull = this.cull;
+
+            clone.depthTest = this.depthTest;
+            clone.depthWrite = this.depthWrite;
+            clone.depthBias = this.depthBias;
+            clone.slopeDepthBias = this.slopeDepthBias;
+            if (this.stencilFront) clone.stencilFront = this.stencilFront.clone();
+            if (this.stencilBack) {
+                if (this.stencilFront===this.stencilBack) {
+                    clone.stencilBack = clone.stencilFront;
+                } else {
+                    clone.stencilBack = this.stencilBack.clone();
+                }
+            }
+
+            clone.redWrite = this.redWrite;
+            clone.greenWrite = this.greenWrite;
+            clone.blueWrite = this.blueWrite;
+            clone.alphaWrite = this.alphaWrite;
+
+            clone.meshInstances = [];
         }
 
-        // Render states
-        clone.alphaTest = this.alphaTest;
-        clone.alphaToCoverage = this.alphaToCoverage;
+        clone() {
+            const clone = new pc.Material();
+            this._cloneInternal(clone);
+            return clone;
+        }
 
-        clone.blend = this.blend;
-        clone.blendSrc = this.blendSrc;
-        clone.blendDst = this.blendDst;
-        clone.blendEquation = this.blendEquation;
-
-        clone.separateAlphaBlend = this.separateAlphaBlend;
-        clone.blendSrcAlpha = this.blendSrcAlpha;
-        clone.blendDstAlpha = this.blendDstAlpha;
-        clone.blendAlphaEquation = this.blendAlphaEquation;
-
-        clone.cull = this.cull;
-
-        clone.depthTest = this.depthTest;
-        clone.depthWrite = this.depthWrite;
-        clone.depthBias = this.depthBias;
-        clone.slopeDepthBias = this.slopeDepthBias;
-        if (this.stencilFront) clone.stencilFront = this.stencilFront.clone();
-        if (this.stencilBack) {
-            if (this.stencilFront===this.stencilBack) {
-                clone.stencilBack = clone.stencilFront;
-            } else {
-                clone.stencilBack = this.stencilBack.clone();
+        _updateMeshInstanceKeys() {
+            let i;
+            const meshInstances = this.meshInstances;
+            for (i = 0; i < meshInstances.length; i++) {
+                meshInstances[i].updateKey();
             }
         }
 
-        clone.redWrite = this.redWrite;
-        clone.greenWrite = this.greenWrite;
-        clone.blueWrite = this.blueWrite;
-        clone.alphaWrite = this.alphaWrite;
-
-        clone.meshInstances = [];
-    };
-
-    Material.prototype.clone = function () {
-        var clone = new pc.Material();
-        this._cloneInternal(clone);
-        return clone;
-    };
-
-    Material.prototype._updateMeshInstanceKeys = function () {
-        var i, meshInstances = this.meshInstances;
-        for (i = 0; i < meshInstances.length; i++) {
-            meshInstances[i].updateKey();
+        updateShader(device, scene, objDefs) {
+            // For vanilla materials, the shader can only be set by the user
         }
-    };
 
-    Material.prototype.updateShader = function (device, scene, objDefs) {
-        // For vanilla materials, the shader can only be set by the user
-    };
+        // Parameter management
+        clearParameters() {
+            this.parameters = {};
+        }
 
-    // Parameter management
-    Material.prototype.clearParameters = function () {
-        this.parameters = {};
-    };
+        getParameters() {
+            return this.parameters;
+        }
 
-    Material.prototype.getParameters = function () {
-        return this.parameters;
-    };
-
-    Material.prototype.clearVariants = function () {
-        var meshInstance;
-        for (var s in this.variants) {
-            if (this.variants.hasOwnProperty(s)) {
-                this.variants[s]._refCount--;
+        clearVariants() {
+            let meshInstance;
+            for (const s in this.variants) {
+                if (this.variants.hasOwnProperty(s)) {
+                    this.variants[s]._refCount--;
+                }
             }
-        }
-        this.variants = {};
-        var j;
-        for (var i = 0; i < this.meshInstances.length; i++) {
-            meshInstance = this.meshInstances[i];
-            for (j=0; j<meshInstance._shader.length; j++) {
-                meshInstance._shader[j] = null;
-            }
-        }
-    };
-
-    /**
-     * @function
-     * @name pc.Material#getParameter
-     * @description Retrieves the specified shader parameter from a material.
-     * @param {String} name The name of the parameter to query.
-     * @returns {Object} The named parameter.
-     */
-    Material.prototype.getParameter = function (name) {
-        return this.parameters[name];
-    };
-
-    /**
-     * @function
-     * @name pc.Material#setParameter
-     * @description Sets a shader parameter on a material.
-     * @param {String} name The name of the parameter to set.
-     * @param {Number|Array|pc.Texture} data The value for the specified parameter.
-     */
-    Material.prototype.setParameter = function (arg, data, passFlags) {
-
-        if (passFlags === undefined) passFlags = -524285; // All bits set except 2 - 18 range
-
-        var name;
-        if (data === undefined && typeof(arg) === 'object') {
-            var uniformObject = arg;
-            if (uniformObject.length) {
-                for (var i=0; i<uniformObject.length; i++) this.setParameter(uniformObject[i]);
-                return;
-            } else {
-                name = uniformObject.name;
-                data = uniformObject.value;
-            }
-        } else {
-            name = arg;
-        }
-
-        var param = this.parameters[name];
-        if (param) {
-            param.data = data;
-            param.passFlags = passFlags;
-        } else {
-            this.parameters[name] = {
-                scopeId: null,
-                data: data,
-                passFlags: passFlags
-            };
-        }
-    };
-
-    /**
-     * @function
-     * @name pc.Material#deleteParameter
-     * @description Deletes a shader parameter on a material.
-     * @param {String} name The name of the parameter to delete.
-     */
-    Material.prototype.deleteParameter = function (name) {
-        if (this.parameters[name]) {
-            delete this.parameters[name];
-        }
-    };
-
-    /**
-     * @function
-     * @name pc.Material#setParameters
-     * @description Pushes all material parameters into scope.
-     */
-    Material.prototype.setParameters = function () {
-        // Push each shader parameter into scope
-        for (var paramName in this.parameters) {
-            var parameter = this.parameters[paramName];
-            // TODO: Fix https://github.com/playcanvas/engine/issues/597
-            //if (!parameter.scopeId) {
-            //    parameter.scopeId = device.scope.resolve(paramName);
-            //}
-            parameter.scopeId.setValue(parameter.data);
-        }
-    };
-
-    /**
-     * @function
-     * @name pc.Material#update
-     * @description Applies any changes made to the material's properties.
-     */
-    Material.prototype.update = function () {
-        throw Error("Not Implemented in base class");
-    };
-
-    /**
-     * @function
-     * @description Initializes the material with the properties in the specified data.
-     * @name pc.Material#init
-     * @param {Object} data The initial data for the material.
-     */
-    Material.prototype.init = function (data) {
-        throw Error("Not Implemented in base class");
-    };
-
-    ////////////////
-    // DEPRECATED //
-    ////////////////
-    /**
-     * @private
-     * @function
-     * @name pc.Material#getName
-     * @description Returns the string name of the specified material. This name is not
-     * necessarily unique. Material names set by an artist within the modelling application
-     * should be preserved in the PlayCanvas runtime.
-     * @returns {String} The name of the material.
-     */
-    Material.prototype.getName = function () {
-        return this.name;
-    };
-
-    /**
-     * @private
-     * @function
-     * @name pc.Material#setName
-     * @description Sets the string name of the specified material. This name does not
-     * have to be unique.
-     * @param {String} name The name of the material.
-     */
-    Material.prototype.setName = function (name) {
-        this.name = name;
-    };
-
-    /**
-     * @private
-     * @function
-     * @name pc.Material#getShader
-     * @description Retrieves the shader assigned to the specified material.
-     * @returns {pc.Shader} The shader assigned to the material.
-     */
-    Material.prototype.getShader = function () {
-        return this.shader;
-    };
-
-    /**
-     * @private
-     * @function
-     * @name pc.Material#setShader
-     * @description Assigns a shader to the specified material.
-     * @param {pc.Shader} shader The shader to assign to the material.
-     */
-    Material.prototype.setShader = function (shader) {
-        if (this._shader) {
-            this._shader._refCount--;
-        }
-        this._shader = shader;
-        if (shader) shader._refCount++;
-    };
-
-    /**
-     * @private
-     * @function
-     * @name pc.Material#destroy
-     * @description Removes this material from the scene and possibly frees up memory from its shaders (if there are no other materials using it).
-     */
-    Material.prototype.destroy = function () {
-        if (this.shader) {
-            this.shader._refCount--;
-            if (this.shader._refCount < 1) {
-                this.shader.destroy();
-            }
-        }
-
-        var variant;
-        for (var s in this.variants) {
-            if (this.variants.hasOwnProperty(s)) {
-                variant = this.variants[s];
-                if (variant===this.shader) continue;
-                variant._refCount--;
-                if (variant._refCount < 1) {
-                    variant.destroy();
+            this.variants = {};
+            let j;
+            for (let i = 0; i < this.meshInstances.length; i++) {
+                meshInstance = this.meshInstances[i];
+                for (j=0; j<meshInstance._shader.length; j++) {
+                    meshInstance._shader[j] = null;
                 }
             }
         }
-        this.variants = {};
-        this.shader = null;
 
-        var meshInstance, j;
-        for (var i = 0; i < this.meshInstances.length; i++) {
-            meshInstance = this.meshInstances[i];
-            for (j=0; j<meshInstance._shader.length; j++) {
-                meshInstance._shader[j] = null;
+        /**
+         * @function
+         * @name pc.Material#getParameter
+         * @description Retrieves the specified shader parameter from a material.
+         * @param {String} name The name of the parameter to query.
+         * @returns {Object} The named parameter.
+         */
+        getParameter(name) {
+            return this.parameters[name];
+        }
+
+        /**
+         * @function
+         * @name pc.Material#setParameter
+         * @description Sets a shader parameter on a material.
+         * @param {String} name The name of the parameter to set.
+         * @param {Number|Array|pc.Texture} data The value for the specified parameter.
+         */
+        setParameter(arg, data, passFlags) {
+
+            if (passFlags === undefined) passFlags = -524285; // All bits set except 2 - 18 range
+
+            let name;
+            if (data === undefined && typeof(arg) === 'object') {
+                const uniformObject = arg;
+                if (uniformObject.length) {
+                    for (let i=0; i<uniformObject.length; i++) this.setParameter(uniformObject[i]);
+                    return;
+                } else {
+                    name = uniformObject.name;
+                    data = uniformObject.value;
+                }
+            } else {
+                name = arg;
             }
-            meshInstance._material = null;
-            if (this!==pc.Scene.defaultMaterial) {
-                meshInstance.material = pc.Scene.defaultMaterial;
+
+            const param = this.parameters[name];
+            if (param) {
+                param.data = data;
+                param.passFlags = passFlags;
+            } else {
+                this.parameters[name] = {
+                    scopeId: null,
+                    data,
+                    passFlags
+                };
             }
         }
-    };
+
+        /**
+         * @function
+         * @name pc.Material#deleteParameter
+         * @description Deletes a shader parameter on a material.
+         * @param {String} name The name of the parameter to delete.
+         */
+        deleteParameter(name) {
+            if (this.parameters[name]) {
+                delete this.parameters[name];
+            }
+        }
+
+        /**
+         * @function
+         * @name pc.Material#setParameters
+         * @description Pushes all material parameters into scope.
+         */
+        setParameters() {
+            // Push each shader parameter into scope
+            for (const paramName in this.parameters) {
+                const parameter = this.parameters[paramName];
+                // TODO: Fix https://github.com/playcanvas/engine/issues/597
+                //if (!parameter.scopeId) {
+                //    parameter.scopeId = device.scope.resolve(paramName);
+                //}
+                parameter.scopeId.setValue(parameter.data);
+            }
+        }
+
+        /**
+         * @function
+         * @name pc.Material#update
+         * @description Applies any changes made to the material's properties.
+         */
+        update() {
+            throw Error("Not Implemented in base class");
+        }
+
+        /**
+         * @function
+         * @description Initializes the material with the properties in the specified data.
+         * @name pc.Material#init
+         * @param {Object} data The initial data for the material.
+         */
+        init(data) {
+            throw Error("Not Implemented in base class");
+        }
+
+        ////////////////
+        // DEPRECATED //
+        ////////////////
+        /**
+         * @private
+         * @function
+         * @name pc.Material#getName
+         * @description Returns the string name of the specified material. This name is not
+         * necessarily unique. Material names set by an artist within the modelling application
+         * should be preserved in the PlayCanvas runtime.
+         * @returns {String} The name of the material.
+         */
+        getName() {
+            return this.name;
+        }
+
+        /**
+         * @private
+         * @function
+         * @name pc.Material#setName
+         * @description Sets the string name of the specified material. This name does not
+         * have to be unique.
+         * @param {String} name The name of the material.
+         */
+        setName(name) {
+            this.name = name;
+        }
+
+        /**
+         * @private
+         * @function
+         * @name pc.Material#getShader
+         * @description Retrieves the shader assigned to the specified material.
+         * @returns {pc.Shader} The shader assigned to the material.
+         */
+        getShader() {
+            return this.shader;
+        }
+
+        /**
+         * @private
+         * @function
+         * @name pc.Material#setShader
+         * @description Assigns a shader to the specified material.
+         * @param {pc.Shader} shader The shader to assign to the material.
+         */
+        setShader(shader) {
+            if (this._shader) {
+                this._shader._refCount--;
+            }
+            this._shader = shader;
+            if (shader) shader._refCount++;
+        }
+
+        /**
+         * @private
+         * @function
+         * @name pc.Material#destroy
+         * @description Removes this material from the scene and possibly frees up memory from its shaders (if there are no other materials using it).
+         */
+        destroy() {
+            if (this.shader) {
+                this.shader._refCount--;
+                if (this.shader._refCount < 1) {
+                    this.shader.destroy();
+                }
+            }
+
+            let variant;
+            for (const s in this.variants) {
+                if (this.variants.hasOwnProperty(s)) {
+                    variant = this.variants[s];
+                    if (variant===this.shader) continue;
+                    variant._refCount--;
+                    if (variant._refCount < 1) {
+                        variant.destroy();
+                    }
+                }
+            }
+            this.variants = {};
+            this.shader = null;
+
+            let meshInstance, j;
+            for (let i = 0; i < this.meshInstances.length; i++) {
+                meshInstance = this.meshInstances[i];
+                for (j=0; j<meshInstance._shader.length; j++) {
+                    meshInstance._shader[j] = null;
+                }
+                meshInstance._material = null;
+                if (this!==pc.Scene.defaultMaterial) {
+                    meshInstance.material = pc.Scene.defaultMaterial;
+                }
+            }
+        }
+    }
 
     return {
-        Material: Material
+        Material
     };
-}());
+})());

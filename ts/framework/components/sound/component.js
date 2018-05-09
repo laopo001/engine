@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
      * @component
      * @constructor
@@ -17,7 +17,7 @@ pc.extend(pc, function () {
      * @property {Number} rollOffFactor The factor used in the falloff equation.
      * @property {Object} slots A dictionary that contains the {@link pc.SoundSlot}s managed by this Component.
      */
-    var SoundComponent = function (system, entity) {
+    let SoundComponent = function (system, entity) {
         this.on('set_slots', this.onSetSlots, this);
         this.on('set_volume', this.onSetVolume, this);
         this.on('set_pitch', this.onSetPitch, this);
@@ -31,8 +31,8 @@ pc.extend(pc, function () {
     SoundComponent = pc.inherits(SoundComponent, pc.Component);
 
     pc.extend(SoundComponent.prototype, {
-        onSetSlots: function (name, oldValue, newValue) {
-            var key;
+        onSetSlots(name, oldValue, newValue) {
+            let key;
 
             // stop previous slots
             if (oldValue) {
@@ -41,7 +41,7 @@ pc.extend(pc, function () {
                 }
             }
 
-            var slots = {};
+            const slots = {};
 
             // convert data to slots
             for (key in newValue) {
@@ -61,100 +61,100 @@ pc.extend(pc, function () {
                 this.onEnable();
         },
 
-        onSetVolume: function (name, oldValue, newValue) {
-            var slots = this.data.slots;
-            for (var key in slots) {
-                var slot = slots[key];
+        onSetVolume(name, oldValue, newValue) {
+            const slots = this.data.slots;
+            for (const key in slots) {
+                const slot = slots[key];
                 // change volume of non-overlapping instances
                 if (! slot.overlap) {
-                    var instances = slot.instances;
-                    for (var i = 0, len = instances.length; i < len; i++) {
+                    const instances = slot.instances;
+                    for (let i = 0, len = instances.length; i < len; i++) {
                         instances[i].volume = slot.volume * newValue;
                     }
                 }
             }
         },
 
-        onSetPitch: function (name, oldValue, newValue) {
-            var slots = this.data.slots;
-            for (var key in slots) {
-                var slot = slots[key];
+        onSetPitch(name, oldValue, newValue) {
+            const slots = this.data.slots;
+            for (const key in slots) {
+                const slot = slots[key];
                 // change pitch of non-overlapping instances
                 if (! slot.overlap) {
-                    var instances = slot.instances;
-                    for (var i = 0, len = instances.length; i < len; i++) {
+                    const instances = slot.instances;
+                    for (let i = 0, len = instances.length; i < len; i++) {
                         instances[i].pitch = slot.pitch * newValue;
                     }
                 }
             }
         },
 
-        onSetRefDistance: function (name, oldValue, newValue) {
-            var slots = this.data.slots;
-            for (var key in slots) {
-                var slot = slots[key];
+        onSetRefDistance(name, oldValue, newValue) {
+            const slots = this.data.slots;
+            for (const key in slots) {
+                const slot = slots[key];
                 // change refDistance of non-overlapping instances
                 if (! slot.overlap) {
-                    var instances = slot.instances;
-                    for (var i = 0, len = instances.length; i < len; i++) {
+                    const instances = slot.instances;
+                    for (let i = 0, len = instances.length; i < len; i++) {
                         instances[i].refDistance = newValue;
                     }
                 }
             }
         },
 
-        onSetMaxDistance: function (name, oldValue, newValue) {
-            var slots = this.data.slots;
-            for (var key in slots) {
-                var slot = slots[key];
+        onSetMaxDistance(name, oldValue, newValue) {
+            const slots = this.data.slots;
+            for (const key in slots) {
+                const slot = slots[key];
                 // change maxDistance of non-overlapping instances
                 if (! slot.overlap) {
-                    var instances = slot.instances;
-                    for (var i = 0, len = instances.length; i < len; i++) {
+                    const instances = slot.instances;
+                    for (let i = 0, len = instances.length; i < len; i++) {
                         instances[i].maxDistance = newValue;
                     }
                 }
             }
         },
 
-        onSetRollOffFactor: function (name, oldValue, newValue) {
-            var slots = this.data.slots;
-            for (var key in slots) {
-                var slot = slots[key];
+        onSetRollOffFactor(name, oldValue, newValue) {
+            const slots = this.data.slots;
+            for (const key in slots) {
+                const slot = slots[key];
                 // change rollOffFactor of non-overlapping instances
                 if (! slot.overlap) {
-                    var instances = slot.instances;
-                    for (var i = 0, len = instances.length; i < len; i++) {
+                    const instances = slot.instances;
+                    for (let i = 0, len = instances.length; i < len; i++) {
                         instances[i].rollOffFactor = newValue;
                     }
                 }
             }
         },
 
-        onSetDistanceModel: function (name, oldValue, newValue) {
-            var slots = this.data.slots;
-            for (var key in slots) {
-                var slot = slots[key];
+        onSetDistanceModel(name, oldValue, newValue) {
+            const slots = this.data.slots;
+            for (const key in slots) {
+                const slot = slots[key];
                 // change distanceModel of non-overlapping instances
                 if (! slot.overlap) {
-                    var instances = slot.instances;
-                    for (var i = 0, len = instances.length; i < len; i++) {
+                    const instances = slot.instances;
+                    for (let i = 0, len = instances.length; i < len; i++) {
                         instances[i].distanceModel = newValue;
                     }
                 }
             }
         },
 
-        onSetPositional: function (name, oldValue, newValue) {
-            var slots = this.data.slots;
-            for (var key in slots) {
-                var slot = slots[key];
+        onSetPositional(name, oldValue, newValue) {
+            const slots = this.data.slots;
+            for (const key in slots) {
+                const slot = slots[key];
                 // recreate non overlapping sounds
                 if (! slot.overlap) {
-                    var instances = slot.instances;
-                    for (var i = 0, len = instances.length; i < len; i++) {
-                        var isPlaying = instances[i].isPlaying || instances[i].isSuspended;
-                        var currentTime = instances[i].currentTime;
+                    const instances = slot.instances;
+                    for (let i = 0, len = instances.length; i < len; i++) {
+                        const isPlaying = instances[i].isPlaying || instances[i].isSuspended;
+                        const currentTime = instances[i].currentTime;
                         if (isPlaying)
                             instances[i].stop();
 
@@ -168,7 +168,7 @@ pc.extend(pc, function () {
             }
         },
 
-        onEnable: function () {
+        onEnable() {
             SoundComponent._super.onEnable.call(this);
 
             // do not run if running in Editor
@@ -176,11 +176,11 @@ pc.extend(pc, function () {
                 return;
             }
 
-            var slots = this.data.slots;
-            var playingBeforeDisable = this.data.playingBeforeDisable;
+            const slots = this.data.slots;
+            const playingBeforeDisable = this.data.playingBeforeDisable;
 
-            for (var key in slots) {
-                var slot = slots[key];
+            for (const key in slots) {
+                const slot = slots[key];
                 // play if autoPlay is true or
                 // if the slot was paused when the component
                 // got disabled
@@ -195,12 +195,12 @@ pc.extend(pc, function () {
             }
         },
 
-        onDisable: function () {
+        onDisable() {
             SoundComponent._super.onDisable.call(this);
 
-            var slots = this.data.slots;
-            var playingBeforeDisable = {};
-            for (var key in slots) {
+            const slots = this.data.slots;
+            const playingBeforeDisable = {};
+            for (const key in slots) {
                 // pause non-overlapping sounds
                 if (! slots[key].overlap) {
                     if (slots[key].isPlaying) {
@@ -240,14 +240,14 @@ pc.extend(pc, function () {
          * // play
          * this.entity.sound.play('beep');
          */
-        addSlot: function (name, options) {
-            var slots = this.data.slots;
+        addSlot(name, options) {
+            const slots = this.data.slots;
             if (slots[name]) {
-                logWARNING('A sound slot with name ' + name + ' already exists on Entity ' + this.entity.getPath());
+                logWARNING(`A sound slot with name ${name} already exists on Entity ${this.entity.getPath()}`);
                 return null;
             }
 
-            var slot = new pc.SoundSlot(this, name, options);
+            const slot = new pc.SoundSlot(this, name, options);
             slots[name] = slot;
 
             if (slot.autoPlay && this.enabled && this.entity.enabled) {
@@ -266,8 +266,8 @@ pc.extend(pc, function () {
          * // remove a slot called 'beep'
          * this.entity.sound.removeSlot('beep');
          */
-        removeSlot: function (name) {
-            var slots = this.data.slots;
+        removeSlot(name) {
+            const slots = this.data.slots;
             if (slots[name]) {
                 slots[name].stop();
                 delete slots[name];
@@ -285,7 +285,7 @@ pc.extend(pc, function () {
          * this.entity.sound.slot('beep').volume = 0.5;
          *
          */
-        slot: function (name) {
+        slot(name) {
             return this.data.slots[name];
         },
 
@@ -304,14 +304,14 @@ pc.extend(pc, function () {
         * this.entity.sound.play('beep');
         * @returns {pc.SoundInstance} The sound instance that will be played.
         */
-        play: function (name) {
+        play(name) {
             if (!this.enabled || !this.entity.enabled) {
                 return null;
             }
 
-            var slot = this.slots[name];
+            const slot = this.slots[name];
             if (! slot) {
-                logWARNING('Trying to play sound slot with name ' + name + ' which does not exist');
+                logWARNING(`Trying to play sound slot with name ${name} which does not exist`);
                 return null;
             }
 
@@ -329,20 +329,20 @@ pc.extend(pc, function () {
         * // pause a specific sound
         * this.entity.sound.pause('beep');
         */
-        pause: function (name) {
-            var slot;
-            var slots = this.data.slots;
+        pause(name) {
+            let slot;
+            const slots = this.data.slots;
 
             if (name) {
                 slot = slots[name];
                 if (! slot) {
-                    logWARNING('Trying to pause sound slot with name ' + name + ' which does not exist');
+                    logWARNING(`Trying to pause sound slot with name ${name} which does not exist`);
                     return;
                 }
 
                 slot.pause();
             } else {
-                for (var key in slots) {
+                for (const key in slots) {
                     slots[key].pause();
                 }
             }
@@ -359,14 +359,14 @@ pc.extend(pc, function () {
         * // resume a specific sound
         * this.entity.sound.resume('beep');
         */
-        resume: function (name) {
-            var slot;
-            var slots = this.data.slots;
+        resume(name) {
+            let slot;
+            const slots = this.data.slots;
 
             if (name) {
                 slot = slots[name];
                 if (! slot) {
-                    logWARNING('Trying to resume sound slot with name ' + name + ' which does not exist');
+                    logWARNING(`Trying to resume sound slot with name ${name} which does not exist`);
                     return;
                 }
 
@@ -374,7 +374,7 @@ pc.extend(pc, function () {
                     slot.resume();
                 }
             } else {
-                for (var key in slots) {
+                for (const key in slots) {
                     slots[key].resume();
                 }
             }
@@ -391,20 +391,20 @@ pc.extend(pc, function () {
         * // stop a specific sound
         * this.entity.sound.stop('beep');
         */
-        stop: function (name) {
-            var slot;
-            var slots = this.data.slots;
+        stop(name) {
+            let slot;
+            const slots = this.data.slots;
 
             if (name) {
                 slot = slots[name];
                 if (! slot) {
-                    logWARNING('Trying to stop sound slot with name ' + name + ' which does not exist');
+                    logWARNING(`Trying to stop sound slot with name ${name} which does not exist`);
                     return;
                 }
 
                 slot.stop();
             } else {
-                for (var key in slots) {
+                for (const key in slots) {
                     slots[key].stop();
                 }
             }
@@ -412,9 +412,9 @@ pc.extend(pc, function () {
     });
 
     return {
-        SoundComponent: SoundComponent
+        SoundComponent
     };
-}());
+})());
 
 
 // Events Documentation

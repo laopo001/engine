@@ -1,36 +1,34 @@
-pc.extend(pc, function () {
-    'use strict';
+pc.extend(pc, (() => {
+    class HierarchyHandler {
+        constructor(app) {
+            this._app = app;
+        }
 
-    var HierarchyHandler = function (app) {
-        this._app = app;
-    };
-
-    HierarchyHandler.prototype = {
-        load: function (url, callback) {
-            pc.http.get(url, function (err, response) {
+        load(url, callback) {
+            pc.http.get(url, (err, response) => {
                 if (!err) {
                     callback(null, response);
                 } else {
-                    callback("Error requesting scene: " + url);
+                    callback(`Error requesting scene: ${url}`);
                 }
             });
-        },
+        }
 
-        open: function (url, data) {
+        open(url, data) {
             // prevent script initialization until entire scene is open
             this._app.systems.script.preloading = true;
 
-            var parser = new pc.SceneParser(this._app);
-            var parent = parser.parse(data);
+            const parser = new pc.SceneParser(this._app);
+            const parent = parser.parse(data);
 
             // re-enable script initialization
             this._app.systems.script.preloading = false;
 
             return parent;
         }
-    };
+    }
 
     return {
-        HierarchyHandler: HierarchyHandler
+        HierarchyHandler
     };
-}());
+})());

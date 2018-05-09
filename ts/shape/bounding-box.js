@@ -1,9 +1,9 @@
-pc.extend(pc, function () {
-    var tmpVecA = new pc.Vec3();
-    var tmpVecB = new pc.Vec3();
-    var tmpVecC = new pc.Vec3();
-    var tmpVecD = new pc.Vec3();
-    var tmpVecE = new pc.Vec3();
+pc.extend(pc, (() => {
+    const tmpVecA = new pc.Vec3();
+    const tmpVecB = new pc.Vec3();
+    const tmpVecC = new pc.Vec3();
+    const tmpVecD = new pc.Vec3();
+    const tmpVecE = new pc.Vec3();
 
     /**
      * @constructor
@@ -13,14 +13,13 @@ pc.extend(pc, function () {
      * @param {pc.Vec3} [center] Center of box. The constructor takes a reference of this parameter.
      * @param {pc.Vec3} [halfExtents] Half the distance across the box in each axis. The constructor takes a reference of this parameter.
      */
-    var BoundingBox = function BoundingBox(center, halfExtents) {
-        this.center = center || new pc.Vec3(0, 0, 0);
-        this.halfExtents = halfExtents || new pc.Vec3(0.5, 0.5, 0.5);
-        this._min = new pc.Vec3();
-        this._max = new pc.Vec3();
-    };
-
-    BoundingBox.prototype = {
+    class BoundingBox {
+        constructor(center, halfExtents) {
+            this.center = center || new pc.Vec3(0, 0, 0);
+            this.halfExtents = halfExtents || new pc.Vec3(0.5, 0.5, 0.5);
+            this._min = new pc.Vec3();
+            this._max = new pc.Vec3();
+        }
 
         /**
          * @function
@@ -28,36 +27,36 @@ pc.extend(pc, function () {
          * @description Combines two bounding boxes into one, enclosing both.
          * @param {pc.BoundingBox} other Bounding box to add.
          */
-        add: function (other) {
-            var tc = this.center.data;
-            var tcx = tc[0];
-            var tcy = tc[1];
-            var tcz = tc[2];
-            var th = this.halfExtents.data;
-            var thx = th[0];
-            var thy = th[1];
-            var thz = th[2];
-            var tminx = tcx - thx;
-            var tmaxx = tcx + thx;
-            var tminy = tcy - thy;
-            var tmaxy = tcy + thy;
-            var tminz = tcz - thz;
-            var tmaxz = tcz + thz;
+        add({center, halfExtents}) {
+            const tc = this.center.data;
+            const tcx = tc[0];
+            const tcy = tc[1];
+            const tcz = tc[2];
+            const th = this.halfExtents.data;
+            const thx = th[0];
+            const thy = th[1];
+            const thz = th[2];
+            let tminx = tcx - thx;
+            let tmaxx = tcx + thx;
+            let tminy = tcy - thy;
+            let tmaxy = tcy + thy;
+            let tminz = tcz - thz;
+            let tmaxz = tcz + thz;
 
-            var oc = other.center.data;
-            var ocx = oc[0];
-            var ocy = oc[1];
-            var ocz = oc[2];
-            var oh = other.halfExtents.data;
-            var ohx = oh[0];
-            var ohy = oh[1];
-            var ohz = oh[2];
-            var ominx = ocx - ohx;
-            var omaxx = ocx + ohx;
-            var ominy = ocy - ohy;
-            var omaxy = ocy + ohy;
-            var ominz = ocz - ohz;
-            var omaxz = ocz + ohz;
+            const oc = center.data;
+            const ocx = oc[0];
+            const ocy = oc[1];
+            const ocz = oc[2];
+            const oh = halfExtents.data;
+            const ohx = oh[0];
+            const ohy = oh[1];
+            const ohz = oh[2];
+            const ominx = ocx - ohx;
+            const omaxx = ocx + ohx;
+            const ominy = ocy - ohy;
+            const omaxy = ocy + ohy;
+            const ominz = ocz - ohz;
+            const omaxz = ocz + ohz;
 
             if (ominx < tminx) tminx = ominx;
             if (omaxx > tmaxx) tmaxx = omaxx;
@@ -72,17 +71,17 @@ pc.extend(pc, function () {
             th[0] = (tmaxx - tminx) * 0.5;
             th[1] = (tmaxy - tminy) * 0.5;
             th[2] = (tmaxz - tminz) * 0.5;
-        },
+        }
 
-        copy: function (src) {
-            this.center.copy(src.center);
-            this.halfExtents.copy(src.halfExtents);
-            this.type = src.type;
-        },
+        copy({center, halfExtents, type}) {
+            this.center.copy(center);
+            this.halfExtents.copy(halfExtents);
+            this.type = type;
+        }
 
-        clone: function () {
+        clone() {
             return new pc.BoundingBox(this.center.clone(), this.halfExtents.clone());
-        },
+        }
 
         /**
          * @function
@@ -91,24 +90,24 @@ pc.extend(pc, function () {
          * @param {pc.BoundingBox} other Bounding box to test against.
          * @returns {Boolean} True if there is an intersection.
          */
-        intersects: function (other) {
-            var aMax = this.getMax();
-            var aMin = this.getMin();
-            var bMax = other.getMax();
-            var bMin = other.getMin();
+        intersects(other) {
+            const aMax = this.getMax();
+            const aMin = this.getMin();
+            const bMax = other.getMax();
+            const bMin = other.getMin();
 
             return (aMin.x <= bMax.x) && (aMax.x >= bMin.x) &&
                    (aMin.y <= bMax.y) && (aMax.y >= bMin.y) &&
                    (aMin.z <= bMax.z) && (aMax.z >= bMin.z);
-        },
+        }
 
-        _intersectsRay: function (ray, point) {
-            var tMin = tmpVecA.copy(this.getMin()).sub(ray.origin).data;
-            var tMax = tmpVecB.copy(this.getMax()).sub(ray.origin).data;
-            var dir = ray.direction.data;
+        _intersectsRay({origin, direction}, point) {
+            const tMin = tmpVecA.copy(this.getMin()).sub(origin).data;
+            const tMax = tmpVecB.copy(this.getMax()).sub(origin).data;
+            const dir = direction.data;
 
             // Ensure that we are not dividing it by zero
-            for (var i = 0; i < 3; i++) {
+            for (let i = 0; i < 3; i++) {
                 if (dir[i] === 0) {
                     tMin[i] = tMin[i] < 0 ? -Number.MAX_VALUE : Number.MAX_VALUE;
                     tMax[i] = tMax[i] < 0 ? -Number.MAX_VALUE : Number.MAX_VALUE;
@@ -118,29 +117,29 @@ pc.extend(pc, function () {
                 }
             }
 
-            var realMin = tmpVecC.set(Math.min(tMin[0], tMax[0]), Math.min(tMin[1], tMax[1]), Math.min(tMin[2], tMax[2])).data;
-            var realMax = tmpVecD.set(Math.max(tMin[0], tMax[0]), Math.max(tMin[1], tMax[1]), Math.max(tMin[2], tMax[2])).data;
+            const realMin = tmpVecC.set(Math.min(tMin[0], tMax[0]), Math.min(tMin[1], tMax[1]), Math.min(tMin[2], tMax[2])).data;
+            const realMax = tmpVecD.set(Math.max(tMin[0], tMax[0]), Math.max(tMin[1], tMax[1]), Math.max(tMin[2], tMax[2])).data;
 
-            var minMax = Math.min(Math.min(realMax[0], realMax[1]), realMax[2]);
-            var maxMin = Math.max(Math.max(realMin[0], realMin[1]), realMin[2]);
+            const minMax = Math.min(Math.min(realMax[0], realMax[1]), realMax[2]);
+            const maxMin = Math.max(Math.max(realMin[0], realMin[1]), realMin[2]);
 
-            var intersects = minMax >= maxMin && maxMin >= 0;
+            const intersects = minMax >= maxMin && maxMin >= 0;
 
             if (intersects)
-                point.copy(ray.direction).scale(maxMin).add(ray.origin);
+                point.copy(direction).scale(maxMin).add(origin);
 
             return intersects;
-        },
+        }
 
-        _fastIntersectsRay: function (ray) {
-            var diff = tmpVecA;
-            var cross = tmpVecB;
-            var prod = tmpVecC;
-            var absDiff = tmpVecD;
-            var absDir = tmpVecE;
-            var rayDir = ray.direction;
+        _fastIntersectsRay({direction, origin}) {
+            const diff = tmpVecA;
+            const cross = tmpVecB;
+            const prod = tmpVecC;
+            const absDiff = tmpVecD;
+            const absDir = tmpVecE;
+            const rayDir = direction;
 
-            diff.sub2(ray.origin, this.center);
+            diff.sub2(origin, this.center);
             absDiff.set(Math.abs(diff.x), Math.abs(diff.y), Math.abs(diff.z));
 
             prod.mul2(diff, rayDir);
@@ -168,7 +167,7 @@ pc.extend(pc, function () {
                 return false;
 
             return true;
-        },
+        }
 
         /**
          * @function
@@ -178,18 +177,18 @@ pc.extend(pc, function () {
          * @param {pc.Vec3} [point] If there is an intersection, the intersection point will be copied into here.
          * @returns {Boolean} True if there is an intersection.
          */
-        intersectsRay: function (ray, point) {
+        intersectsRay(ray, point) {
             if (point) {
                 return this._intersectsRay(ray, point);
             } else {
                 return this._fastIntersectsRay(ray);
             }
-        },
+        }
 
-        setMinMax: function (min, max) {
+        setMinMax(min, max) {
             this.center.add2(max, min).scale(0.5);
             this.halfExtents.sub2(max, min).scale(0.5);
-        },
+        }
 
         /**
          * @function
@@ -197,9 +196,9 @@ pc.extend(pc, function () {
          * @description Return the minimum corner of the AABB.
          * @returns {pc.Vec3} minimum corner.
          */
-        getMin: function () {
+        getMin() {
             return this._min.copy(this.center).sub(this.halfExtents);
-        },
+        }
 
         /**
          * @function
@@ -207,9 +206,9 @@ pc.extend(pc, function () {
          * @description Return the maximum corner of the AABB.
          * @returns {pc.Vec3} maximum corner.
          */
-        getMax: function () {
+        getMax() {
             return this._max.copy(this.center).add(this.halfExtents);
-        },
+        }
 
         /**
          * @function
@@ -218,18 +217,18 @@ pc.extend(pc, function () {
          * @param {pc.Vec3} point Point to test.
          * @returns {Boolean} true if the point is inside the AABB and false otherwise.
          */
-        containsPoint: function (point) {
-            var min = this.getMin();
-            var max = this.getMax();
-            var i;
+        containsPoint({data}) {
+            const min = this.getMin();
+            const max = this.getMax();
+            let i;
 
             for (i = 0; i < 3; ++i) {
-                if (point.data[i] < min.data[i] || point.data[i] > max.data[i])
+                if (data[i] < min.data[i] || data[i] > max.data[i])
                     return false;
             }
 
             return true;
-        },
+        }
 
         /**
          * @function
@@ -239,32 +238,32 @@ pc.extend(pc, function () {
          * @param {pc.BoundingBox} aabb Box to transform and enclose
          * @param {pc.Mat4} m Transformation matrix to apply to source AABB.
          */
-        setFromTransformedAabb: function (aabb, m) {
-            var bc = this.center;
-            var br = this.halfExtents;
-            var ac = aabb.center.data;
-            var ar = aabb.halfExtents.data;
+        setFromTransformedAabb({center, halfExtents}, m) {
+            const bc = this.center;
+            const br = this.halfExtents;
+            const ac = center.data;
+            const ar = halfExtents.data;
 
             m = m.data;
-            var mx0 = m[0];
-            var mx1 = m[4];
-            var mx2 = m[8];
-            var my0 = m[1];
-            var my1 = m[5];
-            var my2 = m[9];
-            var mz0 = m[2];
-            var mz1 = m[6];
-            var mz2 = m[10];
+            const mx0 = m[0];
+            const mx1 = m[4];
+            const mx2 = m[8];
+            const my0 = m[1];
+            const my1 = m[5];
+            const my2 = m[9];
+            const mz0 = m[2];
+            const mz1 = m[6];
+            const mz2 = m[10];
 
-            var mx0a = Math.abs(mx0);
-            var mx1a = Math.abs(mx1);
-            var mx2a = Math.abs(mx2);
-            var my0a = Math.abs(my0);
-            var my1a = Math.abs(my1);
-            var my2a = Math.abs(my2);
-            var mz0a = Math.abs(mz0);
-            var mz1a = Math.abs(mz1);
-            var mz2a = Math.abs(mz2);
+            const mx0a = Math.abs(mx0);
+            const mx1a = Math.abs(mx1);
+            const mx2a = Math.abs(mx2);
+            const my0a = Math.abs(my0);
+            const my1a = Math.abs(my1);
+            const my2a = Math.abs(my2);
+            const mz0a = Math.abs(mz0);
+            const mz1a = Math.abs(mz1);
+            const mz2a = Math.abs(mz2);
 
             bc.set(
                 m[12] + mx0 * ac[0] + mx1 * ac[1] + mx2 * ac[2],
@@ -277,17 +276,17 @@ pc.extend(pc, function () {
                 my0a * ar[0] + my1a * ar[1] + my2a * ar[2],
                 mz0a * ar[0] + mz1a * ar[1] + mz2a * ar[2]
             );
-        },
+        }
 
-        compute: function (vertices) {
-            var min = tmpVecA.set(vertices[0], vertices[1], vertices[2]);
-            var max = tmpVecB.set(vertices[0], vertices[1], vertices[2]);
-            var numVerts = vertices.length / 3;
+        compute(vertices) {
+            const min = tmpVecA.set(vertices[0], vertices[1], vertices[2]);
+            const max = tmpVecB.set(vertices[0], vertices[1], vertices[2]);
+            const numVerts = vertices.length / 3;
 
-            for (var i = 1; i < numVerts; i++) {
-                var x = vertices[i * 3 + 0];
-                var y = vertices[i * 3 + 1];
-                var z = vertices[i * 3 + 2];
+            for (let i = 1; i < numVerts; i++) {
+                const x = vertices[i * 3 + 0];
+                const y = vertices[i * 3 + 1];
+                const z = vertices[i * 3 + 2];
                 if (x < min.x) min.x = x;
                 if (y < min.y) min.y = y;
                 if (z < min.z) min.z = z;
@@ -297,7 +296,7 @@ pc.extend(pc, function () {
             }
 
             this.setMinMax(min, max);
-        },
+        }
 
         /**
          * @function
@@ -306,27 +305,27 @@ pc.extend(pc, function () {
          * @param {pc.BoundingSphere} sphere Bounding Sphere to test.
          * @returns {Boolean} true if the Bounding Sphere is overlapping, enveloping, or inside the AABB and false otherwise.
          */
-        intersectsBoundingSphere: function (sphere) {
-            var sq = this._distanceToBoundingSphereSq(sphere);
+        intersectsBoundingSphere(sphere) {
+            const sq = this._distanceToBoundingSphereSq(sphere);
             if (sq <= sphere.radius * sphere.radius) {
                 return true;
             }
 
             return false;
-        },
+        }
 
-        _distanceToBoundingSphereSq: function (sphere) {
-            var boxMin = this.getMin();
-            var boxMax = this.getMax();
+        _distanceToBoundingSphereSq({center}) {
+            const boxMin = this.getMin();
+            const boxMax = this.getMax();
 
-            var sq = 0;
+            let sq = 0;
 
-            for (var i = 0; i < 3; ++i) {
-                var out = 0;
-                var pn = sphere.center.data[i];
-                var bMin = boxMin.data[i];
-                var bMax = boxMax.data[i];
-                var val = 0;
+            for (let i = 0; i < 3; ++i) {
+                let out = 0;
+                const pn = center.data[i];
+                const bMin = boxMin.data[i];
+                const bMax = boxMax.data[i];
+                let val = 0;
 
                 if (pn < bMin) {
                     val = (bMin - pn);
@@ -343,9 +342,9 @@ pc.extend(pc, function () {
 
             return sq;
         }
-    };
+    }
 
     return {
-        BoundingBox: BoundingBox
+        BoundingBox
     };
-}());
+})());

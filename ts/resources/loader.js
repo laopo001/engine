@@ -1,19 +1,17 @@
-pc.extend(pc, function () {
-    'use strict';
-
+pc.extend(pc, (() => {
     /**
      * @constructor
      * @name pc.ResourceLoader
      * @classdesc Load resource data, potentially from remote sources. Caches resource on load to prevent
      * multiple requests. Add ResourceHandlers to handle different types of resources.
      */
-    var ResourceLoader = function () {
-        this._handlers = {};
-        this._requests = {};
-        this._cache = {};
-    };
+    class ResourceLoader {
+        constructor() {
+            this._handlers = {};
+            this._requests = {};
+            this._cache = {};
+        }
 
-    ResourceLoader.prototype = {
         /**
          * @function
          * @name pc.ResourceLoader#addHandler
@@ -25,18 +23,18 @@ pc.extend(pc, function () {
          * var loader = new ResourceLoader();
          * loader.addHandler("json", new pc.JsonHandler());
          */
-        addHandler: function (type, handler) {
+        addHandler(type, handler) {
             this._handlers[type] = handler;
             handler._loader = this;
-        },
+        }
 
-        removeHandler: function (type) {
+        removeHandler(type) {
             delete this._handlers[type];
-        },
+        }
 
-        getHandler: function (type) {
+        getHandler(type) {
             return this._handlers[type];
-        },
+        }
 
         /**
          * @function
@@ -53,15 +51,15 @@ pc.extend(pc, function () {
          *     // use texture here
          * });
          */
-        load: function(url, type, callback, asset) {
-            var handler = this._handlers[type];
+        load(url, type, callback, asset) {
+            const handler = this._handlers[type];
             if (!handler) {
-                var err = "No handler for asset type: " + type;
+                const err = `No handler for asset type: ${type}`;
                 callback(err);
                 return;
             }
 
-            var key = url + type;
+            const key = url + type;
 
             if (this._cache[key] !== undefined) {
                 // in cache
@@ -72,15 +70,16 @@ pc.extend(pc, function () {
             } else {
                 // new request
                 this._requests[key] = [callback];
-                handler.load(url, function (err, data, extra) {
+                handler.load(url, (err, data, extra) => {
                     // make sure key exists because loader
                     // might have been destroyed by now
                     if (!this._requests[key])
                         return;
 
-                    var i, len = this._requests[key].length;
+                    let i;
+                    const len = this._requests[key].length;
                     if (!err) {
-                        var resource = handler.open(url, data, asset);
+                        const resource = handler.open(url, data, asset);
                         this._cache[key] = resource;
                         for (i = 0; i < len; i++)
                             this._requests[key][i](null, resource, extra);
@@ -89,9 +88,9 @@ pc.extend(pc, function () {
                             this._requests[key][i](err);
                     }
                     delete this._requests[key];
-                }.bind(this), asset);
+                }, asset);
             }
-        },
+        }
 
         /**
          * @function
@@ -101,16 +100,16 @@ pc.extend(pc, function () {
          * @param {*} data The raw resource data.
          * @returns {*} The parsed resource data.
          */
-        open: function (type, data) {
-            var handler = this._handlers[type];
+        open(type, data) {
+            const handler = this._handlers[type];
             if (!handler) {
-                console.warn("No resource handler found for: " + type);
+                console.warn(`No resource handler found for: ${type}`);
                 return data;
             }
 
             return handler.open(null, data);
 
-        },
+        }
 
         /**
          * @function
@@ -120,21 +119,21 @@ pc.extend(pc, function () {
          * @param {pc.Asset} asset The asset to patch.
          * @param {pc.AssetRegistry} assets The asset registry.
          */
-        patch: function (asset, assets) {
-            var handler = this._handlers[asset.type];
+        patch(asset, assets) {
+            const handler = this._handlers[asset.type];
             if (!handler)  {
-                console.warn("No resource handler found for: " + asset.type);
+                console.warn(`No resource handler found for: ${asset.type}`);
                 return;
             }
 
             if (handler.patch) {
                 handler.patch(asset, assets);
             }
-        },
+        }
 
-        clearCache: function (url, type) {
+        clearCache(url, type) {
             delete this._cache[url + type];
-        },
+        }
 
         /**
          * @function
@@ -144,25 +143,25 @@ pc.extend(pc, function () {
          * @param {String} type The type of the resource.
          * @returns {*} The resource loaded from the cache.
          */
-        getFromCache: function (url, type) {
+        getFromCache(url, type) {
             if (this._cache[url + type]) {
                 return this._cache[url + type];
             }
-        },
+        }
 
         /**
          * @function
          * @name pc.ResourceLoader#destroy
          * @description Destroys the resource loader.
          */
-        destroy: function () {
+        destroy() {
             this._handlers = {};
             this._requests = {};
             this._cache = {};
         }
-    };
+    }
 
     return {
-        ResourceLoader: ResourceLoader
+        ResourceLoader
     };
-}());
+})());

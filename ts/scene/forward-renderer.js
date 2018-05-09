@@ -1,14 +1,14 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
 
     // Global shadowmap resources
-    var scaleShift = new pc.Mat4().mul2(
+    const scaleShift = new pc.Mat4().mul2(
         new pc.Mat4().setTranslate(0.5, 0.5, 0.5),
         new pc.Mat4().setScale(0.5, 0.5, 0.5)
     );
 
-    var opChanId = {r: 1, g: 2, b: 3, a: 4};
+    const opChanId = {r: 1, g: 2, b: 3, a: 4};
 
-    var pointLightRotations = [
+    const pointLightRotations = [
         new pc.Quat().setFromEulerAngles(0, 90, 180),
         new pc.Quat().setFromEulerAngles(0, -90, 180),
         new pc.Quat().setFromEulerAngles(90, 0, 0),
@@ -17,61 +17,61 @@ pc.extend(pc, function () {
         new pc.Quat().setFromEulerAngles(0, 0, 180)
     ];
 
-    var numShadowModes = 5;
-    var shadowMapCache = [{}, {}, {}, {}, {}]; // must be a size of numShadowModes
+    const numShadowModes = 5;
+    const shadowMapCache = [{}, {}, {}, {}, {}]; // must be a size of numShadowModes
 
-    var directionalShadowEpsilon = 0.01;
-    var pixelOffset = new pc.Vec2();
-    var blurScissorRect = {x: 1, y: 1, z: 0, w: 0};
+    const directionalShadowEpsilon = 0.01;
+    const pixelOffset = new pc.Vec2();
+    const blurScissorRect = {x: 1, y: 1, z: 0, w: 0};
 
-    var shadowCamView = new pc.Mat4();
-    var shadowCamViewProj = new pc.Mat4();
-    var c2sc = new pc.Mat4();
+    const shadowCamView = new pc.Mat4();
+    const shadowCamViewProj = new pc.Mat4();
+    const c2sc = new pc.Mat4();
 
-    var viewInvMat = new pc.Mat4();
-    var viewMat = new pc.Mat4();
-    var viewMat3 = new pc.Mat3();
-    var viewProjMat = new pc.Mat4();
-    var projMat;
+    const viewInvMat = new pc.Mat4();
+    const viewMat = new pc.Mat4();
+    const viewMat3 = new pc.Mat3();
+    const viewProjMat = new pc.Mat4();
+    let projMat;
 
-    var viewInvL = new pc.Mat4();
-    var viewInvR = new pc.Mat4();
-    var viewL = new pc.Mat4();
-    var viewR = new pc.Mat4();
-    var viewPosL = new pc.Vec3();
-    var viewPosR = new pc.Vec3();
-    var projL, projR;
-    var viewMat3L = new pc.Mat4();
-    var viewMat3R = new pc.Mat4();
-    var viewProjMatL = new pc.Mat4();
-    var viewProjMatR = new pc.Mat4();
+    const viewInvL = new pc.Mat4();
+    const viewInvR = new pc.Mat4();
+    const viewL = new pc.Mat4();
+    const viewR = new pc.Mat4();
+    const viewPosL = new pc.Vec3();
+    const viewPosR = new pc.Vec3();
+    let projL, projR;
+    const viewMat3L = new pc.Mat4();
+    const viewMat3R = new pc.Mat4();
+    const viewProjMatL = new pc.Mat4();
+    const viewProjMatR = new pc.Mat4();
 
-    var frustumDiagonal = new pc.Vec3();
-    var tempSphere = {center: null, radius: 0};
-    var meshPos;
-    var visibleSceneAabb = new pc.BoundingBox();
-    var lightBounds = new pc.BoundingBox();
-    var boneTextureSize = [0, 0];
-    var boneTexture, instancingData, modelMatrix, normalMatrix;
+    const frustumDiagonal = new pc.Vec3();
+    const tempSphere = {center: null, radius: 0};
+    let meshPos;
+    const visibleSceneAabb = new pc.BoundingBox();
+    const lightBounds = new pc.BoundingBox();
+    const boneTextureSize = [0, 0];
+    let boneTexture, instancingData, modelMatrix, normalMatrix;
 
-    var shadowMapCubeCache = {};
-    var maxBlurSize = 25;
+    const shadowMapCubeCache = {};
+    const maxBlurSize = 25;
 
-    var keyA, keyB;
+    let keyA, keyB;
 
     // The 8 points of the camera frustum transformed to light space
-    var frustumPoints = [];
+    const frustumPoints = [];
     for (var i = 0; i < 8; i++) {
         frustumPoints.push(new pc.Vec3());
     }
 
     function _getFrustumPoints(camera, farClip, points) {
-        var nearClip = camera._nearClip;
-        var fov = camera._fov * Math.PI / 180.0;
-        var aspect = camera._aspect;
-        var projection = camera._projection;
+        const nearClip = camera._nearClip;
+        const fov = camera._fov * Math.PI / 180.0;
+        const aspect = camera._aspect;
+        const projection = camera._projection;
 
-        var x, y;
+        let x, y;
         if (projection === pc.PROJECTION_PERSPECTIVE) {
             y = Math.tan(fov / 2.0) * nearClip;
         } else {
@@ -113,10 +113,8 @@ pc.extend(pc, function () {
     }
 
     function StaticArray(size) {
-        var data = new Array(size);
-        var obj = function(idx) {
-            return data[idx];
-        };
+        const data = new Array(size);
+        const obj = idx => data[idx];
         obj.size = 0;
         obj.push = function(v) {
             data[this.size] = v;
@@ -125,7 +123,7 @@ pc.extend(pc, function () {
         obj.data = data;
         return obj;
     }
-    var intersectCache = {
+    const intersectCache = {
         temp: [new pc.Vec3(), new pc.Vec3(), new pc.Vec3()],
         vertices: new Array(3),
         negative: new StaticArray(3),
@@ -134,8 +132,8 @@ pc.extend(pc, function () {
         zCollection: new StaticArray(36)
     };
     function _groupVertices(coord, face, smallerIsNegative) {
-        var intersections = intersectCache.intersections;
-        var small, large;
+        const intersections = intersectCache.intersections;
+        let small, large;
         if (smallerIsNegative) {
             small = intersectCache.negative;
             large = intersectCache.positive;
@@ -149,9 +147,9 @@ pc.extend(pc, function () {
         large.size = 0;
 
         // Grouping vertices according to the position related to the face
-        var intersectCount = 0;
-        var v;
-        for (var j = 0; j < 3; ++j) {
+        const intersectCount = 0;
+        let v;
+        for (let j = 0; j < 3; ++j) {
             v = intersectCache.vertices[j];
 
             if (v[coord] < face) {
@@ -165,9 +163,9 @@ pc.extend(pc, function () {
     }
     function _triXFace(zs, x, y, faceTest, yMin, yMax) {
 
-        var negative = intersectCache.negative;
-        var positive = intersectCache.positive;
-        var intersections = intersectCache.intersections;
+        const negative = intersectCache.negative;
+        const positive = intersectCache.positive;
+        const intersections = intersectCache.intersections;
 
         // Find intersections
         if (negative.size === 3) {
@@ -212,7 +210,7 @@ pc.extend(pc, function () {
                 zs.push(intersections(1).z);
             }
         } else {
-            var delta = (intersections(1).z - intersections(0).z) / (intersections(1)[y] - intersections(0)[y]);
+            const delta = (intersections(1).z - intersections(0).z) / (intersections(1)[y] - intersections(0)[y]);
             if (intersections(0)[y] > yMax) {
                 zs.push(intersections(0).z + delta * (yMax - intersections(0)[y]));
             } else if (intersections(0)[y] < yMin) {
@@ -231,11 +229,11 @@ pc.extend(pc, function () {
         return true;
     }
 
-    var _sceneAABB_LS = [
+    const _sceneAABB_LS = [
         new pc.Vec3(), new pc.Vec3(), new pc.Vec3(), new pc.Vec3(),
         new pc.Vec3(), new pc.Vec3(), new pc.Vec3(), new pc.Vec3()
     ];
-    var iAABBTriIndexes = [
+    const iAABBTriIndexes = [
         0,1,2,  1,2,3,
         4,5,6,  5,6,7,
         0,2,4,  2,4,6,
@@ -251,24 +249,24 @@ pc.extend(pc, function () {
         _sceneAABB_LS[0].y = _sceneAABB_LS[2].y = _sceneAABB_LS[4].y = _sceneAABB_LS[6].y = aabbMax.y;
         _sceneAABB_LS[0].z = _sceneAABB_LS[1].z = _sceneAABB_LS[4].z = _sceneAABB_LS[5].z = aabbMax.z;
 
-        for ( var i = 0; i < 8; ++i ) {
+        for ( let i = 0; i < 8; ++i ) {
             w2sc.transformPoint( _sceneAABB_LS[i], _sceneAABB_LS[i] );
         }
 
-        var minz = 9999999999;
-        var maxz = -9999999999;
+        let minz = 9999999999;
+        let maxz = -9999999999;
 
-        var vertices = intersectCache.vertices;
-        var positive = intersectCache.positive;
-        var zs       = intersectCache.zCollection;
+        const vertices = intersectCache.vertices;
+        const positive = intersectCache.positive;
+        const zs       = intersectCache.zCollection;
         zs.size = 0;
 
-        for (var AABBTriIter = 0; AABBTriIter < 12; ++AABBTriIter) {
+        for (let AABBTriIter = 0; AABBTriIter < 12; ++AABBTriIter) {
             vertices[0] = _sceneAABB_LS[iAABBTriIndexes[AABBTriIter * 3 + 0]];
             vertices[1] = _sceneAABB_LS[iAABBTriIndexes[AABBTriIter * 3 + 1]];
             vertices[2] = _sceneAABB_LS[iAABBTriIndexes[AABBTriIter * 3 + 2]];
 
-            var verticesWithinBound = 0;
+            let verticesWithinBound = 0;
 
             _groupVertices("x", lcamMinX, true);
             if (!_triXFace(zs, "x", "y", lcamMinX, lcamMinY, lcamMaxY)) continue;
@@ -292,8 +290,8 @@ pc.extend(pc, function () {
             }
         }
 
-        var z;
-        for (var j = 0, len = zs.size; j < len; j++) {
+        let z;
+        for (let j = 0, len = zs.size; j < len; j++) {
             z = zs(j);
             if (z < minz) minz = z;
             if (z > maxz) maxz = z;
@@ -309,11 +307,11 @@ pc.extend(pc, function () {
         _sceneAABB_LS[0].y = _sceneAABB_LS[2].y = _sceneAABB_LS[4].y = _sceneAABB_LS[6].y = aabbMax.y;
         _sceneAABB_LS[0].z = _sceneAABB_LS[1].z = _sceneAABB_LS[4].z = _sceneAABB_LS[5].z = aabbMax.z;
 
-        var minz = 9999999999;
-        var maxz = -9999999999;
-        var z;
+        let minz = 9999999999;
+        let maxz = -9999999999;
+        let z;
 
-        for ( var i = 0; i < 8; ++i ) {
+        for ( let i = 0; i < 8; ++i ) {
             w2sc.transformPoint( _sceneAABB_LS[i], _sceneAABB_LS[i] );
             z = _sceneAABB_LS[i].z;
             if (z < minz) minz = z;
@@ -326,41 +324,41 @@ pc.extend(pc, function () {
     //////////////////////////////////////
     // Shadow mapping support functions //
     //////////////////////////////////////
-    function getShadowFormat(device, shadowType) {
+    function getShadowFormat({webgl2}, shadowType) {
         if (shadowType === pc.SHADOW_VSM32) {
             return pc.PIXELFORMAT_RGBA32F;
         } else if (shadowType === pc.SHADOW_VSM16) {
             return pc.PIXELFORMAT_RGBA16F;
         } else if (shadowType === pc.SHADOW_PCF5) {
             return pc.PIXELFORMAT_DEPTH;
-        } else if (shadowType === pc.SHADOW_PCF3 && device.webgl2) {
+        } else if (shadowType === pc.SHADOW_PCF3 && webgl2) {
             return pc.PIXELFORMAT_DEPTH;
         }
         return pc.PIXELFORMAT_R8_G8_B8_A8;
     }
 
-    function getShadowFiltering(device, shadowType) {
-        if (shadowType === pc.SHADOW_PCF3 && !device.webgl2) {
+    function getShadowFiltering({webgl2, extTextureFloatLinear, extTextureHalfFloatLinear}, shadowType) {
+        if (shadowType === pc.SHADOW_PCF3 && !webgl2) {
             return pc.FILTER_NEAREST;
         } else if (shadowType === pc.SHADOW_VSM32) {
-            return device.extTextureFloatLinear ? pc.FILTER_LINEAR : pc.FILTER_NEAREST;
+            return extTextureFloatLinear ? pc.FILTER_LINEAR : pc.FILTER_NEAREST;
         } else if (shadowType === pc.SHADOW_VSM16) {
-            return device.extTextureHalfFloatLinear ? pc.FILTER_LINEAR : pc.FILTER_NEAREST;
+            return extTextureHalfFloatLinear ? pc.FILTER_LINEAR : pc.FILTER_NEAREST;
         }
         return pc.FILTER_LINEAR;
     }
 
     function createShadowMap(device, width, height, shadowType) {
-        var format = getShadowFormat(device, shadowType);
-        var filter = getShadowFiltering(device, shadowType);
+        const format = getShadowFormat(device, shadowType);
+        const filter = getShadowFiltering(device, shadowType);
 
-        var shadowMap = new pc.Texture(device, {
+        const shadowMap = new pc.Texture(device, {
             // #ifdef PROFILER
             profilerHint: pc.TEXHINT_SHADOWMAP,
             // #endif
-            format: format,
-            width: width,
-            height: height,
+            format,
+            width,
+            height,
             mipmaps: false,
             minFilter: filter,
             magFilter: filter,
@@ -385,7 +383,7 @@ pc.extend(pc, function () {
     }
 
     function createShadowCubeMap(device, size) {
-        var cubemap = new pc.Texture(device, {
+        const cubemap = new pc.Texture(device, {
             // #ifdef PROFILER
             profilerHint: pc.TEXHINT_SHADOWMAP,
             // #endif
@@ -400,9 +398,9 @@ pc.extend(pc, function () {
             addressV: pc.ADDRESS_CLAMP_TO_EDGE
         });
 
-        var targets = [ ];
-        var target;
-        for (var i = 0; i < 6; i++) {
+        const targets = [ ];
+        let target;
+        for (let i = 0; i < 6; i++) {
             target = new pc.RenderTarget({
                 colorBuffer: cubemap,
                 face: i,
@@ -419,8 +417,8 @@ pc.extend(pc, function () {
 
     function gaussWeights(kernelSize) {
         if (kernelSize > maxBlurSize) kernelSize = maxBlurSize;
-        var sigma = (kernelSize - 1) / (2*3);
-        var i, values, sum, halfWidth;
+        const sigma = (kernelSize - 1) / (2*3);
+        let i, values, sum, halfWidth;
 
         halfWidth = (kernelSize - 1) * 0.5;
         values = new Array(kernelSize);
@@ -436,13 +434,13 @@ pc.extend(pc, function () {
         return values;
     }
 
-    function createShadowCamera(device, shadowType, type) {
+    function createShadowCamera({webgl2}, shadowType, type) {
         // We don't need to clear the color buffer if we're rendering a depth map
-        var flags = pc.CLEARFLAG_DEPTH;
-        var hwPcf = shadowType === pc.SHADOW_PCF5 || (shadowType === pc.SHADOW_PCF3 && device.webgl2);
+        let flags = pc.CLEARFLAG_DEPTH;
+        let hwPcf = shadowType === pc.SHADOW_PCF5 || (shadowType === pc.SHADOW_PCF3 && webgl2);
         if (type === pc.LIGHTTYPE_POINT) hwPcf = false;
         if (!hwPcf) flags |= pc.CLEARFLAG_COLOR;
-        var shadowCam = new pc.Camera();
+        const shadowCam = new pc.Camera();
 
         if (shadowType >= pc.SHADOW_VSM8 && shadowType <= pc.SHADOW_VSM32) {
             shadowCam.clearColor[0] = 0;
@@ -467,8 +465,8 @@ pc.extend(pc, function () {
 
     function getShadowMapFromCache(device, res, mode, layer) {
         if (!layer) layer = 0;
-        var id = layer * 10000 + res;
-        var shadowBuffer = shadowMapCache[mode][id];
+        const id = layer * 10000 + res;
+        let shadowBuffer = shadowMapCache[mode][id];
         if (!shadowBuffer) {
             shadowBuffer = createShadowMap(device, res, res, mode? mode : pc.SHADOW_PCF3);
             shadowMapCache[mode][id] = shadowBuffer;
@@ -477,7 +475,7 @@ pc.extend(pc, function () {
     }
 
     function createShadowBuffer(device, light) {
-        var shadowBuffer;
+        let shadowBuffer;
         if (light._type === pc.LIGHTTYPE_POINT) {
             if (light._shadowType > pc.SHADOW_PCF3) light._shadowType = pc.SHADOW_PCF3; // no VSM or HW PCF point lights yet
             if (light._cacheShadowMap) {
@@ -506,11 +504,11 @@ pc.extend(pc, function () {
     }
 
     function getDepthKey(meshInstance) {
-        var material = meshInstance.material;
-        var x = meshInstance.skinInstance ? 10 : 0;
-        var y = 0;
+        const material = meshInstance.material;
+        const x = meshInstance.skinInstance ? 10 : 0;
+        let y = 0;
         if (material.opacityMap) {
-            var opChan = material.opacityMapChannel;
+            const opChan = material.opacityMapChannel;
             if (opChan) {
                 y = opChanId[opChan];
             }
@@ -528,7 +526,7 @@ pc.extend(pc, function () {
      */
     function ForwardRenderer(graphicsDevice) {
         this.device = graphicsDevice;
-        var device = this.device;
+        const device = this.device;
 
         this._shadowDrawCalls = 0;
         this._forwardDrawCalls = 0;
@@ -546,13 +544,13 @@ pc.extend(pc, function () {
         this._instancingTime = 0;
 
         // Shaders
-        var library = device.getProgramLibrary();
+        const library = device.getProgramLibrary();
         this.library = library;
 
         this.frontToBack = false;
 
         // Uniforms
-        var scope = device.scope;
+        const scope = device.scope;
         this.projId = scope.resolve('matrix_projection');
         this.viewId = scope.resolve('matrix_view');
         this.viewId3 = scope.resolve('matrix_view3');
@@ -606,9 +604,9 @@ pc.extend(pc, function () {
         this.sourceId = scope.resolve("source");
         this.pixelOffsetId = scope.resolve("pixelOffset");
         this.weightId = scope.resolve("weight[0]");
-        var chunks = pc.shaderChunks;
-        this.blurVsmShaderCode = [chunks.blurVSMPS, "#define GAUSS\n" + chunks.blurVSMPS];
-        var packed = "#define PACKED\n";
+        const chunks = pc.shaderChunks;
+        this.blurVsmShaderCode = [chunks.blurVSMPS, `#define GAUSS\n${chunks.blurVSMPS}`];
+        const packed = "#define PACKED\n";
         this.blurPackedVsmShaderCode = [packed + this.blurVsmShaderCode[0], packed + this.blurVsmShaderCode[1]];
         this.blurVsmShader = [{}, {}];
         this.blurPackedVsmShader = [{}, {}];
@@ -621,23 +619,23 @@ pc.extend(pc, function () {
         this.ambientColor = new Float32Array(3);
     }
 
-    function mat3FromMat4(m3, m4) {
-        m3.data[0] = m4.data[0];
-        m3.data[1] = m4.data[1];
-        m3.data[2] = m4.data[2];
+    function mat3FromMat4({data}, {data}) {
+        data[0] = data[0];
+        data[1] = data[1];
+        data[2] = data[2];
 
-        m3.data[3] = m4.data[4];
-        m3.data[4] = m4.data[5];
-        m3.data[5] = m4.data[6];
+        data[3] = data[4];
+        data[4] = data[5];
+        data[5] = data[6];
 
-        m3.data[6] = m4.data[8];
-        m3.data[7] = m4.data[9];
-        m3.data[8] = m4.data[10];
+        data[6] = data[8];
+        data[7] = data[9];
+        data[8] = data[10];
     }
 
     pc.extend(ForwardRenderer.prototype, {
 
-        sortCompare: function(drawCallA, drawCallB) {
+        sortCompare(drawCallA, drawCallB) {
             if (drawCallA.layer === drawCallB.layer) {
                 if (drawCallA.drawOrder && drawCallB.drawOrder) {
                     return drawCallA.drawOrder - drawCallB.drawOrder;
@@ -651,7 +649,7 @@ pc.extend(pc, function () {
             return drawCallB._key[pc.SORTKEY_FORWARD] - drawCallA._key[pc.SORTKEY_FORWARD];
         },
 
-        sortCompareMesh: function(drawCallA, drawCallB) {
+        sortCompareMesh(drawCallA, drawCallB) {
             if (drawCallA.layer === drawCallB.layer) {
                 if (drawCallA.drawOrder && drawCallB.drawOrder) {
                     return drawCallA.drawOrder - drawCallB.drawOrder;
@@ -670,39 +668,39 @@ pc.extend(pc, function () {
             return keyB - keyA;
         },
 
-        depthSortCompare: function(drawCallA, drawCallB) {
-            keyA = drawCallA._key[pc.SORTKEY_DEPTH];
-            keyB = drawCallB._key[pc.SORTKEY_DEPTH];
+        depthSortCompare({_key, mesh}, {_key, mesh}) {
+            keyA = _key[pc.SORTKEY_DEPTH];
+            keyB = _key[pc.SORTKEY_DEPTH];
 
-            if (keyA === keyB && drawCallA.mesh && drawCallB.mesh) {
-                return drawCallB.mesh.id - drawCallA.mesh.id;
+            if (keyA === keyB && mesh && mesh) {
+                return mesh.id - mesh.id;
             }
 
             return keyB - keyA;
         },
 
-        lightCompare: function(lightA, lightB) {
-            return lightA.key - lightB.key;
+        lightCompare({key}, {key}) {
+            return key - key;
         },
 
-        _isVisible: function(camera, meshInstance) {
-            if (!meshInstance.visible) return false;
+        _isVisible({frustum}, {visible, aabb, _aabb, _aabbVer}) {
+            if (!visible) return false;
 
-            meshPos = meshInstance.aabb.center;
-            if (meshInstance._aabb._radiusVer !== meshInstance._aabbVer) {
-                meshInstance._aabb._radius = meshInstance._aabb.halfExtents.length();
-                meshInstance._aabb._radiusVer = meshInstance._aabbVer;
+            meshPos = aabb.center;
+            if (_aabb._radiusVer !== _aabbVer) {
+                _aabb._radius = _aabb.halfExtents.length();
+                _aabb._radiusVer = _aabbVer;
             }
 
-            tempSphere.radius = meshInstance._aabb._radius;
+            tempSphere.radius = _aabb._radius;
             tempSphere.center = meshPos;
 
-            return camera.frustum.containsSphere(tempSphere);
+            return frustum.containsSphere(tempSphere);
         },
 
-        getShadowCamera: function(device, light) {
-            var shadowCam = light._shadowCamera;
-            var shadowBuffer;
+        getShadowCamera(device, light) {
+            let shadowCam = light._shadowCamera;
+            let shadowBuffer;
 
             if (shadowCam === null) {
                 shadowCam = light._shadowCamera = createShadowCamera(device, light._shadowType, light._type);
@@ -717,10 +715,10 @@ pc.extend(pc, function () {
             return shadowCam;
         },
 
-        updateCameraFrustum: function(camera) {
+        updateCameraFrustum(camera) {
             if (camera.vrDisplay && camera.vrDisplay.presenting) {
                 projMat = camera.vrDisplay.combinedProj;
-                var parent = camera._node.getParent();
+                const parent = camera._node.getParent();
                 if (parent) {
                     viewMat.copy(parent.getWorldTransform()).mul(camera.vrDisplay.combinedViewInv).invert();
                 } else {
@@ -738,8 +736,8 @@ pc.extend(pc, function () {
             if (camera.overrideCalculateTransform) {
                 camera.calculateTransform(viewInvMat, pc.VIEW_CENTER);
             } else {
-                var pos = camera._node.getPosition();
-                var rot = camera._node.getRotation();
+                const pos = camera._node.getPosition();
+                const rot = camera._node.getRotation();
                 viewInvMat.setTRS(pos, rot, pc.Vec3.ONE);
                 this.viewInvId.setValue(viewInvMat.data);
             }
@@ -749,8 +747,8 @@ pc.extend(pc, function () {
         },
 
         // make sure colorWrite is set to true to all channels, if you want to fully clear the target
-        setCamera: function (camera, target, clear, cullBorder) {
-            var vrDisplay = camera.vrDisplay;
+        setCamera(camera, target, clear, cullBorder) {
+            const vrDisplay = camera.vrDisplay;
             if (!vrDisplay || !vrDisplay.presenting) {
                 // Projection Matrix
                 projMat = camera.getProjectionMatrix();
@@ -761,8 +759,8 @@ pc.extend(pc, function () {
                 if (camera.overrideCalculateTransform) {
                     camera.calculateTransform(viewInvMat, pc.VIEW_CENTER);
                 } else {
-                    var pos = camera._node.getPosition();
-                    var rot = camera._node.getRotation();
+                    const pos = camera._node.getPosition();
+                    const rot = camera._node.getRotation();
                     viewInvMat.setTRS(pos, rot, pc.Vec3.ONE);
                 }
                 this.viewInvId.setValue(viewInvMat.data);
@@ -802,9 +800,9 @@ pc.extend(pc, function () {
                     viewR.copy(viewInvR).invert();
                     viewMat.copy(viewInvMat).invert();
                 } else {
-                    var parent = camera._node.getParent();
+                    const parent = camera._node.getParent();
                     if (parent) {
-                        var transform = parent.getWorldTransform();
+                        const transform = parent.getWorldTransform();
 
                         // ViewInverse LR (parent)
                         viewInvL.mul2(transform, vrDisplay.leftViewInv);
@@ -855,17 +853,17 @@ pc.extend(pc, function () {
             this.farClipId.setValue(camera._farClip);
             this.cameraParamsId.setValue(camera._shaderParams.data);
 
-            var device = this.device;
+            const device = this.device;
             device.setRenderTarget(target);
             device.updateBegin();
 
-            var rect = camera.getRect();
-            var pixelWidth = target ? target.width : device.width;
-            var pixelHeight = target ? target.height : device.height;
-            var x = Math.floor(rect.x * pixelWidth);
-            var y = Math.floor(rect.y * pixelHeight);
-            var w = Math.floor(rect.width * pixelWidth);
-            var h = Math.floor(rect.height * pixelHeight);
+            let rect = camera.getRect();
+            const pixelWidth = target ? target.width : device.width;
+            const pixelHeight = target ? target.height : device.height;
+            let x = Math.floor(rect.x * pixelWidth);
+            let y = Math.floor(rect.y * pixelHeight);
+            let w = Math.floor(rect.width * pixelWidth);
+            let h = Math.floor(rect.height * pixelHeight);
             device.setViewport(x, y, w, h);
             device.setScissor(x, y, w, h);
             if (clear) device.clear(camera._clearOptions); // clear full RT
@@ -880,18 +878,18 @@ pc.extend(pc, function () {
             if (cullBorder) device.setScissor(1, 1, pixelWidth-2, pixelHeight-2); // optionally clip borders when rendering
         },
 
-        dispatchGlobalLights: function (scene) {
-            var i;
+        dispatchGlobalLights(scene) {
+            let i;
             this.mainLight = -1;
 
-            var scope = this.device.scope;
+            const scope = this.device.scope;
 
             this.ambientColor[0] = scene.ambientLight.data[0];
             this.ambientColor[1] = scene.ambientLight.data[1];
             this.ambientColor[2] = scene.ambientLight.data[2];
             if (scene.gammaCorrection) {
                 for (i=0; i<3; i++) {
-                    this.ambientColor[i] = Math.pow(this.ambientColor[i], 2.2);
+                    this.ambientColor[i] = this.ambientColor[i] ** 2.2;
                 }
             }
             this.ambientId.setValue(this.ambientColor);
@@ -899,35 +897,35 @@ pc.extend(pc, function () {
             if (scene.skyboxModel) this.skyboxIntensityId.setValue(scene.skyboxIntensity);
         },
 
-        _resolveLight: function (scope, i) {
-            var light = "light" + i;
-            this.lightColorId[i] = scope.resolve(light + "_color");
-            this.lightDirId[i] = scope.resolve(light + "_direction");
-            this.lightShadowMapId[i] = scope.resolve(light + "_shadowMap");
-            this.lightShadowMatrixId[i] = scope.resolve(light + "_shadowMatrix");
-            this.lightShadowParamsId[i] = scope.resolve(light + "_shadowParams");
-            this.lightShadowMatrixVsId[i] = scope.resolve(light + "_shadowMatrixVS");
-            this.lightShadowParamsVsId[i] = scope.resolve(light + "_shadowParamsVS");
-            this.lightDirVsId[i] = scope.resolve(light + "_directionVS");
-            this.lightRadiusId[i] = scope.resolve(light + "_radius");
-            this.lightPosId[i] = scope.resolve(light + "_position");
-            this.lightInAngleId[i] = scope.resolve(light + "_innerConeAngle");
-            this.lightOutAngleId[i] = scope.resolve(light + "_outerConeAngle");
-            this.lightPosVsId[i] = scope.resolve(light + "_positionVS");
-            this.lightCookieId[i] = scope.resolve(light + "_cookie");
-            this.lightCookieIntId[i] = scope.resolve(light + "_cookieIntensity");
-            this.lightCookieMatrixId[i] = scope.resolve(light + "_cookieMatrix");
-            this.lightCookieOffsetId[i] = scope.resolve(light + "_cookieOffset");
+        _resolveLight(scope, i) {
+            const light = `light${i}`;
+            this.lightColorId[i] = scope.resolve(`${light}_color`);
+            this.lightDirId[i] = scope.resolve(`${light}_direction`);
+            this.lightShadowMapId[i] = scope.resolve(`${light}_shadowMap`);
+            this.lightShadowMatrixId[i] = scope.resolve(`${light}_shadowMatrix`);
+            this.lightShadowParamsId[i] = scope.resolve(`${light}_shadowParams`);
+            this.lightShadowMatrixVsId[i] = scope.resolve(`${light}_shadowMatrixVS`);
+            this.lightShadowParamsVsId[i] = scope.resolve(`${light}_shadowParamsVS`);
+            this.lightDirVsId[i] = scope.resolve(`${light}_directionVS`);
+            this.lightRadiusId[i] = scope.resolve(`${light}_radius`);
+            this.lightPosId[i] = scope.resolve(`${light}_position`);
+            this.lightInAngleId[i] = scope.resolve(`${light}_innerConeAngle`);
+            this.lightOutAngleId[i] = scope.resolve(`${light}_outerConeAngle`);
+            this.lightPosVsId[i] = scope.resolve(`${light}_positionVS`);
+            this.lightCookieId[i] = scope.resolve(`${light}_cookie`);
+            this.lightCookieIntId[i] = scope.resolve(`${light}_cookieIntensity`);
+            this.lightCookieMatrixId[i] = scope.resolve(`${light}_cookieMatrix`);
+            this.lightCookieOffsetId[i] = scope.resolve(`${light}_cookieOffset`);
         },
 
-        dispatchDirectLights: function (dirs, scene, mask) {
-            var numDirs = dirs.length;
-            var i;
-            var directional, wtm;
-            var cnt = 0;
+        dispatchDirectLights(dirs, {gammaCorrection}, mask) {
+            const numDirs = dirs.length;
+            let i;
+            let directional, wtm;
+            let cnt = 0;
             this.mainLight = -1;
 
-            var scope = this.device.scope;
+            const scope = this.device.scope;
 
             for (i = 0; i < numDirs; i++) {
                 if (!(dirs[i]._mask & mask)) continue;
@@ -939,32 +937,32 @@ pc.extend(pc, function () {
                     this._resolveLight(scope, cnt);
                 }
 
-                this.lightColorId[cnt].setValue(scene.gammaCorrection? directional._linearFinalColor.data : directional._finalColor.data);
+                this.lightColorId[cnt].setValue(gammaCorrection? directional._linearFinalColor.data : directional._finalColor.data);
 
                 // Directionals shine down the negative Y axis
                 wtm.getY(directional._direction).scale(-1);
                 this.lightDirId[cnt].setValue(directional._direction.normalize().data);
 
                 if (directional.castShadows) {
-                    var shadowMap = directional._isPcf && this.device.webgl2 ?
+                    const shadowMap = directional._isPcf && this.device.webgl2 ?
                         directional._shadowCamera.renderTarget.depthBuffer :
                         directional._shadowCamera.renderTarget.colorBuffer;
 
                     // make bias dependent on far plane because it's not constant for direct light
-                    var bias;
+                    let bias;
                     if (directional._isVsm) {
                         bias = -0.00001*20;
                     } else {
                         bias = (directional.shadowBias / directional._shadowCamera._farClip) * 100;
                         if (!this.device.webgl2 && this.device.extStandardDerivatives) bias *= -100;
                     }
-                    var normalBias = directional._isVsm ?
+                    const normalBias = directional._isVsm ?
                         directional.vsmBias / (directional._shadowCamera._farClip / 7.0) :
                         directional._normalOffsetBias;
 
                     this.lightShadowMapId[cnt].setValue(shadowMap);
                     this.lightShadowMatrixId[cnt].setValue(directional._shadowMatrix.data);
-                    var params = directional._rendererParams;
+                    const params = directional._rendererParams;
                     if (params.length!==3) params.length = 3;
                     params[0] = directional._shadowResolution;
                     params[1] = normalBias;
@@ -982,22 +980,22 @@ pc.extend(pc, function () {
             return cnt;
         },
 
-        dispatchPointLight: function (scene, scope, point, cnt) {
-            var wtm = point._node.getWorldTransform();
+        dispatchPointLight({gammaCorrection}, scope, point, cnt) {
+            const wtm = point._node.getWorldTransform();
 
             if (!this.lightColorId[cnt]) {
                 this._resolveLight(scope, cnt);
             }
 
             this.lightRadiusId[cnt].setValue(point.attenuationEnd);
-            this.lightColorId[cnt].setValue(scene.gammaCorrection? point._linearFinalColor.data : point._finalColor.data);
+            this.lightColorId[cnt].setValue(gammaCorrection? point._linearFinalColor.data : point._finalColor.data);
             wtm.getTranslation(point._position);
             this.lightPosId[cnt].setValue(point._position.data);
 
             if (point.castShadows) {
-                var shadowMap = point._shadowCamera.renderTarget.colorBuffer;
+                const shadowMap = point._shadowCamera.renderTarget.colorBuffer;
                 this.lightShadowMapId[cnt].setValue(shadowMap);
-                var params = point._rendererParams;
+                const params = point._rendererParams;
                 if (params.length!==4) params.length = 4;
                 params[0] = point._shadowResolution;
                 params[1] = point._normalOffsetBias;
@@ -1012,8 +1010,8 @@ pc.extend(pc, function () {
             }
         },
 
-        dispatchSpotLight: function (scene, scope, spot, cnt) {
-            var wtm = spot._node.getWorldTransform();
+        dispatchSpotLight({gammaCorrection}, scope, spot, cnt) {
+            const wtm = spot._node.getWorldTransform();
 
             if (!this.lightColorId[cnt]) {
                 this._resolveLight(scope, cnt);
@@ -1022,7 +1020,7 @@ pc.extend(pc, function () {
             this.lightInAngleId[cnt].setValue(spot._innerConeAngleCos);
             this.lightOutAngleId[cnt].setValue(spot._outerConeAngleCos);
             this.lightRadiusId[cnt].setValue(spot.attenuationEnd);
-            this.lightColorId[cnt].setValue(scene.gammaCorrection? spot._linearFinalColor.data : spot._finalColor.data);
+            this.lightColorId[cnt].setValue(gammaCorrection? spot._linearFinalColor.data : spot._finalColor.data);
             wtm.getTranslation(spot._position);
             this.lightPosId[cnt].setValue(spot._position.data);
             // Spots shine down the negative Y axis
@@ -1030,23 +1028,23 @@ pc.extend(pc, function () {
             this.lightDirId[cnt].setValue(spot._direction.normalize().data);
 
             if (spot.castShadows) {
-                var bias;
+                let bias;
                 if (spot._isVsm) {
                     bias = -0.00001*20;
                 } else {
                     bias = spot.shadowBias * 20; // approx remap from old bias values
                     if (!this.device.webgl2 && this.device.extStandardDerivatives) bias *= -100;
                 }
-                var normalBias = spot._isVsm ?
+                const normalBias = spot._isVsm ?
                     spot.vsmBias / (spot.attenuationEnd / 7.0) :
                     spot._normalOffsetBias;
 
-                var shadowMap = spot._isPcf && this.device.webgl2 ?
+                const shadowMap = spot._isPcf && this.device.webgl2 ?
                     spot._shadowCamera.renderTarget.depthBuffer :
                     spot._shadowCamera.renderTarget.colorBuffer;
                 this.lightShadowMapId[cnt].setValue(shadowMap);
                 this.lightShadowMatrixId[cnt].setValue(spot._shadowMatrix.data);
-                var params = spot._rendererParams;
+                const params = spot._rendererParams;
                 if (params.length!==4) params.length = 4;
                 params[0] = spot._shadowResolution;
                 params[1] = normalBias;
@@ -1063,8 +1061,8 @@ pc.extend(pc, function () {
             if (spot._cookie) {
                 this.lightCookieId[cnt].setValue(spot._cookie);
                 if (!spot.castShadows) {
-                    var shadowCam = this.getShadowCamera(this.device, spot);
-                    var shadowCamNode = shadowCam._node;
+                    const shadowCam = this.getShadowCamera(this.device, spot);
+                    const shadowCamNode = shadowCam._node;
 
                     shadowCamNode.setPosition(spot._node.getPosition());
                     shadowCamNode.setRotation(spot._node.getRotation());
@@ -1087,19 +1085,19 @@ pc.extend(pc, function () {
             }
         },
 
-        dispatchLocalLights: function (sortedLights, scene, mask, usedDirLights, staticLightList) {
-            var i;
-            var point, spot;
+        dispatchLocalLights(sortedLights, scene, mask, usedDirLights, staticLightList) {
+            let i;
+            let point, spot;
 
-            var pnts = sortedLights[pc.LIGHTTYPE_POINT];
-            var spts = sortedLights[pc.LIGHTTYPE_SPOT];
+            const pnts = sortedLights[pc.LIGHTTYPE_POINT];
+            const spts = sortedLights[pc.LIGHTTYPE_SPOT];
 
-            var numDirs = usedDirLights;
-            var numPnts = pnts.length;
-            var numSpts = spts.length;
-            var cnt = numDirs;
+            const numDirs = usedDirLights;
+            const numPnts = pnts.length;
+            const numSpts = spts.length;
+            let cnt = numDirs;
 
-            var scope = this.device.scope;
+            const scope = this.device.scope;
 
             for (i = 0; i < numPnts; i++) {
                 point = pnts[i];
@@ -1109,7 +1107,7 @@ pc.extend(pc, function () {
                 cnt++;
             }
 
-            var staticId = 0;
+            let staticId = 0;
             if (staticLightList) {
                 point = staticLightList[staticId];
                 while (point && point._type === pc.LIGHTTYPE_POINT) {
@@ -1139,16 +1137,16 @@ pc.extend(pc, function () {
             }
         },
 
-        cull: function(camera, drawCalls, visibleList) {
+        cull(camera, drawCalls, visibleList) {
             // #ifdef PROFILER
-            var cullTime = pc.now();
+            const cullTime = pc.now();
             // #endif
 
-            var visibleLength = 0;
-            var i, drawCall, visible;
-            var drawCallsCount = drawCalls.length;
+            let visibleLength = 0;
+            let i, drawCall, visible;
+            const drawCallsCount = drawCalls.length;
 
-            var cullingMask = camera.cullingMask || 0xFFFFFFFF; // if missing assume camera's default value
+            const cullingMask = camera.cullingMask || 0xFFFFFFFF; // if missing assume camera's default value
 
             if (!camera.frustumCulling) {
                 for (i = 0; i < drawCallsCount; i++) {
@@ -1198,30 +1196,30 @@ pc.extend(pc, function () {
             return visibleLength;
         },
 
-        cullLights: function(camera, lights) {
-            var i, light, type;
+        cullLights({frustum}, lights) {
+            let i, light, type;
             for (i = 0; i < lights.length; i++) {
                 light = lights[i];
                 type = light._type;
                 if (light.castShadows && light._enabled && light.shadowUpdateMode!==pc.SHADOWUPDATE_NONE) {
                     if (type !== pc.LIGHTTYPE_DIRECTIONAL) {
                         light.getBoundingSphere(tempSphere);
-                        if (!camera.frustum.containsSphere(tempSphere)) continue;
+                        if (!frustum.containsSphere(tempSphere)) continue;
                         light.visibleThisFrame = true;
                     }
                 }
             }
         },
 
-        updateCpuSkinMatrices: function(drawCalls) {
-            var drawCallsCount = drawCalls.length;
+        updateCpuSkinMatrices(drawCalls) {
+            const drawCallsCount = drawCalls.length;
             if (drawCallsCount === 0) return;
 
             // #ifdef PROFILER
-            var skinTime = pc.now();
+            const skinTime = pc.now();
             // #endif
 
-            var i, skin;
+            let i, skin;
             for (i = 0; i < drawCallsCount; i++) {
                 skin = drawCalls[i].skinInstance;
                 if (skin) {
@@ -1235,13 +1233,13 @@ pc.extend(pc, function () {
             // #endif
         },
 
-        updateGpuSkinMatrices: function(drawCalls) {
+        updateGpuSkinMatrices(drawCalls) {
             // #ifdef PROFILER
-            var skinTime = pc.now();
+            const skinTime = pc.now();
             // #endif
 
-            var i, skin;
-            var drawCallsCount = drawCalls.length;
+            let i, skin;
+            const drawCallsCount = drawCalls.length;
             for (i = 0; i < drawCallsCount; i++) {
                 if (!drawCalls[i].visibleThisFrame) continue;
                 skin = drawCalls[i].skinInstance;
@@ -1258,13 +1256,13 @@ pc.extend(pc, function () {
             // #endif
         },
 
-        updateMorphedBounds: function(drawCalls) {
+        updateMorphedBounds(drawCalls) {
             // #ifdef PROFILER
-            var morphTime = pc.now();
+            const morphTime = pc.now();
             // #endif
 
-            var i, morph;
-            var drawCallsCount = drawCalls.length;
+            let i, morph;
+            const drawCallsCount = drawCalls.length;
             for (i = 0; i < drawCallsCount; i++) {
                 morph = drawCalls[i].morphInstance;
                 if (morph && morph._dirty) {
@@ -1276,13 +1274,13 @@ pc.extend(pc, function () {
             // #endif
         },
 
-        updateMorphing: function(drawCalls) {
+        updateMorphing(drawCalls) {
             // #ifdef PROFILER
-            var morphTime = pc.now();
+            const morphTime = pc.now();
             // #endif
 
-            var i, morph;
-            var drawCallsCount = drawCalls.length;
+            let i, morph;
+            const drawCallsCount = drawCalls.length;
             for (i = 0; i < drawCallsCount; i++) {
                 if (!drawCalls[i].visibleThisFrame) continue;
                 morph = drawCalls[i].morphInstance;
@@ -1296,38 +1294,38 @@ pc.extend(pc, function () {
             // #endif
         },
 
-        setBaseConstants: function(device, material) {
+        setBaseConstants(device, {cull, opacityMap, alphaTest}) {
             // Cull mode
-            device.setCullMode(material.cull);
+            device.setCullMode(cull);
             // Alpha test
-            if (material.opacityMap) {
-                this.opacityMapId.setValue(material.opacityMap);
-                this.alphaTestId.setValue(material.alphaTest);
+            if (opacityMap) {
+                this.opacityMapId.setValue(opacityMap);
+                this.alphaTestId.setValue(alphaTest);
             }
         },
 
-        setSkinning: function(device, meshInstance, material) {
-            if (meshInstance.skinInstance) {
+        setSkinning({supportsBoneTextures}, {skinInstance}, material) {
+            if (skinInstance) {
                 this._skinDrawCalls++;
-                if (device.supportsBoneTextures) {
-                    boneTexture = meshInstance.skinInstance.boneTexture;
+                if (supportsBoneTextures) {
+                    boneTexture = skinInstance.boneTexture;
                     this.boneTextureId.setValue(boneTexture);
                     boneTextureSize[0] = boneTexture.width;
                     boneTextureSize[1] = boneTexture.height;
                     this.boneTextureSizeId.setValue(boneTextureSize);
                 } else {
-                    this.poseMatrixId.setValue(meshInstance.skinInstance.matrixPalette);
+                    this.poseMatrixId.setValue(skinInstance.matrixPalette);
                 }
             }
         },
 
-        drawInstance: function(device, meshInstance, mesh, style, normal) {
+        drawInstance(device, meshInstance, {primitive}, style, normal) {
             instancingData = meshInstance.instancingData;
             if (instancingData) {
                 this._instancedDrawCalls++;
                 this._removedByInstancing += instancingData.count;
                 device.setVertexBuffer(instancingData._buffer, 1, instancingData.offset);
-                device.draw(mesh.primitive[style], instancingData.count);
+                device.draw(primitive[style], instancingData.count);
                 if (instancingData._buffer === pc._autoInstanceBuffer) {
                     meshInstance.instancingData = null;
                     return instancingData.count - 1;
@@ -1346,49 +1344,49 @@ pc.extend(pc, function () {
                     this.normalMatrixId.setValue(normalMatrix.data);
                 }
 
-                device.draw(mesh.primitive[style]);
+                device.draw(primitive[style]);
                 return 0;
             }
         },
 
         // used for stereo
-        drawInstance2: function(device, meshInstance, mesh, style) {
+        drawInstance2(device, meshInstance, {primitive}, style) {
             instancingData = meshInstance.instancingData;
             if (instancingData) {
                 this._instancedDrawCalls++;
                 this._removedByInstancing += instancingData.count;
                 device.setVertexBuffer(instancingData._buffer, 1, instancingData.offset);
-                device.draw(mesh.primitive[style], instancingData.count);
+                device.draw(primitive[style], instancingData.count);
                 if (instancingData._buffer === pc._autoInstanceBuffer) {
                     meshInstance.instancingData = null;
                     return instancingData.count - 1;
                 }
             } else {
                 // matrices are already set
-                device.draw(mesh.primitive[style]);
+                device.draw(primitive[style]);
                 return 0;
             }
         },
 
-        renderShadows: function(lights, cameraPass) {
-            var device = this.device;
+        renderShadows(lights, cameraPass) {
+            const device = this.device;
             // #ifdef PROFILER
-            var shadowMapStartTime = pc.now();
+            const shadowMapStartTime = pc.now();
             // #endif
-            var i, j, light, shadowShader, type, shadowCam, shadowCamNode, lightNode, pass, passes, frustumSize, shadowType, smode;
-            var unitPerTexel, delta, p;
-            var minx, miny, minz, maxx, maxy, maxz, centerx, centery;
-            var opChan;
-            var visible, cullTime, numInstances;
-            var meshInstance, mesh, material;
-            var style;
-            var emptyAabb;
-            var drawCallAabb;
-            var settings;
-            var visibleList, visibleLength;
+            let i, j, light, shadowShader, type, shadowCam, shadowCamNode, lightNode, pass, passes, frustumSize, shadowType, smode;
+            let unitPerTexel, delta, p;
+            let minx, miny, minz, maxx, maxy, maxz, centerx, centery;
+            let opChan;
+            let visible, cullTime, numInstances;
+            let meshInstance, mesh, material;
+            let style;
+            let emptyAabb;
+            let drawCallAabb;
+            let settings;
+            let visibleList, visibleLength;
 
-            var passFlag = 1 << pc.SHADER_SHADOW;
-            var paramName, parameter, parameters;
+            const passFlag = 1 << pc.SHADER_SHADOW;
+            let paramName, parameter, parameters;
 
             for (i = 0; i < lights.length; i++) {
                 light = lights[i];
@@ -1544,21 +1542,20 @@ pc.extend(pc, function () {
                     } // end pass
 
                     if (light._isVsm) {
-                        var filterSize = light._vsmBlurSize;
+                        const filterSize = light._vsmBlurSize;
                         if (filterSize > 1) {
-                            var origShadowMap = shadowCam.renderTarget;
-                            var tempRt = getShadowMapFromCache(device, light._shadowResolution, light._shadowType, 1);
+                            const origShadowMap = shadowCam.renderTarget;
+                            const tempRt = getShadowMapFromCache(device, light._shadowResolution, light._shadowType, 1);
 
-                            var blurMode = light.vsmBlurMode;
-                            var blurShader = (light._shadowType === pc.SHADOW_VSM8? this.blurPackedVsmShader : this.blurVsmShader)[blurMode][filterSize];
+                            const blurMode = light.vsmBlurMode;
+                            let blurShader = (light._shadowType === pc.SHADOW_VSM8? this.blurPackedVsmShader : this.blurVsmShader)[blurMode][filterSize];
                             if (!blurShader) {
                                 this.blurVsmWeights[filterSize] = gaussWeights(filterSize);
-                                var chunks = pc.shaderChunks;
+                                const chunks = pc.shaderChunks;
                                 (light._shadowType === pc.SHADOW_VSM8? this.blurPackedVsmShader : this.blurVsmShader)[blurMode][filterSize] = blurShader =
                                     chunks.createShaderFromCode(this.device, chunks.fullscreenQuadVS,
-                                    "#define SAMPLES " + filterSize + "\n" +
-                                    (light._shadowType === pc.SHADOW_VSM8 ? this.blurPackedVsmShaderCode : this.blurVsmShaderCode)[blurMode],
-                                    "blurVsm" + blurMode + "" + filterSize + "" + (light._shadowType === pc.SHADOW_VSM8));
+                                    `#define SAMPLES ${filterSize}\n${(light._shadowType === pc.SHADOW_VSM8 ? this.blurPackedVsmShaderCode : this.blurVsmShaderCode)[blurMode]}`,
+                                    `blurVsm${blurMode}${filterSize}${light._shadowType === pc.SHADOW_VSM8}`);
                             }
 
                             blurScissorRect.z = light._shadowResolution - 2;
@@ -1596,30 +1593,39 @@ pc.extend(pc, function () {
             // #endif
         },
 
-        updateShader: function(meshInstance, objDefs, staticLightList, pass, sortedLights) {
-            meshInstance.material._scene = this.scene;
-            meshInstance.material.updateShader(this.device, this.scene, objDefs, staticLightList, pass, sortedLights);
-            meshInstance._shader[pass] = meshInstance.material.shader;
+        updateShader({material, _shader}, objDefs, staticLightList, pass, sortedLights) {
+            material._scene = this.scene;
+            material.updateShader(this.device, this.scene, objDefs, staticLightList, pass, sortedLights);
+            _shader[pass] = material.shader;
         },
 
-        renderForward: function(camera, drawCalls, drawCallsCount, sortedLights, pass, cullingMask, drawCallback, layer) {
-            var device = this.device;
-            var scene = this.scene;
-            var vrDisplay = camera.vrDisplay;
-            var passFlag = 1 << pass;
+        renderForward(
+            camera,
+            drawCalls,
+            drawCallsCount,
+            sortedLights,
+            pass,
+            cullingMask,
+            drawCallback,
+            layer
+        ) {
+            const device = this.device;
+            const scene = this.scene;
+            const vrDisplay = camera.vrDisplay;
+            const passFlag = 1 << pass;
 
-            var lightHash = layer ? layer._lightHash : 0;
+            const lightHash = layer ? layer._lightHash : 0;
 
             // #ifdef PROFILER
-            var forwardStartTime = pc.now();
+            const forwardStartTime = pc.now();
             // #endif
 
-            var i, drawCall, mesh, material, objDefs, variantKey, lightMask, style, usedDirLights;
-            var prevMeshInstance = null, prevMaterial = null, prevObjDefs, prevLightMask, prevStatic;
-            var paramName, parameter, parameters;
-            var stencilFront, stencilBack;
+            let i, drawCall, mesh, material, objDefs, variantKey, lightMask, style, usedDirLights;
+            let prevMeshInstance = null, prevMaterial = null, prevObjDefs, prevLightMask, prevStatic;
+            let paramName, parameter, parameters;
+            let stencilFront, stencilBack;
 
-            var halfWidth = device.width*0.5;
+            const halfWidth = device.width*0.5;
 
             // Render the scene
             for (i = 0; i < drawCallsCount; i++) {
@@ -1663,7 +1669,7 @@ pc.extend(pc, function () {
                         this._materialSwitches++;
                         if (!drawCall._shader[pass] || drawCall._shaderDefs !== objDefs || drawCall._lightHash !== lightHash) {
                             if (!drawCall.isStatic) {
-                                variantKey = pass + "_" + objDefs + "_" + lightHash;
+                                variantKey = `${pass}_${objDefs}_${lightHash}`;
                                 drawCall._shader[pass] = material.variants[variantKey];
                                 if (!drawCall._shader[pass]) {
                                     this.updateShader(drawCall, objDefs, null, pass, sortedLights);
@@ -1678,7 +1684,7 @@ pc.extend(pc, function () {
 
                         // #ifdef DEBUG
                         if (!device.setShader(drawCall._shader[pass])) {
-                            console.error('Error in material "' + material.name + '" with flags ' + objDefs);
+                            console.error(`Error in material "${material.name}" with flags ${objDefs}`);
                             drawCall.material = pc.Scene.defaultMaterial;
                         }
                         // #else
@@ -1846,9 +1852,9 @@ pc.extend(pc, function () {
             // #endif
         },
 
-        setupInstancing: function(device) {
+        setupInstancing(device) {
             if (!pc._instanceVertexFormat) {
-                var formatDesc = [
+                const formatDesc = [
                     { semantic: pc.SEMANTIC_TEXCOORD2, components: 4, type: pc.TYPE_FLOAT32 },
                     { semantic: pc.SEMANTIC_TEXCOORD3, components: 4, type: pc.TYPE_FLOAT32 },
                     { semantic: pc.SEMANTIC_TEXCOORD4, components: 4, type: pc.TYPE_FLOAT32 },
@@ -1864,13 +1870,13 @@ pc.extend(pc, function () {
             }
         },
 
-        revertStaticMeshes: function (meshInstances) {
-            var drawCalls = meshInstances;
-            var drawCallsCount = drawCalls.length;
-            var drawCall;
-            var newDrawCalls = [];
+        revertStaticMeshes(meshInstances) {
+            const drawCalls = meshInstances;
+            const drawCallsCount = drawCalls.length;
+            let drawCall;
+            const newDrawCalls = [];
 
-            var prevStaticSource;
+            let prevStaticSource;
             for (var i=0; i<drawCallsCount; i++) {
                 drawCall = drawCalls[i];
                 if (drawCall._staticSource) {
@@ -1890,53 +1896,53 @@ pc.extend(pc, function () {
             }
         },
 
-        prepareStaticMeshes: function (meshInstances, lights) {
+        prepareStaticMeshes(meshInstances, lights) {
             // #ifdef PROFILER
-            var prepareTime = pc.now();
-            var searchTime = 0;
-            var subSearchTime = 0;
-            var cullTime = 0;
-            var subCullTime = 0;
-            var readMeshTime = 0;
-            var subReadMeshTime = 0;
-            var triAabbTime = 0;
-            var subTriAabbTime = 0;
-            var writeMeshTime = 0;
-            var subWriteMeshTime = 0;
-            var combineTime = 0;
-            var subCombineTime = 0;
+            const prepareTime = pc.now();
+            let searchTime = 0;
+            let subSearchTime = 0;
+            let cullTime = 0;
+            let subCullTime = 0;
+            let readMeshTime = 0;
+            let subReadMeshTime = 0;
+            let triAabbTime = 0;
+            let subTriAabbTime = 0;
+            let writeMeshTime = 0;
+            let subWriteMeshTime = 0;
+            let combineTime = 0;
+            let subCombineTime = 0;
             // #endif
 
-            var i, j, k, v, s, index;
+            let i, j, k, v, s, index;
 
-            var device = this.device;
-            var scene = this.scene;
-            var drawCalls = meshInstances;
-            var drawCallsCount = drawCalls.length;
-            var drawCall, light;
+            const device = this.device;
+            const scene = this.scene;
+            const drawCalls = meshInstances;
+            const drawCallsCount = drawCalls.length;
+            let drawCall, light;
 
-            var newDrawCalls = [];
-            var mesh;
-            var indices, verts, numTris, elems, vertSize, offsetP, baseIndex;
-            var _x, _y, _z;
-            var minx, miny, minz, maxx, maxy, maxz;
-            var minv, maxv;
-            var minVec = new pc.Vec3();
-            var maxVec = new pc.Vec3();
-            var triAabb = new pc.BoundingBox();
-            var localLightBounds = new pc.BoundingBox();
-            var invMatrix = new pc.Mat4();
-            var triLightComb = [];
-            var triLightCombUsed;
-            var indexBuffer, vertexBuffer;
-            var combIndices, combIbName, combIb;
-            var lightTypePass;
-            var lightAabb = [];
-            var aabb;
-            var triBounds = [];
-            var staticLights = [];
-            var bit;
-            var lht;
+            const newDrawCalls = [];
+            let mesh;
+            let indices, verts, numTris, elems, vertSize, offsetP, baseIndex;
+            let _x, _y, _z;
+            let minx, miny, minz, maxx, maxy, maxz;
+            let minv, maxv;
+            const minVec = new pc.Vec3();
+            const maxVec = new pc.Vec3();
+            const triAabb = new pc.BoundingBox();
+            const localLightBounds = new pc.BoundingBox();
+            const invMatrix = new pc.Mat4();
+            const triLightComb = [];
+            let triLightCombUsed;
+            let indexBuffer, vertexBuffer;
+            let combIndices, combIbName, combIb;
+            let lightTypePass;
+            const lightAabb = [];
+            let aabb;
+            const triBounds = [];
+            const staticLights = [];
+            let bit;
+            let lht;
             for (i=0; i<drawCallsCount; i++) {
                 drawCall = drawCalls[i];
                 if (!drawCall.isStatic) {
@@ -2103,8 +2109,8 @@ pc.extend(pc, function () {
 
                         for (combIbName in combIndices) {
                             combIb = combIndices[combIbName];
-                            var ib = new pc.IndexBuffer(device, indexBuffer.format, combIb.length, indexBuffer.usage);
-                            var ib2 = ib.bytesPerIndex === 2? new Uint16Array(ib.lock()) : new Uint32Array(ib.lock());
+                            const ib = new pc.IndexBuffer(device, indexBuffer.format, combIb.length, indexBuffer.usage);
+                            const ib2 = ib.bytesPerIndex === 2? new Uint16Array(ib.lock()) : new Uint32Array(ib.lock());
                             ib2.set(combIb);
                             ib.unlock();
 
@@ -2128,10 +2134,10 @@ pc.extend(pc, function () {
                             }
                             minVec.set(minx, miny, minz);
                             maxVec.set(maxx, maxy, maxz);
-                            var chunkAabb = new pc.BoundingBox();
+                            const chunkAabb = new pc.BoundingBox();
                             chunkAabb.setMinMax(minVec, maxVec);
 
-                            var mesh2 = new pc.Mesh();
+                            const mesh2 = new pc.Mesh();
                             mesh2.vertexBuffer = vertexBuffer;
                             mesh2.indexBuffer[0] = ib;
                             mesh2.primitive[0].type = pc.PRIMITIVE_TRIANGLES;
@@ -2140,7 +2146,7 @@ pc.extend(pc, function () {
                             mesh2.primitive[0].indexed = true;
                             mesh2.aabb = chunkAabb;
 
-                            var instance = new pc.MeshInstance(drawCall.node, mesh2, drawCall.material);
+                            const instance = new pc.MeshInstance(drawCall.node, mesh2, drawCall.material);
                             instance.isStatic = drawCall.isStatic;
                             instance.visible = drawCall.visible;
                             instance.layer = drawCall.layer;
@@ -2171,7 +2177,7 @@ pc.extend(pc, function () {
                                 bit = 1 << k;
                                 if (combIbName & bit) {
                                     lht = lights[ staticLights[k] ];
-                                    if (instance._staticLightList.indexOf(lht) < 0) {
+                                    if (!instance._staticLightList.includes(lht)) {
                                         instance._staticLightList.push(lht);
                                     }
                                 }
@@ -2204,26 +2210,26 @@ pc.extend(pc, function () {
             // #endif
         },
 
-        updateShaders: function (drawCalls) {
+        updateShaders(drawCalls) {
 
             // #ifdef PROFILER
-            var time = pc.now();
+            const time = pc.now();
             // #endif
 
-            var i;
+            let i;
             // Collect materials
-            var materials = [];
+            const materials = [];
             for (i = 0; i < drawCalls.length; i++) {
-                var drawCall = drawCalls[i];
+                const drawCall = drawCalls[i];
                 if (drawCall.material !== undefined) {
-                    if (materials.indexOf(drawCall.material) === -1) {
+                    if (!materials.includes(drawCall.material)) {
                         materials.push(drawCall.material);
                     }
                 }
             }
             // Clear material shaders
             for (i = 0; i < materials.length; i++) {
-                var mat = materials[i];
+                const mat = materials[i];
                 if (mat.updateShader !== pc.Material.prototype.updateShader) {
                     mat.clearVariants();
                     mat.shader = null;
@@ -2235,11 +2241,11 @@ pc.extend(pc, function () {
             // #endif
         },
 
-        beginFrame: function (comp) {
-            var device = this.device;
-            var scene = this.scene;
-            var meshInstances = comp._meshInstances;
-            var lights = comp._lights;
+        beginFrame({_meshInstances, _lights}) {
+            const device = this.device;
+            const scene = this.scene;
+            const meshInstances = _meshInstances;
+            const lights = _lights;
 
             if (scene.updateSkybox) {
                 scene._updateSkybox(device);
@@ -2258,8 +2264,8 @@ pc.extend(pc, function () {
             this.updateCpuSkinMatrices(meshInstances);
             this.updateMorphedBounds(meshInstances);
 
-            var i;
-            var len = meshInstances.length;
+            let i;
+            let len = meshInstances.length;
             for (i=0; i<len; i++) {
                 meshInstances[i].visibleThisFrame = false;
             }
@@ -2270,16 +2276,16 @@ pc.extend(pc, function () {
             }
         },
 
-        beginLayers: function (comp) {
-            var scene = this.scene;
-            var len = comp.layerList.length;
-            var layer;
-            var i, j;
-            var shaderVersion = this.scene._shaderVersion;
+        beginLayers(comp) {
+            const scene = this.scene;
+            const len = comp.layerList.length;
+            let layer;
+            let i, j;
+            const shaderVersion = this.scene._shaderVersion;
             for (i = 0; i < len; i++) {
                 comp.layerList[i]._postRenderCounter = 0;
             }
-            var transparent;
+            let transparent;
             for (i = 0; i < len; i++) {
                 layer = comp.layerList[i];
                 layer._shaderVersion = shaderVersion;
@@ -2325,9 +2331,9 @@ pc.extend(pc, function () {
             }
         },
 
-        cullLocalShadowmap: function (light, drawCalls) {
-            var i, type, shadowCam, shadowCamNode, passes, pass, j, numInstances, meshInstance, visibleList, vlen, visible;
-            var lightNode;
+        cullLocalShadowmap(light, drawCalls) {
+            let i, type, shadowCam, shadowCamNode, passes, pass, j, numInstances, meshInstance, visibleList, vlen, visible;
+            let lightNode;
             type = light._type;
             if (type === pc.LIGHTTYPE_DIRECTIONAL) return;
             light.visibleThisFrame = true; // force light visibility if function was manually called
@@ -2390,17 +2396,17 @@ pc.extend(pc, function () {
         },
 
 
-        cullDirectionalShadowmap: function(light, drawCalls, camera, pass) {
-            var i, j, shadowShader, type, shadowCam, shadowCamNode, lightNode, passes, frustumSize, shadowType, smode, vlen, visibleList;
-            var unitPerTexel, delta, p;
-            var minx, miny, minz, maxx, maxy, maxz, centerx, centery;
-            var opChan;
-            var visible, cullTime, numInstances;
-            var meshInstance, mesh, material;
-            var style;
-            var emptyAabb;
-            var drawCallAabb;
-            var device = this.device;
+        cullDirectionalShadowmap(light, drawCalls, camera, pass) {
+            let i, j, shadowShader, type, shadowCam, shadowCamNode, lightNode, passes, frustumSize, shadowType, smode, vlen, visibleList;
+            let unitPerTexel, delta, p;
+            let minx, miny, minz, maxx, maxy, maxz, centerx, centery;
+            let opChan;
+            let visible, cullTime, numInstances;
+            let meshInstance, mesh, material;
+            let style;
+            let emptyAabb;
+            let drawCallAabb;
+            const device = this.device;
             light.visibleThisFrame = true; // force light visibility if function was manually called
 
             shadowCam = this.getShadowCamera(device, light);
@@ -2506,7 +2512,7 @@ pc.extend(pc, function () {
             // Fit clipping planes tightly around visible shadow casters
 
             // 1. Calculate minz/maxz based on casters' AABB
-            var z = _getZFromAABBSimple( shadowCamView, visibleSceneAabb.getMin(), visibleSceneAabb.getMax(), minx, maxx, miny, maxy );
+            const z = _getZFromAABBSimple( shadowCamView, visibleSceneAabb.getMin(), visibleSceneAabb.getMax(), minx, maxx, miny, maxy );
 
             // Always use the scene's aabb's Z value
             // Otherwise object between the light and the frustum won't cast shadow.
@@ -2519,11 +2525,11 @@ pc.extend(pc, function () {
             shadowCam.farClip = maxz - minz;
 
             // Save projection variables to use in rendering later
-            var settings = light._visibleCameraSettings[pass];
+            let settings = light._visibleCameraSettings[pass];
             if (!settings) {
                 settings = light._visibleCameraSettings[pass] = {};
             }
-            var lpos = shadowCamNode.getPosition().data;
+            const lpos = shadowCamNode.getPosition().data;
             settings.x = lpos[0];
             settings.y = lpos[1];
             settings.z = lpos[2];
@@ -2532,28 +2538,28 @@ pc.extend(pc, function () {
         },
 
 
-        gpuUpdate: function (drawCalls) {
+        gpuUpdate(drawCalls) {
             // skip everything with visibleThisFrame === false
             this.updateGpuSkinMatrices(drawCalls);
             this.updateMorphing(drawCalls);
         },
 
-        clearView: function (camera, target, options) {
+        clearView(camera, target, options) {
             camera = camera.camera;
-            var device = this.device;
+            const device = this.device;
             device.setRenderTarget(target);
             device.updateBegin();
 
             device.setColorWrite(true, true, true, true);
             device.setDepthWrite(true);
 
-            var rect = camera.getRect();
-            var pixelWidth = target ? target.width : device.width;
-            var pixelHeight = target ? target.height : device.height;
-            var x = Math.floor(rect.x * pixelWidth);
-            var y = Math.floor(rect.y * pixelHeight);
-            var w = Math.floor(rect.width * pixelWidth);
-            var h = Math.floor(rect.height * pixelHeight);
+            const rect = camera.getRect();
+            const pixelWidth = target ? target.width : device.width;
+            const pixelHeight = target ? target.height : device.height;
+            const x = Math.floor(rect.x * pixelWidth);
+            const y = Math.floor(rect.y * pixelHeight);
+            const w = Math.floor(rect.width * pixelWidth);
+            const h = Math.floor(rect.height * pixelHeight);
             device.setViewport(x, y, w, h);
             device.setScissor(x, y, w, h);
 
@@ -2561,9 +2567,9 @@ pc.extend(pc, function () {
         },
 
 
-        setSceneConstants: function () {
-            var device = this.device;
-            var scene = this.scene;
+        setSceneConstants() {
+            const device = this.device;
+            const scene = this.scene;
 
             // Set up ambient/exposure
             this.dispatchGlobalLights(scene);
@@ -2575,7 +2581,7 @@ pc.extend(pc, function () {
                 this.fogColor[2] = scene.fogColor.data[2];
                 if (scene.gammaCorrection) {
                     for (i=0; i<3; i++) {
-                        this.fogColor[i] = Math.pow(this.fogColor[i], 2.2);
+                        this.fogColor[i] = this.fogColor[i] ** 2.2;
                     }
                 }
                 this.fogColorId.setValue(this.fogColor);
@@ -2596,30 +2602,30 @@ pc.extend(pc, function () {
             //var halfWidth = device.width*0.5;
         },
 
-        renderComposition: function (comp) {
-            var device = this.device;
-            var camera;
-            var renderedRt = comp._renderedRt;
-            var renderedByCam = comp._renderedByCam;
-            var renderedLayer = comp._renderedLayer;
-            var i, layer, transparent, cameras, j, rt, k, processedThisCamera, processedThisCameraAndLayer, processedThisCameraAndRt, visibleLength;
+        renderComposition(comp) {
+            const device = this.device;
+            let camera;
+            const renderedRt = comp._renderedRt;
+            const renderedByCam = comp._renderedByCam;
+            const renderedLayer = comp._renderedLayer;
+            let i, layer, transparent, cameras, j, rt, k, processedThisCamera, processedThisCameraAndLayer, processedThisCameraAndRt, visibleLength;
 
 
             this.beginLayers(comp);
 
             // Update static layer data, if something's changed
-            var updated = comp._update();
+            const updated = comp._update();
             if (updated & pc.COMPUPDATED_LIGHTS) {
                 this.scene.updateShaders = true;
             }
 
             // #ifdef PROFILER
             if (updated & pc.COMPUPDATED_LIGHTS || !this.scene._statsUpdated) {
-                var stats = this.scene._stats;
+                const stats = this.scene._stats;
                 stats.lights = comp._lights.length;
                 stats.dynamicLights = 0;
                 stats.bakedLights = 0;
-                var l;
+                let l;
                 for (i=0; i<stats.lights; i++) {
                     l = comp._lights[i];
                     if (l._enabled) {
@@ -2644,8 +2650,8 @@ pc.extend(pc, function () {
 
             // Camera culling (once for each camera + layer)
             // Also applies meshInstance.visible and camera.cullingMask
-            var renderedLength = 0;
-            var objects, drawCalls, visible;
+            let renderedLength = 0;
+            let objects, drawCalls, visible;
             for (i=0; i<comp.layerList.length; i++) {
                 layer = comp.layerList[i];
                 if (!layer.enabled || !comp.subLayerEnabled[i]) continue;
@@ -2711,13 +2717,13 @@ pc.extend(pc, function () {
             // collected into light._visibleList
             // objects are also globally marked as visible
             // Also sets up local shadow camera matrices
-            var light, casters;
+            let light, casters;
 
             // Local lights
             // culled once for the whole frame
 
             // #ifdef PROFILER
-            var cullTime = pc.now();
+            const cullTime = pc.now();
             // #endif
 
             for (i=0; i<comp._lights.length; i++) {
@@ -2732,7 +2738,7 @@ pc.extend(pc, function () {
             // Directional lights
             // culled once for each camera
             renderedLength = 0;
-            var globalLightCounter = -1;
+            let globalLightCounter = -1;
             for (i=0; i<comp._lights.length; i++) {
                 light = comp._lights[i];
                 if (light._type !== pc.LIGHTTYPE_DIRECTIONAL) continue;
@@ -2760,8 +2766,8 @@ pc.extend(pc, function () {
 
             // Rendering
             renderedLength = 0;
-            var cameraPass;
-            var sortTime, draws, drawTime;
+            let cameraPass;
+            let sortTime, draws, drawTime;
             for (i=0; i<comp._renderList.length; i++) {
                 layer = comp.layerList[ comp._renderList[i] ];
                 if (!layer.enabled || !comp.subLayerEnabled[ comp._renderList[i] ]) continue;
@@ -2885,7 +2891,7 @@ pc.extend(pc, function () {
     });
 
     return {
-        ForwardRenderer: ForwardRenderer,
-        gaussWeights: gaussWeights
+        ForwardRenderer,
+        gaussWeights
     };
-}());
+})());

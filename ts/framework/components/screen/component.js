@@ -1,4 +1,4 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
     /**
      * @enum pc.SCALEMODE
      * @name pc.SCALEMODE_NONE
@@ -27,21 +27,116 @@ pc.extend(pc, function () {
      * @property {pc.Vec2} resolution The width and height of the ScreenComponent. When screenSpace is true the resolution will always be equal to {@link pc.GraphicsDevice#width} x {@link pc.GraphicsDevice#height}.
      * @property {pc.Vec2} referenceResolution The resolution that the ScreenComponent is designed for. This is only taken into account when screenSpace is true and scaleMode is {@link pc.SCALEMODE_BLEND}. If the actual resolution is different then the ScreenComponent will be scaled according to the scaleBlend value.
      */
-    var ScreenComponent = function ScreenComponent (system, entity) {
-        this._resolution = new pc.Vec2(640, 320);
-        this._referenceResolution = new pc.Vec2(640,320);
-        this._scaleMode = pc.SCALEMODE_NONE;
-        this.scale = 1;
-        this._scaleBlend = 0.5;
+    class ScreenComponent {
+        constructor({app}, entity) {
+            this._resolution = new pc.Vec2(640, 320);
+            this._referenceResolution = new pc.Vec2(640,320);
+            this._scaleMode = pc.SCALEMODE_NONE;
+            this.scale = 1;
+            this._scaleBlend = 0.5;
 
-        this._screenSpace = false;
-        this._screenMatrix = new pc.Mat4();
+            this._screenSpace = false;
+            this._screenMatrix = new pc.Mat4();
 
-        system.app.graphicsDevice.on("resizecanvas", this._onResize, this);
-    };
+            app.graphicsDevice.on("resizecanvas", this._onResize, this);
+        }
+
+        set resolution({x, y}) {
+            if (!this._screenSpace) {
+                this._resolution.set(x, y);
+            } else {
+                // ignore input when using screenspace.
+                this._resolution.set(this.system.app.graphicsDevice.width, this.system.app.graphicsDevice.height);
+            }
+
+            this._updateScale();
+
+            this._calcProjectionMatrix();
+
+            if (! this.entity._dirtyLocal)
+                this.entity._dirtify(true);
+
+            this.fire("set:resolution", this._resolution);
+        }
+
+        get resolution() {
+            return this._resolution;
+        }
+
+        set referenceResolution({x, y}) {
+            this._referenceResolution.set(x, y);
+            this._updateScale();
+            this._calcProjectionMatrix();
+
+            if (! this.entity._dirtyLocal)
+                this.entity._dirtify(true);
+
+            this.fire("set:referenceresolution", this._resolution);
+        }
+
+        get referenceResolution() {
+            if (this._scaleMode === pc.SCALEMODE_NONE) {
+                return this._resolution;
+            } else {
+                return this._referenceResolution;
+            }
+        }
+
+        set screenSpace(value) {
+            this._screenSpace = value;
+            if (this._screenSpace) {
+                this._resolution.set(this.system.app.graphicsDevice.width, this.system.app.graphicsDevice.height);
+            }
+            this.resolution = this._resolution; // force update either way
+
+            if (! this.entity._dirtyLocal)
+                this.entity._dirtify(true);
+
+            this.fire('set:screenspace', this._screenSpace);
+        }
+
+        get screenSpace() {
+            return this._screenSpace;
+        }
+
+        set scaleMode(value) {
+            if (value !== pc.SCALEMODE_NONE && value !== pc.SCALEMODE_BLEND) {
+                value = pc.SCALEMODE_NONE;
+            }
+
+            // world space screens do not support scale modes
+            if (!this._screenSpace && value !== pc.SCALEMODE_NONE) {
+                value = pc.SCALEMODE_NONE;
+            }
+
+            this._scaleMode = value;
+            this.resolution = this._resolution; // force update
+            this.fire("set:scalemode", this._scaleMode);
+        }
+
+        get scaleMode() {
+            return this._scaleMode;
+        }
+
+        set scaleBlend(value) {
+            this._scaleBlend = value;
+            this._updateScale();
+            this._calcProjectionMatrix();
+
+            if (! this.entity._dirtyLocal)
+                this.entity._dirtify(true);
+
+            this.fire("set:scaleblend", this._scaleBlend);
+        }
+
+        get scaleBlend() {
+            return this._scaleBlend;
+        }
+    }
+
     ScreenComponent = pc.inherits(ScreenComponent, pc.Component);
 
-    var _transform = new pc.Mat4();
+    const _transform = new pc.Mat4();
 
     pc.extend(ScreenComponent.prototype, {
         /**
@@ -50,16 +145,16 @@ pc.extend(pc, function () {
          * @description Set the drawOrder of each child {@link pc.ElementComponent}
          * so that ElementComponents which are last in the hierarchy are rendered on top.
          */
-        syncDrawOrder: function () {
-            var i = 1;
+        syncDrawOrder() {
+            let i = 1;
 
-            var recurse = function (e) {
+            const recurse = e => {
                 if (e.element) {
                     e.element.drawOrder = i++;
                 }
 
-                var children = e.getChildren();
-                for (var j = 0; j < children.length; j++) {
+                const children = e.getChildren();
+                for (let j = 0; j < children.length; j++) {
                     recurse(children[j]);
                 }
             };
@@ -67,16 +162,16 @@ pc.extend(pc, function () {
             recurse(this.entity);
         },
 
-        _calcProjectionMatrix: function () {
-            var left;
-            var right;
-            var bottom;
-            var top;
-            var near = 1;
-            var far = -1;
+        _calcProjectionMatrix() {
+            let left;
+            let right;
+            let bottom;
+            let top;
+            const near = 1;
+            const far = -1;
 
-            var w = this._resolution.x / this.scale;
-            var h = this._resolution.y / this.scale;
+            const w = this._resolution.x / this.scale;
+            const h = this._resolution.y / this.scale;
 
             left = 0;
             right = w;
@@ -91,131 +186,33 @@ pc.extend(pc, function () {
             }
         },
 
-        _updateScale: function () {
+        _updateScale() {
             this.scale = this._calcScale(this._resolution, this.referenceResolution);
         },
 
-        _calcScale: function (resolution, referenceResolution) {
+        _calcScale({x, y}, {x, y}) {
             // Using log of scale values
             // This produces a nicer outcome where if you have a xscale = 2 and yscale = 0.5
             // the combined scale is 1 for an even blend
-            var lx = Math.log2(resolution.x / referenceResolution.x);
-            var ly = Math.log2(resolution.y / referenceResolution.y);
-            return Math.pow(2, (lx*(1-this._scaleBlend) + ly*this._scaleBlend));
+            const lx = Math.log2(x / x);
+            const ly = Math.log2(y / y);
+            return 2 ** (lx*(1-this._scaleBlend) + ly*this._scaleBlend);
         },
 
-        _onResize: function (width, height) {
+        _onResize(width, height) {
             if (this._screenSpace) {
                 this._resolution.set(width, height);
                 this.resolution = this._resolution; // force update
             }
         },
 
-        onRemove: function () {
+        onRemove() {
             this.system.app.graphicsDevice.off("resizecanvas", this._onResize, this);
             this.fire('remove');
         }
     });
 
-    Object.defineProperty(ScreenComponent.prototype, "resolution", {
-        set: function (value) {
-            if (!this._screenSpace) {
-                this._resolution.set(value.x, value.y);
-            } else {
-                // ignore input when using screenspace.
-                this._resolution.set(this.system.app.graphicsDevice.width, this.system.app.graphicsDevice.height);
-            }
-
-            this._updateScale();
-
-            this._calcProjectionMatrix();
-
-            if (! this.entity._dirtyLocal)
-                this.entity._dirtify(true);
-
-            this.fire("set:resolution", this._resolution);
-        },
-        get: function () {
-            return this._resolution;
-        }
-    });
-
-    Object.defineProperty(ScreenComponent.prototype, "referenceResolution", {
-        set: function (value) {
-            this._referenceResolution.set(value.x, value.y);
-            this._updateScale();
-            this._calcProjectionMatrix();
-
-            if (! this.entity._dirtyLocal)
-                this.entity._dirtify(true);
-
-            this.fire("set:referenceresolution", this._resolution);
-        },
-        get: function () {
-            if (this._scaleMode === pc.SCALEMODE_NONE) {
-                return this._resolution;
-            } else {
-                return this._referenceResolution;
-            }
-        }
-    });
-
-    Object.defineProperty(ScreenComponent.prototype, "screenSpace", {
-        set: function (value) {
-            this._screenSpace = value;
-            if (this._screenSpace) {
-                this._resolution.set(this.system.app.graphicsDevice.width, this.system.app.graphicsDevice.height);
-            }
-            this.resolution = this._resolution; // force update either way
-
-            if (! this.entity._dirtyLocal)
-                this.entity._dirtify(true);
-
-            this.fire('set:screenspace', this._screenSpace);
-        },
-        get: function () {
-            return this._screenSpace;
-        }
-    });
-
-
-    Object.defineProperty(ScreenComponent.prototype, "scaleMode", {
-        set: function (value) {
-            if (value !== pc.SCALEMODE_NONE && value !== pc.SCALEMODE_BLEND) {
-                value = pc.SCALEMODE_NONE;
-            }
-
-            // world space screens do not support scale modes
-            if (!this._screenSpace && value !== pc.SCALEMODE_NONE) {
-                value = pc.SCALEMODE_NONE;
-            }
-
-            this._scaleMode = value;
-            this.resolution = this._resolution; // force update
-            this.fire("set:scalemode", this._scaleMode);
-        },
-        get: function () {
-            return this._scaleMode;
-        }
-    });
-
-    Object.defineProperty(ScreenComponent.prototype, "scaleBlend", {
-        set: function (value) {
-            this._scaleBlend = value;
-            this._updateScale();
-            this._calcProjectionMatrix();
-
-            if (! this.entity._dirtyLocal)
-                this.entity._dirtify(true);
-
-            this.fire("set:scaleblend", this._scaleBlend);
-        },
-        get: function () {
-            return this._scaleBlend;
-        }
-    });
-
     return {
-        ScreenComponent: ScreenComponent
+        ScreenComponent
     };
-}());
+})());

@@ -1,7 +1,7 @@
 pc.programlib.particle = {
-    generateKey: function(device, options) {
-        var key = "particle";
-        for (var prop in options) {
+    generateKey(device, options) {
+        let key = "particle";
+        for (const prop in options) {
             if (options.hasOwnProperty(prop)) {
                 key += options[prop];
             }
@@ -9,19 +9,22 @@ pc.programlib.particle = {
         return key;
     },
 
-    _animTex: function(options, chunk) {
-        var vshader = "";
-        vshader += options.animTexLoop? chunk.particleAnimFrameLoopVS : chunk.particleAnimFrameClampVS;
-        vshader += chunk.particleAnimTexVS;
+    _animTex(
+        {animTexLoop},
+        {particleAnimFrameLoopVS, particleAnimFrameClampVS, particleAnimTexVS}
+    ) {
+        let vshader = "";
+        vshader += animTexLoop? particleAnimFrameLoopVS : particleAnimFrameClampVS;
+        vshader += particleAnimTexVS;
         return vshader;
     },
 
-    createShaderDefinition: function(device, options) {
+    createShaderDefinition(device, options) {
 
-        var chunk = pc.shaderChunks;
+        const chunk = pc.shaderChunks;
 
-        var vshader = "";
-        var fshader = pc.programlib.precisionCode(device) + "\n";
+        let vshader = "";
+        let fshader = `${pc.programlib.precisionCode(device)}\n`;
 
         if (device.webgl2) {
             vshader += "#define GL2\n";
@@ -106,12 +109,12 @@ pc.programlib.particle = {
         }
         fshader += chunk.particle_endPS;
 
-        var attributes = pc.shaderChunks.collectAttribs(vshader);
+        const attributes = pc.shaderChunks.collectAttribs(vshader);
 
         return {
-            attributes: attributes,
-            vshader: vshader,
-            fshader: fshader
+            attributes,
+            vshader,
+            fshader
         };
     }
 };

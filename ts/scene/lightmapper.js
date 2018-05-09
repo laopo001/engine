@@ -1,35 +1,34 @@
-pc.extend(pc, function () {
+pc.extend(pc, (() => {
+    const maxSize = 2048;
+    const maskDynamic = 1;
+    const maskBaked = 2;
+    const maskLightmap = 4;
 
-    var maxSize = 2048;
-    var maskDynamic = 1;
-    var maskBaked = 2;
-    var maskLightmap = 4;
+    let sceneLightmaps = [];
+    let sceneLightmapsNode = [];
+    let lmCamera;
+    const tempVec = new pc.Vec3();
+    let bounds = new pc.BoundingBox();
+    const lightBounds = new pc.BoundingBox();
+    const tempSphere = {};
 
-    var sceneLightmaps = [];
-    var sceneLightmapsNode = [];
-    var lmCamera;
-    var tempVec = new pc.Vec3();
-    var bounds = new pc.BoundingBox();
-    var lightBounds = new pc.BoundingBox();
-    var tempSphere = {};
+    const PASS_COLOR = 0;
+    const PASS_DIR = 1;
 
-    var PASS_COLOR = 0;
-    var PASS_DIR = 1;
-
-    var passTexName = ["texture_lightMap", "texture_dirLightMap"];
-    var passMaterial = [];
+    const passTexName = ["texture_lightMap", "texture_dirLightMap"];
+    const passMaterial = [];
 
 
     function collectModels(node, nodes, nodesMeshInstances, allNodes) {
         if (!node.enabled) return;
 
-        var i;
+        let i;
         if (node.model && node.model.model && node.model.enabled) {
             if (allNodes) allNodes.push(node);
             if (node.model.data.lightmapped) {
                 if (nodes) {
-                    var hasUv1 = true;
-                    var meshInstances = node.model.model.meshInstances;
+                    let hasUv1 = true;
+                    const meshInstances = node.model.model.meshInstances;
                     for (i=0; i<meshInstances.length; i++) {
                         if (!meshInstances[i].mesh.vertexBuffer.format.hasUv1) {
                             hasUv1 = false;
@@ -38,9 +37,9 @@ pc.extend(pc, function () {
                     }
                     if (hasUv1) {
 
-                        var j;
-                        var isInstance;
-                        var notInstancedMeshInstances = [];
+                        let j;
+                        let isInstance;
+                        const notInstancedMeshInstances = [];
                         for (i=0; i<meshInstances.length; i++) {
                             isInstance = false;
                             for (j=0; j<meshInstances.length; j++) {
@@ -83,45 +82,44 @@ pc.extend(pc, function () {
      * @param {pc.ForwardRenderer} renderer The renderer.
      * @param {Array} assets Array of assets to lightmap.
      */
-    var Lightmapper = function (device, root, scene, renderer, assets) {
-        this.device = device;
-        this.root = root;
-        this.scene = scene;
-        this.renderer = renderer;
-        this.assets = assets;
+    class Lightmapper {
+        constructor(device, root, scene, renderer, assets) {
+            this.device = device;
+            this.root = root;
+            this.scene = scene;
+            this.renderer = renderer;
+            this.assets = assets;
 
-        // #ifdef PROFILER
-        this._stats = {
-            renderPasses: 0,
-            lightmapCount: 0,
-            totalRenderTime: 0,
-            forwardTime: 0,
-            fboTime: 0,
-            shadowMapTime: 0,
-            compileTime: 0,
-            shadersLinked: 0
-        };
-        // #endif
-    };
+            // #ifdef PROFILER
+            this._stats = {
+                renderPasses: 0,
+                lightmapCount: 0,
+                totalRenderTime: 0,
+                forwardTime: 0,
+                fboTime: 0,
+                shadowMapTime: 0,
+                compileTime: 0,
+                shadersLinked: 0
+            };
+            // #endif
+        }
 
-    Lightmapper.prototype = {
+        calculateLightmapSize({model, localScale, _parent}) {
+            let data, parent;
+            const sizeMult = this.scene.lightmapSizeMultiplier || 16;
+            const scale = tempVec;
+            const area = {x: 1, y: 1, z: 1, uv: 1};
 
-        calculateLightmapSize: function(node) {
-            var data, parent;
-            var sizeMult = this.scene.lightmapSizeMultiplier || 16;
-            var scale = tempVec;
-            var area = {x: 1, y: 1, z: 1, uv: 1};
-
-            if (node.model.asset) {
-                data = this.assets.get(node.model.asset).data;
+            if (model.asset) {
+                data = this.assets.get(model.asset).data;
                 if (data.area) {
                     area.x = data.area.x;
                     area.y = data.area.y;
                     area.z = data.area.z;
                     area.uv = data.area.uv;
                 }
-            } else if (node.model._area) {
-                data = node.model;
+            } else if (model._area) {
+                data = model;
                 if (data._area) {
                     area.x = data._area.x;
                     area.y = data._area.y;
@@ -129,13 +127,13 @@ pc.extend(pc, function () {
                     area.uv = data._area.uv;
                 }
             }
-            var areaMult = node.model.lightmapSizeMultiplier || 1;
+            const areaMult = model.lightmapSizeMultiplier || 1;
             area.x *= areaMult;
             area.y *= areaMult;
             area.z *= areaMult;
 
-            scale.copy(node.localScale);
-            parent = node._parent;
+            scale.copy(localScale);
+            parent = _parent;
             while (parent) {
                 scale.mul(parent.localScale);
                 parent = parent._parent;
@@ -146,14 +144,14 @@ pc.extend(pc, function () {
             scale.y = Math.abs(scale.y);
             scale.z = Math.abs(scale.z);
 
-            var totalArea = area.x * scale.y * scale.z +
+            let totalArea = area.x * scale.y * scale.z +
                             area.y * scale.x * scale.z +
                             area.z * scale.x * scale.y;
             totalArea /= area.uv;
             totalArea = Math.sqrt(totalArea);
 
             return Math.min(pc.math.nextPowerOfTwo(totalArea * sizeMult), this.scene.lightmapMaxResolution || maxSize);
-        },
+        }
 
         /**
          * @function
@@ -167,35 +165,35 @@ pc.extend(pc, function () {
          * </ul>
          * Only lights with bakeDir=true will be used for generating the dominant light direction.
          */
-        bake: function(nodes, mode) {
+        bake(nodes, mode) {
 
             // #ifdef PROFILER
-            var startTime = pc.now();
+            const startTime = pc.now();
             this.device.fire('lightmapper:start', {
                 timestamp: startTime,
                 target: this
             });
-            var stats = this._stats;
+            const stats = this._stats;
             // #endif
 
-            var i, j;
-            var device = this.device;
-            var scene = this.scene;
+            let i, j;
+            const device = this.device;
+            const scene = this.scene;
 
-            var passCount = 1;
+            let passCount = 1;
             if (mode===undefined) mode = pc.BAKE_COLORDIR;
             if (mode===pc.BAKE_COLORDIR) passCount = 2;
-            var pass;
+            let pass;
 
             // #ifdef PROFILER
             stats.renderPasses = stats.shadowMapTime = stats.forwardTime = 0;
-            var startShaders = device._shaderStats.linked;
-            var startFboTime = device._renderTargetCreationTime;
-            var startCompileTime = device._shaderStats.compileTime;
+            const startShaders = device._shaderStats.linked;
+            const startFboTime = device._renderTargetCreationTime;
+            const startCompileTime = device._shaderStats.compileTime;
             // #endif
 
-            var allNodes = [];
-            var nodesMeshInstances = [];
+            const allNodes = [];
+            const nodesMeshInstances = [];
             if (!nodes) {
                 // ///// Full bake /////
 
@@ -215,7 +213,7 @@ pc.extend(pc, function () {
                 // ///// Selected bake /////
 
                 // delete old lightmaps, if present
-                var k;
+                let k;
                 for (i = sceneLightmapsNode.length - 1; i >= 0; i--) {
                     for (j = 0; j < nodes.length; j++) {
                         if (sceneLightmapsNode[i] === nodes[j]) {
@@ -229,7 +227,7 @@ pc.extend(pc, function () {
                 }
 
                 // collect
-                var _nodes = [];
+                const _nodes = [];
                 for (i=0; i<nodes.length; i++) {
                     collectModels(nodes[i], _nodes, nodesMeshInstances);
                 }
@@ -252,19 +250,19 @@ pc.extend(pc, function () {
             // #endif
 
             // Disable static preprocessing (lightmapper needs original model draw calls)
-            var revertStatic = false;
+            let revertStatic = false;
             if (scene._needsStaticPrepare) {
                 scene._needsStaticPrepare = false;
                 revertStatic = true;
             }
 
             // Calculate lightmap sizes and allocate textures
-            var texSize = [];
-            var lmaps = [[], []];
-            var texPool = {};
-            var size;
-            var tex;
-            var blackTex = new pc.Texture(this.device, {
+            const texSize = [];
+            const lmaps = [[], []];
+            const texPool = {};
+            let size;
+            let tex;
+            const blackTex = new pc.Texture(this.device, {
                 width: 4,
                 height: 4,
                 format: pc.PIXELFORMAT_R8_G8_B8_A8,
@@ -291,7 +289,7 @@ pc.extend(pc, function () {
                 }
 
                 if (!texPool[size]) {
-                    var tex2 = new pc.Texture(device, {
+                    const tex2 = new pc.Texture(device, {
                         // #ifdef PROFILER
                         profilerHint: pc.TEXHINT_LIGHTMAP,
                         // #endif
@@ -304,23 +302,23 @@ pc.extend(pc, function () {
                         magFilter: pc.FILTER_NEAREST
                     });
 
-                    var targ2 = new pc.RenderTarget(device, tex2, {
+                    const targ2 = new pc.RenderTarget(device, tex2, {
                         depth: false
                     });
                     texPool[size] = targ2;
                 }
             }
 
-            var activeComp = scene.layers;
+            const activeComp = scene.layers;
             activeComp._update();
 
             // Collect bakeable lights
-            var lights = [];
-            var origMask = [];
-            var origShadowMode = [];
-            var origEnabled = [];
-            var sceneLights = activeComp._lights;
-            var mask;
+            const lights = [];
+            const origMask = [];
+            const origShadowMode = [];
+            const origEnabled = [];
+            const sceneLights = activeComp._lights;
+            let mask;
             for (i=0; i<sceneLights.length; i++) {
                 if (sceneLights[i]._enabled) {
                     mask = sceneLights[i]._mask;
@@ -340,19 +338,19 @@ pc.extend(pc, function () {
 
 
             // Init shaders
-            var chunks = pc.shaderChunks;
-            var xformUv1 = "#define UV1LAYOUT\n" + chunks.transformVS;
-            var bakeLmEnd = chunks.bakeLmEndPS;
-            var dilate = chunks.dilatePS;
+            const chunks = pc.shaderChunks;
+            const xformUv1 = `#define UV1LAYOUT\n${chunks.transformVS}`;
+            const bakeLmEnd = chunks.bakeLmEndPS;
+            const dilate = chunks.dilatePS;
 
-            var dilateShader = chunks.createShaderFromCode(device, chunks.fullscreenQuadVS, dilate, "lmDilate");
-            var constantTexSource = device.scope.resolve("source");
-            var constantPixelOffset = device.scope.resolve("pixelOffset");
-            var constantBakeDir = device.scope.resolve("bakeDir");
+            const dilateShader = chunks.createShaderFromCode(device, chunks.fullscreenQuadVS, dilate, "lmDilate");
+            const constantTexSource = device.scope.resolve("source");
+            const constantPixelOffset = device.scope.resolve("pixelOffset");
+            const constantBakeDir = device.scope.resolve("bakeDir");
 
-            var pixelOffset = new pc.Vec2();
+            const pixelOffset = new pc.Vec2();
 
-            var drawCalls = activeComp._meshInstances;
+            const drawCalls = activeComp._meshInstances;
 
             // update scene matrices
             for (i=0; i<drawCalls.length; i++) {
@@ -360,10 +358,10 @@ pc.extend(pc, function () {
             }
 
             // Store scene values
-            var origFog = scene.fog;
-            var origAmbientR = scene.ambientLight.data[0];
-            var origAmbientG = scene.ambientLight.data[1];
-            var origAmbientB = scene.ambientLight.data[2];
+            const origFog = scene.fog;
+            const origAmbientR = scene.ambientLight.data[0];
+            const origAmbientG = scene.ambientLight.data[1];
+            const origAmbientB = scene.ambientLight.data[2];
 
             scene.fog = pc.FOG_NONE;
             scene.ambientLight.data[0] = 0;
@@ -384,13 +382,13 @@ pc.extend(pc, function () {
                 lmCamera.frustumCulling = false;
             }
 
-            var node;
-            var lm, rcv, mat, m;
+            let node;
+            let lm, rcv, mat, m;
 
             // Disable existing scene lightmaps
-            var origShaderDefs = [];
+            const origShaderDefs = [];
             origShaderDefs.length = sceneLightmapsNode.length;
-            var shaderDefs;
+            let shaderDefs;
             for (node=0; node<allNodes.length; node++) {
                 rcv = allNodes[node].model.model.meshInstances;
                 shaderDefs = [];
@@ -409,9 +407,9 @@ pc.extend(pc, function () {
             }
 
             // Change shadow casting
-            var origCastShadows = [];
-            var casters = [];
-            var meshes;
+            const origCastShadows = [];
+            const casters = [];
+            let meshes;
             for (node=0; node<allNodes.length; node++) {
                 origCastShadows[node] = allNodes[node].model.castShadows;
                 allNodes[node].model.castShadows = allNodes[node].model.data.castShadowsLightmap;
@@ -427,17 +425,17 @@ pc.extend(pc, function () {
             this.renderer.updateCpuSkinMatrices(casters);
             this.renderer.gpuUpdate(casters);
 
-            var origMat = [];
+            const origMat = [];
 
             // Prepare models
-            var nodeBounds = [];
-            var nodeTarg = [[],[]];
-            var targ, targTmp, texTmp;
-            var light, shadowCam;
-            var nodeLightCount = [];
+            const nodeBounds = [];
+            const nodeTarg = [[],[]];
+            let targ, targTmp, texTmp;
+            let light, shadowCam;
+            const nodeLightCount = [];
             nodeLightCount.length = nodes.length;
 
-            var lmMaterial;
+            let lmMaterial;
             for (pass=0; pass<passCount; pass++) {
                 if (!passMaterial[pass]) {
                     lmMaterial = new pc.StandardMaterial();
@@ -450,7 +448,7 @@ pc.extend(pc, function () {
                         lmMaterial.ambientTint = true;
                         lmMaterial.lightMap = blackTex;
                     } else {
-                        lmMaterial.chunks.basePS = chunks.basePS + "\nuniform sampler2D texture_dirLightMap;\nuniform float bakeDir;\n";
+                        lmMaterial.chunks.basePS = `${chunks.basePS}\nuniform sampler2D texture_dirLightMap;\nuniform float bakeDir;\n`;
                         lmMaterial.chunks.endPS = chunks.bakeDirLmEndPS;
                     }
 
@@ -462,7 +460,7 @@ pc.extend(pc, function () {
                     lmMaterial.forceUv1 = true; // provide data to xformUv1
                     lmMaterial.update();
                     lmMaterial.updateShader(device, scene);
-                    lmMaterial.name = "lmMaterial" + pass;
+                    lmMaterial.name = `lmMaterial${pass}`;
 
                     passMaterial[pass] = lmMaterial;
                 }
@@ -480,7 +478,7 @@ pc.extend(pc, function () {
                         bounds.add(rcv[i].aabb);
                     }
                 }
-                var nbounds = new pc.BoundingBox();
+                const nbounds = new pc.BoundingBox();
                 nbounds.copy(bounds);
                 nodeBounds.push(nbounds);
 
@@ -510,12 +508,12 @@ pc.extend(pc, function () {
             for (j=0; j<lights.length; j++)
                 lights[j].enabled = false;
 
-            var drawCallArray = [];
-            var lightArray = [[], [], []];
+            const drawCallArray = [];
+            const lightArray = [[], [], []];
 
             // Accumulate lights into RGBM textures
-            var shadersUpdatedOn1stPass = false;
-            var shadowMapRendered;
+            let shadersUpdatedOn1stPass = false;
+            let shadowMapRendered;
             for (i=0; i<lights.length; i++) {
 
                 lights[i].enabled = true; // enable next light
@@ -564,7 +562,7 @@ pc.extend(pc, function () {
                         lmCamera._node.setPosition(tempVec);
                         lmCamera._node.setEulerAngles(-90, 0, 0);
 
-                        var frustumSize = Math.max(bounds.halfExtents.x, bounds.halfExtents.z);
+                        const frustumSize = Math.max(bounds.halfExtents.x, bounds.halfExtents.z);
 
                         lmCamera.projection = pc.PROJECTION_ORTHOGRAPHIC;
                         lmCamera.nearClip = 0;
@@ -578,7 +576,7 @@ pc.extend(pc, function () {
                     }
 
                     if (lights[i]._type===pc.LIGHTTYPE_SPOT) {
-                        var nodeVisible = false;
+                        let nodeVisible = false;
                         for (j=0; j<rcv.length; j++) {
                             if (this.renderer._isVisible(shadowCam, rcv[j])) {
                                 nodeVisible = true;
@@ -694,7 +692,7 @@ pc.extend(pc, function () {
             }
 
 
-            var sceneLmaps;
+            let sceneLmaps;
             for (node=0; node<nodes.length; node++) {
                 rcv = nodesMeshInstances[node];
                 sceneLmaps = [];
@@ -706,7 +704,7 @@ pc.extend(pc, function () {
                     texTmp = targTmp.colorBuffer;
 
                     // Dilate
-                    var numDilates2x = 4; // 8 dilates
+                    const numDilates2x = 4; // 8 dilates
                     pixelOffset.set(1/lm.width, 1/lm.height);
                     constantPixelOffset.setValue(pixelOffset.data);
                     for (i=0; i<numDilates2x; i++) {
@@ -736,7 +734,7 @@ pc.extend(pc, function () {
                 sceneLightmapsNode.push(nodes[node]);
             }
 
-            for (var key in texPool) {
+            for (const key in texPool) {
                 if (texPool.hasOwnProperty(key)) {
                     texPool[key].colorBuffer.destroy();
                     texPool[key].destroy();
@@ -800,9 +798,9 @@ pc.extend(pc, function () {
             stats.fboTime = device._renderTargetCreationTime - startFboTime;
             // #endif
         }
-    };
+    }
 
     return {
-        Lightmapper: Lightmapper
+        Lightmapper
     };
-}());
+})());

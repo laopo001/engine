@@ -1,5 +1,5 @@
-pc.extend(pc, function () {
-    var _schema = [ 'enabled' ];
+pc.extend(pc, (() => {
+    const _schema = [ 'enabled' ];
 
     /**
      * @name pc.ScriptComponentSystem
@@ -9,7 +9,7 @@ pc.extend(pc, function () {
      * @extends pc.ComponentSystem
      */
 
-    var ScriptComponentSystem = function ScriptComponentSystem(app) {
+    let ScriptComponentSystem = function ScriptComponentSystem(app) {
         this.id = 'script';
         this.app = app;
         app.systems.add(this.id, this);
@@ -35,7 +35,7 @@ pc.extend(pc, function () {
     pc.Component._buildAccessors(pc.ScriptComponent.prototype, _schema);
 
     pc.extend(ScriptComponentSystem.prototype, {
-        initializeComponentData: function(component, data, properties) {
+        initializeComponentData(component, data, properties) {
             this._components.push(component);
 
             component.enabled = data.hasOwnProperty('enabled') ? !!data.enabled : true;
@@ -43,7 +43,7 @@ pc.extend(pc, function () {
             if (data.hasOwnProperty('order') && data.hasOwnProperty('scripts')) {
                 component._scriptsData = data.scripts;
 
-                for (var i = 0; i < data.order.length; i++) {
+                for (let i = 0; i < data.order.length; i++) {
                     component.create(data.order[i], {
                         enabled: data.scripts[data.order[i]].enabled,
                         attributes: data.scripts[data.order[i]].attributes,
@@ -53,42 +53,42 @@ pc.extend(pc, function () {
             }
         },
 
-        cloneComponent: function(entity, clone) {
-            var i, key;
-            var order = [ ];
-            var scripts = { };
+        cloneComponent({script}, clone) {
+            let i, key;
+            const order = [ ];
+            const scripts = { };
 
-            for (i = 0; i < entity.script._scripts.length; i++) {
-                var scriptInstance = entity.script._scripts[i];
-                var scriptName = scriptInstance.__scriptType.__name;
+            for (i = 0; i < script._scripts.length; i++) {
+                const scriptInstance = script._scripts[i];
+                const scriptName = scriptInstance.__scriptType.__name;
                 order.push(scriptName);
 
-                var attributes = { };
+                const attributes = { };
                 for (key in scriptInstance.__attributes)
                     attributes[key] = scriptInstance.__attributes[key];
 
                 scripts[scriptName] = {
                     enabled: scriptInstance._enabled,
-                    attributes: attributes
+                    attributes
                 };
             }
 
-            for (key in entity.script._scriptsIndex) {
+            for (key in script._scriptsIndex) {
                 if (key.awayting)
                     order.splice(key.ind, 0, key);
             }
 
-            var data = {
-                enabled: entity.script.enabled,
-                order: order,
-                scripts: scripts
+            const data = {
+                enabled: script.enabled,
+                order,
+                scripts
             };
 
             return this.addComponent(clone, data);
         },
 
-        _callComponentMethod: function(name, dt) {
-            for (var i = 0; i < this._components.length; i++) {
+        _callComponentMethod(name, dt) {
+            for (let i = 0; i < this._components.length; i++) {
                 if (! this._components[i].entity.enabled || ! this._components[i].enabled)
                     continue;
 
@@ -96,27 +96,27 @@ pc.extend(pc, function () {
             }
         },
 
-        _onInitialize: function() {
+        _onInitialize() {
             this.preloading = false;
 
             // initialize attributes
-            for (var i = 0; i < this._components.length; i++)
+            for (let i = 0; i < this._components.length; i++)
                 this._components[i]._onInitializeAttributes();
 
             this._callComponentMethod('_onInitialize');
         },
-        _onPostInitialize: function() {
+        _onPostInitialize() {
             this._callComponentMethod('_onPostInitialize');
         },
-        _onUpdate: function(dt) {
+        _onUpdate(dt) {
             this._callComponentMethod('_onUpdate', dt);
         },
-        _onPostUpdate: function(dt) {
+        _onPostUpdate(dt) {
             this._callComponentMethod('_onPostUpdate', dt);
         },
 
-        _onBeforeRemove: function(entity, component) {
-            var ind = this._components.indexOf(component);
+        _onBeforeRemove(entity, component) {
+            const ind = this._components.indexOf(component);
             if (ind === -1) return;
 
             component._onBeforeRemove();
@@ -126,6 +126,6 @@ pc.extend(pc, function () {
     });
 
     return {
-        ScriptComponentSystem: ScriptComponentSystem
+        ScriptComponentSystem
     };
-}());
+})());
