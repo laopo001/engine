@@ -1,5 +1,8 @@
-pc.extend(pc, (() => {
-    class ScopeId {
+namespace pc {
+    export class ScopeId {
+        name: any;
+        value: any;
+        versionObject: any;
         constructor(name) {
             // Set the name
             this.name = name;
@@ -24,7 +27,4 @@ pc.extend(pc, (() => {
         }
     }
 
-    return {
-        ScopeId
-    };
-})());
+}

@@ -1,4 +1,4 @@
-pc.extend(pc, ((() => {
+namespace pc {
     /**
      * @constructor
      * @name pc.Quat
@@ -9,21 +9,7 @@ pc.extend(pc, ((() => {
      * @param {Number} [z] The quaternion's z component. Default value 0.
      * @param {Number} [w] The quaternion's w component. Default value 1.
      */
-    class Quat {
-        constructor(x, y, z, w) {
-            if (x && x.length === 4) {
-                this.x = x[0];
-                this.y = x[1];
-                this.z = x[2];
-                this.w = x[3];
-            } else {
-                this.x = (x === undefined) ? 0 : x;
-                this.y = (y === undefined) ? 0 : y;
-                this.z = (z === undefined) ? 0 : z;
-                this.w = (w === undefined) ? 1 : w;
-            }
-        }
-
+    export class Quat {
         /**
          * @field
          * @type Number
@@ -38,6 +24,8 @@ pc.extend(pc, ((() => {
          * // Set x
          * quat.x = 0;
          */
+        x: number;
+
         /**
          * @field
          * @type Number
@@ -52,6 +40,7 @@ pc.extend(pc, ((() => {
          * // Set y
          * quat.y = 0;
          */
+        y: number;
         /**
          * @field
          * @type Number
@@ -66,6 +55,7 @@ pc.extend(pc, ((() => {
          * // Set z
          * quat.z = 0;
          */
+        z: number;
         /**
          * @field
          * @type Number
@@ -80,6 +70,25 @@ pc.extend(pc, ((() => {
          * // Set w
          * quat.w = 0;
          */
+        w: number;
+        constructor(x: number, y: number, z: number, w: number)
+        constructor(x: [number, number, number, number])
+        constructor()
+        constructor(x?, y?, z?, w?) {
+            if (x && x.length === 4) {
+                this.x = x[0];
+                this.y = x[1];
+                this.z = x[2];
+                this.w = x[3];
+            } else {
+                this.x = (x === undefined) ? 0 : x;
+                this.y = (y === undefined) ? 0 : y;
+                this.z = (z === undefined) ? 0 : z;
+                this.w = (w === undefined) ? 1 : w;
+            }
+        }
+
+
 
         /**
          * @function
@@ -116,7 +125,7 @@ pc.extend(pc, ((() => {
          * dst.copy(src, src);
          * console.log("The two quaternions are " + (src.equals(dst) ? "equal" : "different"));
          */
-        copy({x, y, z, w}) {
+        copy({ x, y, z, w }) {
             this.x = x;
             this.y = y;
             this.z = z;
@@ -136,7 +145,7 @@ pc.extend(pc, ((() => {
          * var b = new pc.Quat();
          * console.log("The two quaternions are " + (a.equals(b) ? "equal" : "different"));
          */
-        equals({x, y, z, w}) {
+        equals({ x, y, z, w }) {
             return (this.x === x) && (this.y === y) && (this.z === z) && (this.w === w);
         }
 
@@ -289,7 +298,7 @@ pc.extend(pc, ((() => {
          *
          * console.log("The result of the multiplication is: " a.toString());
          */
-        mul({x, y, z, w}) {
+        mul({ x, y, z, w }) {
             let q1x, q1y, q1z, q1w, q2x, q2y, q2z, q2w;
 
             q1x = this.x;
@@ -328,18 +337,18 @@ pc.extend(pc, ((() => {
          *
          * console.log("The result of the multiplication is: " r.toString());
          */
-        mul2({x, y, z, w}, {x, y, z, w}) {
-            let q1x, q1y, q1z, q1w, q2x, q2y, q2z, q2w;
+        mul2(lhs: Quat, rhs: Quat): Quat {
+            var q1x, q1y, q1z, q1w, q2x, q2y, q2z, q2w;
 
-            q1x = x;
-            q1y = y;
-            q1z = z;
-            q1w = w;
+            q1x = lhs.x;
+            q1y = lhs.y;
+            q1z = lhs.z;
+            q1w = lhs.w;
 
-            q2x = x;
-            q2y = y;
-            q2z = z;
-            q2w = w;
+            q2x = rhs.x;
+            q2y = rhs.y;
+            q2z = rhs.z;
+            q2w = rhs.w;
 
             this.x = q1w * q2x + q1x * q2w + q1y * q2z - q1z * q2y;
             this.y = q1w * q2y + q1y * q2w + q1z * q2x - q1x * q2z;
@@ -414,7 +423,7 @@ pc.extend(pc, ((() => {
          * var q = new pc.Quat();
          * q.setFromAxisAngle(pc.Vec3.UP, 90);
          */
-        setFromAxisAngle({x, y, z}, angle) {
+        setFromAxisAngle({ x, y, z }, angle) {
             let sa, ca;
 
             angle *= 0.5 * pc.math.DEG_TO_RAD;
@@ -590,21 +599,19 @@ pc.extend(pc, ((() => {
          * result = new pc.Quat().slerp(q1, q2, 0.5); // Return the midpoint interpolant
          * result = new pc.Quat().slerp(q1, q2, 1);   // Return q2
          */
-        slerp({x, y, z, w}, {x, y, z, w}, alpha) {
-            // Algorithm sourced from:
-            // http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/
-            let lx, ly, lz, lw, rx, ry, rz, rw;
-            lx = x;
-            ly = y;
-            lz = z;
-            lw = w;
-            rx = x;
-            ry = y;
-            rz = z;
-            rw = w;
+        slerp(lhs: Quat, rhs: Quat, alpha: number): this {
+            var lx, ly, lz, lw, rx, ry, rz, rw;
+            lx = lhs.x;
+            ly = lhs.y;
+            lz = lhs.z;
+            lw = lhs.w;
+            rx = rhs.x;
+            ry = rhs.y;
+            rz = rhs.z;
+            rw = rhs.w;
 
             // Calculate angle between them.
-            let cosHalfTheta = lw * rw + lx * rx + ly * ry + lz * rz;
+            var cosHalfTheta = lw * rw + lx * rx + ly * ry + lz * rz;
 
             if (cosHalfTheta < 0) {
                 rw = -rw;
@@ -624,8 +631,8 @@ pc.extend(pc, ((() => {
             }
 
             // Calculate temporary values.
-            const halfTheta = Math.acos(cosHalfTheta);
-            const sinHalfTheta = Math.sqrt(1 - cosHalfTheta * cosHalfTheta);
+            var halfTheta = Math.acos(cosHalfTheta);
+            var sinHalfTheta = Math.sqrt(1 - cosHalfTheta * cosHalfTheta);
 
             // If theta = 180 degrees then result is not fully defined
             // we could rotate around any axis normal to qa or qb
@@ -637,8 +644,8 @@ pc.extend(pc, ((() => {
                 return this;
             }
 
-            const ratioA = Math.sin((1 - alpha) * halfTheta) / sinHalfTheta;
-            const ratioB = Math.sin(alpha * halfTheta) / sinHalfTheta;
+            var ratioA = Math.sin((1 - alpha) * halfTheta) / sinHalfTheta;
+            var ratioB = Math.sin(alpha * halfTheta) / sinHalfTheta;
 
             // Calculate Quaternion.
             this.w = (lw * ratioA + rw * ratioB);
@@ -699,39 +706,27 @@ pc.extend(pc, ((() => {
         toString() {
             return `[${this.x}, ${this.y}, ${this.z}, ${this.w}]`;
         }
+        /**
+         * @field
+         * @static
+         * @readonly
+         * @type Quat
+         * @name Quat.IDENTITY
+         * @description A constant quaternion set to [0, 0, 0, 1] (the identity).
+         */
+        static readonly IDENTITY: Quat = new Quat();
+
+        /**
+         * @field
+         * @static
+         * @readonly
+         * @type Quat
+         * @name Quat.ZERO
+         * @description A constant quaternion set to [0, 0, 0, 0].
+         */
+        static readonly ZERO: Quat = new Quat(0, 0, 0, 0);
     }
 
-    /**
-     * @field
-     * @static
-     * @readonly
-     * @type pc.Quat
-     * @name pc.Quat.IDENTITY
-     * @description A constant quaternion set to [0, 0, 0, 1] (the identity).
-     */
-    Object.defineProperty(Quat, 'IDENTITY', {
-        get: ((() => {
-            const identity = new Quat();
-            return () => identity;
-        })())
-    });
 
-    /**
-     * @field
-     * @static
-     * @readonly
-     * @type pc.Quat
-     * @name pc.Quat.ZERO
-     * @description A constant quaternion set to [0, 0, 0, 0].
-     */
-    Object.defineProperty(Quat, 'ZERO', {
-        get: ((() => {
-            const zero = new Quat(0, 0, 0, 0);
-            return () => zero;
-        })())
-    });
 
-    return {
-        Quat
-    };
-})()));
+}

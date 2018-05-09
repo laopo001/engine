@@ -1,6 +1,6 @@
-((() => {
+namespace pc {
     // Graphics engine enums
-    const enums = {
+    export const GraphicsConfig = {
         /**
          * @static
          * @readonly
@@ -756,10 +756,7 @@
         UNIFORMTYPE_TEXTURECUBE_SHADOW: 19,
         UNIFORMTYPE_TEXTURE3D: 20
     };
-
-    pc.extend(pc, enums);
-
     // For backwards compatibility
-    pc.gfx = {};
-    pc.extend(pc.gfx, enums);
-})());
+    // pc.gfx = {};
+    // pc.extend(pc.gfx, enums);
+}

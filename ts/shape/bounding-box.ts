@@ -1,4 +1,4 @@
-pc.extend(pc, (() => {
+namespace pc {
     const tmpVecA = new pc.Vec3();
     const tmpVecB = new pc.Vec3();
     const tmpVecC = new pc.Vec3();
@@ -13,8 +13,13 @@ pc.extend(pc, (() => {
      * @param {pc.Vec3} [center] Center of box. The constructor takes a reference of this parameter.
      * @param {pc.Vec3} [halfExtents] Half the distance across the box in each axis. The constructor takes a reference of this parameter.
      */
-    class BoundingBox {
-        constructor(center, halfExtents) {
+    export class BoundingBox {
+        center: pc.Vec3;
+        halfExtents: pc.Vec3;
+        _min: Vec3;
+        _max: Vec3;
+        type: any;
+        constructor(center?: pc.Vec3, halfExtents?: pc.Vec3) {
             this.center = center || new pc.Vec3(0, 0, 0);
             this.halfExtents = halfExtents || new pc.Vec3(0.5, 0.5, 0.5);
             this._min = new pc.Vec3();
@@ -27,7 +32,7 @@ pc.extend(pc, (() => {
          * @description Combines two bounding boxes into one, enclosing both.
          * @param {pc.BoundingBox} other Bounding box to add.
          */
-        add({center, halfExtents}) {
+        add({ center, halfExtents }) {
             const tc = this.center.data;
             const tcx = tc[0];
             const tcy = tc[1];
@@ -73,7 +78,7 @@ pc.extend(pc, (() => {
             th[2] = (tmaxz - tminz) * 0.5;
         }
 
-        copy({center, halfExtents, type}) {
+        copy({ center, halfExtents, type }) {
             this.center.copy(center);
             this.halfExtents.copy(halfExtents);
             this.type = type;
@@ -97,11 +102,11 @@ pc.extend(pc, (() => {
             const bMin = other.getMin();
 
             return (aMin.x <= bMax.x) && (aMax.x >= bMin.x) &&
-                   (aMin.y <= bMax.y) && (aMax.y >= bMin.y) &&
-                   (aMin.z <= bMax.z) && (aMax.z >= bMin.z);
+                (aMin.y <= bMax.y) && (aMax.y >= bMin.y) &&
+                (aMin.z <= bMax.z) && (aMax.z >= bMin.z);
         }
 
-        _intersectsRay({origin, direction}, point) {
+        _intersectsRay({ origin, direction }, point) {
             const tMin = tmpVecA.copy(this.getMin()).sub(origin).data;
             const tMax = tmpVecB.copy(this.getMax()).sub(origin).data;
             const dir = direction.data;
@@ -131,7 +136,7 @@ pc.extend(pc, (() => {
             return intersects;
         }
 
-        _fastIntersectsRay({direction, origin}) {
+        _fastIntersectsRay({ direction, origin }) {
             const diff = tmpVecA;
             const cross = tmpVecB;
             const prod = tmpVecC;
@@ -217,7 +222,7 @@ pc.extend(pc, (() => {
          * @param {pc.Vec3} point Point to test.
          * @returns {Boolean} true if the point is inside the AABB and false otherwise.
          */
-        containsPoint({data}) {
+        containsPoint({ data }) {
             const min = this.getMin();
             const max = this.getMax();
             let i;
@@ -238,7 +243,7 @@ pc.extend(pc, (() => {
          * @param {pc.BoundingBox} aabb Box to transform and enclose
          * @param {pc.Mat4} m Transformation matrix to apply to source AABB.
          */
-        setFromTransformedAabb({center, halfExtents}, m) {
+        setFromTransformedAabb({ center, halfExtents }, m) {
             const bc = this.center;
             const br = this.halfExtents;
             const ac = center.data;
@@ -314,7 +319,7 @@ pc.extend(pc, (() => {
             return false;
         }
 
-        _distanceToBoundingSphereSq({center}) {
+        _distanceToBoundingSphereSq({ center }) {
             const boxMin = this.getMin();
             const boxMax = this.getMax();
 
@@ -344,7 +349,4 @@ pc.extend(pc, (() => {
         }
     }
 
-    return {
-        BoundingBox
-    };
-})());
+}

@@ -1,4 +1,4 @@
-pc.extend(pc, (() => {
+namespace pc {
     /**
      * @constructor
      * @name pc.VertexBuffer
@@ -11,11 +11,18 @@ pc.extend(pc, (() => {
      * @param {Number} [usage] The usage type of the vertex buffer (see pc.BUFFER_*).
      * @param {ArrayBuffer} [initialData] Initial data.
      */
-    class VertexBuffer {
-        constructor(graphicsDevice, format, numVertices, usage, initialData) {
+    export class VertexBuffer {
+        usage: any;
+        format: any;
+        numVertices: any;
+        numBytes: number;
+        device: any;
+        storage: ArrayBuffer;
+        bufferId: any;
+        constructor(graphicsDevice, format, numVertices, usage?, initialData?) {
             // Initialize optional parameters
             // By default, vertex buffers are static (better for performance since buffer data can be cached in VRAM)
-            this.usage = usage || pc.BUFFER_STATIC;
+            this.usage = usage || pc.GraphicsConfig.BUFFER_STATIC;
 
             // Store the vertex format
             this.format = format;
@@ -129,16 +136,16 @@ pc.extend(pc, (() => {
 
             let glUsage;
             switch (this.usage) {
-                case pc.BUFFER_STATIC:
+                case pc.GraphicsConfig.BUFFER_STATIC:
                     glUsage = gl.STATIC_DRAW;
                     break;
-                case pc.BUFFER_DYNAMIC:
+                case pc.GraphicsConfig.BUFFER_DYNAMIC:
                     glUsage = gl.DYNAMIC_DRAW;
                     break;
-                case pc.BUFFER_STREAM:
+                case pc.GraphicsConfig.BUFFER_STREAM:
                     glUsage = gl.STREAM_DRAW;
                     break;
-                case pc.BUFFER_GPUDYNAMIC:
+                case pc.GraphicsConfig.BUFFER_GPUDYNAMIC:
                     if (this.device.webgl2) {
                         glUsage = gl.DYNAMIC_COPY;
                     } else {
@@ -161,8 +168,4 @@ pc.extend(pc, (() => {
             return true;
         }
     }
-
-    return {
-        VertexBuffer
-    };
-})());
+}

@@ -1,27 +1,27 @@
-pc.extend(pc, (() => {
+namespace pc {
     function VertexIteratorSetter(buffer, {dataType, offset, numComponents}) {
         this.index = 0;
 
         switch (dataType) {
-            case pc.TYPE_INT8:
+            case pc.GraphicsConfig.TYPE_INT8:
                 this.array = new Int8Array(buffer, offset);
                 break;
-            case pc.TYPE_UINT8:
+            case pc.GraphicsConfig.TYPE_UINT8:
                 this.array = new Uint8Array(buffer, offset);
                 break;
-            case pc.TYPE_INT16:
+            case pc.GraphicsConfig.TYPE_INT16:
                 this.array = new Int16Array(buffer, offset);
                 break;
-            case pc.TYPE_UINT16:
+            case pc.GraphicsConfig.TYPE_UINT16:
                 this.array = new Uint16Array(buffer, offset);
                 break;
-            case pc.TYPE_INT32:
+            case pc.GraphicsConfig.TYPE_INT32:
                 this.array = new Int32Array(buffer, offset);
                 break;
-            case pc.TYPE_UINT32:
+            case pc.GraphicsConfig.TYPE_UINT32:
                 this.array = new Uint32Array(buffer, offset);
                 break;
-            case pc.TYPE_FLOAT32:
+            case pc.GraphicsConfig.TYPE_FLOAT32:
                 this.array = new Float32Array(buffer, offset);
                 break;
         }
@@ -64,7 +64,11 @@ pc.extend(pc, (() => {
      * @description Returns a new pc.VertexIterator object.
      * @param {pc.VertexBuffer} vertexBuffer The vertex buffer to be iterated.
      */
-    class VertexIterator {
+    export class VertexIterator {
+        vertexBuffer: any;
+        buffer: any;
+        setters: any[];
+        element: {};
         constructor(vertexBuffer) {
             // Store the vertex buffer
             this.vertexBuffer = vertexBuffer;
@@ -137,7 +141,4 @@ pc.extend(pc, (() => {
         }
     }
 
-    return {
-        VertexIterator
-    };
-})());
+}

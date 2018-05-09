@@ -1,4 +1,4 @@
-pc.extend(pc, ((() => {
+namespace pc {
     /**
      * @constructor
      * @name pc.CurveSet
@@ -7,7 +7,9 @@ pc.extend(pc, ((() => {
      * @param {Array} [curveKeys] An array of arrays of keys (pairs of numbers with
      * the time first and value second).
      */
-    class CurveSet {
+    export class CurveSet {
+        curves: any[];
+        _type: number;
         constructor(...args) {
             let i;
 
@@ -79,7 +81,7 @@ pc.extend(pc, ((() => {
         clone() {
             const result = new pc.CurveSet();
 
-            result.curves = [ ];
+            result.curves = [];
             for (let i = 0; i < this.curves.length; i++) {
                 result.curves.push(this.curves[i].clone());
             }
@@ -143,8 +145,4 @@ pc.extend(pc, ((() => {
             }
         }
     }
-
-    return {
-        CurveSet
-    };
-})()));
+}

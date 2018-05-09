@@ -1,4 +1,4 @@
-pc.extend(pc, (() => {
+namespace pc {
     /**
      * @constructor
      * @name pc.TransformFeedback
@@ -63,14 +63,18 @@ pc.extend(pc, (() => {
      * @param {pc.VertexBuffer} inputBuffer The input vertex buffer
      * @param {Number} [usage] The optional usage type of the output vertex buffer (see pc.BUFFER_*). pc.BUFFER_GPUDYNAMIC is recommended for continuous update, and is the default value.
      */
-    class TransformFeedback {
+    export class TransformFeedback {
+        device: any;
+        _inputBuffer: any;
+        _outputBuffer: any;
+        static createShader: (graphicsDevice: any, vsCode: any, name: any) => any;
         constructor(inputBuffer, usage) {
-            usage = usage || pc.BUFFER_GPUDYNAMIC;
+            usage = usage || pc.GraphicsConfig.BUFFER_GPUDYNAMIC;
             this.device = inputBuffer.device;
             const gl = this.device.gl;
 
             this._inputBuffer = inputBuffer;
-            if (usage === pc.BUFFER_GPUDYNAMIC && inputBuffer.usage !== usage) {
+            if (usage === pc.GraphicsConfig.BUFFER_GPUDYNAMIC && inputBuffer.usage !== usage) {
                 // have to recreate input buffer with other usage
                 gl.bindBuffer(gl.ARRAY_BUFFER, inputBuffer.bufferId);
                 gl.bufferData(gl.ARRAY_BUFFER, inputBuffer.storage, gl.DYNAMIC_COPY);
@@ -106,7 +110,7 @@ pc.extend(pc, (() => {
             device.setTransformFeedbackBuffer(this._outputBuffer);
             device.setShader(shader);
             device.draw({
-                type: pc.PRIMITIVE_POINTS,
+                type: pc.GraphicsConfig.PRIMITIVE_POINTS,
                 base: 0,
                 count: this._inputBuffer.numVertices,
                 indexed: false
@@ -155,7 +159,4 @@ pc.extend(pc, (() => {
      */
     TransformFeedback.createShader = (graphicsDevice, vsCode, name) => pc.shaderChunks.createShaderFromCode(graphicsDevice, vsCode, null, name, true);
 
-    return {
-        TransformFeedback
-    };
-})());
+}

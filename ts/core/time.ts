@@ -52,4 +52,7 @@ namespace pc {
             return (!window.performance || !window.performance.now || !window.performance.timing) ? Date.now() : window.performance.now()
         }
     }
+    export function now() {
+        return (!window.performance || !window.performance.now || !window.performance.timing) ? Date.now() : window.performance.now()
+    }
 }

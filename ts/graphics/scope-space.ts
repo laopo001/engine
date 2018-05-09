@@ -1,5 +1,8 @@
-pc.extend(pc, (() => {
-    class ScopeSpace {
+namespace pc {
+    export class ScopeSpace {
+        name: any;
+        variables: {};
+        namespaces: {};
         constructor(name) {
             // Store the name
             this.name = name;
@@ -36,7 +39,4 @@ pc.extend(pc, (() => {
         }
     }
 
-    return {
-        ScopeSpace
-    };
-})());
+}

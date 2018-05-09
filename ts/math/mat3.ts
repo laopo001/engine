@@ -1,4 +1,4 @@
-pc.extend(pc, ((() => {
+namespace pc {
     const typeNumber = 'number';
 
     /**
@@ -16,8 +16,14 @@ pc.extend(pc, ((() => {
      * @param {Number} [v7] The value in row 1, column 2.
      * @param {Number} [v8] The value in row 2, column 2.
      */
-    class Mat3 {
-        constructor(v0, v1, v2, v3, v4, v5, v6, v7, v8) {
+    export class Mat3 {
+        data: Float32Array;
+
+        constructor()
+        constructor(v0: number, v1: number, v2: number, v3: number, v4: number, v5: number, v6: number, v7: number, v8: number)
+        constructor(v0: [number, number, number, number, number, number, number, number, number])
+
+        constructor(v0?, v1?, v2?, v3?, v4?, v5?, v6?, v7?, v8?) {
             if (v0 && v0.length === 9) {
                 this.data = new Float32Array(v0);
                 return;
@@ -25,7 +31,7 @@ pc.extend(pc, ((() => {
 
             this.data = new Float32Array(9);
 
-            if (typeof(v0) === typeNumber) {
+            if (typeof (v0) === 'number') {
                 this.data[0] = v0;
                 this.data[1] = v1;
                 this.data[2] = v2;
@@ -66,7 +72,7 @@ pc.extend(pc, ((() => {
          * dst.copy(src);
          * console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
          */
-        copy({data}) {
+        copy({ data }) {
             const src = data;
             const dst = this.data;
 
@@ -94,19 +100,19 @@ pc.extend(pc, ((() => {
          * var b = new pc.Mat3();
          * console.log("The two matrices are " + (a.equals(b) ? "equal" : "different"));
          */
-        equals({data}) {
+        equals({ data }) {
             const l = this.data;
             const r = data;
 
             return ((l[0] === r[0]) &&
-                    (l[1] === r[1]) &&
-                    (l[2] === r[2]) &&
-                    (l[3] === r[3]) &&
-                    (l[4] === r[4]) &&
-                    (l[5] === r[5]) &&
-                    (l[6] === r[6]) &&
-                    (l[7] === r[7]) &&
-                    (l[8] === r[8]));
+                (l[1] === r[1]) &&
+                (l[2] === r[2]) &&
+                (l[3] === r[3]) &&
+                (l[4] === r[4]) &&
+                (l[5] === r[5]) &&
+                (l[6] === r[6]) &&
+                (l[7] === r[7]) &&
+                (l[8] === r[8]));
         }
 
         /**
@@ -121,14 +127,14 @@ pc.extend(pc, ((() => {
         isIdentity() {
             const m = this.data;
             return ((m[0] === 1) &&
-                    (m[1] === 0) &&
-                    (m[2] === 0) &&
-                    (m[3] === 0) &&
-                    (m[4] === 1) &&
-                    (m[5] === 0) &&
-                    (m[6] === 0) &&
-                    (m[7] === 0) &&
-                    (m[8] === 1));
+                (m[1] === 0) &&
+                (m[2] === 0) &&
+                (m[3] === 0) &&
+                (m[4] === 1) &&
+                (m[5] === 0) &&
+                (m[6] === 0) &&
+                (m[7] === 0) &&
+                (m[8] === 1));
         }
 
         /**
@@ -198,39 +204,25 @@ pc.extend(pc, ((() => {
 
             return this;
         }
+        /**
+         * @field
+         * @static
+         * @readonly
+         * @type pc.Mat3
+         * @name pc.Mat3.IDENTITY
+         * @description A constant matrix set to the identity.
+         */
+        static readonly IDENTITY = new Mat3();
+        /**
+         * @field
+         * @static
+         * @readonly
+         * @type pc.Mat3
+         * @name pc.Mat3.ZERO
+         * @description A constant matrix with all elements set to 0.
+         */
+        static readonly ZERO = new Mat3(0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
 
-    /**
-     * @field
-     * @static
-     * @readonly
-     * @type pc.Mat3
-     * @name pc.Mat3.IDENTITY
-     * @description A constant matrix set to the identity.
-     */
-    Object.defineProperty(Mat3, 'IDENTITY', {
-        get: (() => {
-            const identity = new Mat3();
-            return () => identity;
-        })()
-    });
+}
 
-    /**
-     * @field
-     * @static
-     * @readonly
-     * @type pc.Mat3
-     * @name pc.Mat3.ZERO
-     * @description A constant matrix with all elements set to 0.
-     */
-    Object.defineProperty(Mat3, 'ZERO', {
-        get: (() => {
-            const zero = new Mat3(0, 0, 0, 0, 0, 0, 0, 0, 0);
-            return () => zero;
-        })()
-    });
-
-    return {
-        Mat3
-    };
-})()));

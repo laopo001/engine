@@ -1,7 +1,7 @@
-pc.extend(pc, (() => {
+namespace pc {
     // Primitive for drawFullscreenQuad
     const primitive = {
-        type: pc.PRIMITIVE_TRISTRIP,
+        type: pc.GraphicsConfig.PRIMITIVE_TRISTRIP,
         base: 0,
         count: 4,
         indexed: false
@@ -16,7 +16,12 @@ pc.extend(pc, (() => {
      * @description Creates new PostEffect
      * @param {pc.GraphicsDevice} graphicsDevice The graphics device of the application
      */
-    class PostEffect {
+    export class PostEffect {
+        device: any;
+        shader: any;
+        depthMap: any;
+        vertexBuffer: any;
+        needsDepthBuffer: boolean;
         constructor(graphicsDevice) {
             this.device = graphicsDevice;
             this.shader = null;
@@ -38,10 +43,10 @@ pc.extend(pc, (() => {
         }
     }
 
-    function createFullscreenQuad (device) {
+    export function createFullscreenQuad (device) {
         // Create the vertex format
         const vertexFormat = new pc.VertexFormat(device, [
-            { semantic: pc.SEMANTIC_POSITION, components: 2, type: pc.TYPE_FLOAT32 }
+            { semantic: pc.GraphicsConfig.SEMANTIC_POSITION, components: 2, type: pc.GraphicsConfig.TYPE_FLOAT32 }
         ]);
 
         // Create a vertex buffer
@@ -49,19 +54,19 @@ pc.extend(pc, (() => {
 
         // Fill the vertex buffer
         const iterator = new pc.VertexIterator(vertexBuffer);
-        iterator.element[pc.SEMANTIC_POSITION].set(-1.0, -1.0);
+        iterator.element[pc.GraphicsConfig.SEMANTIC_POSITION].set(-1.0, -1.0);
         iterator.next();
-        iterator.element[pc.SEMANTIC_POSITION].set(1.0, -1.0);
+        iterator.element[pc.GraphicsConfig.SEMANTIC_POSITION].set(1.0, -1.0);
         iterator.next();
-        iterator.element[pc.SEMANTIC_POSITION].set(-1.0, 1.0);
+        iterator.element[pc.GraphicsConfig.SEMANTIC_POSITION].set(-1.0, 1.0);
         iterator.next();
-        iterator.element[pc.SEMANTIC_POSITION].set(1.0, 1.0);
+        iterator.element[pc.GraphicsConfig.SEMANTIC_POSITION].set(1.0, 1.0);
         iterator.end();
 
         return vertexBuffer;
     }
 
-    function drawFullscreenQuad (device, target, vertexBuffer, shader, rect) {
+    export function drawFullscreenQuad (device, target, vertexBuffer, shader, rect) {
         device.setRenderTarget(target);
         device.updateBegin();
         let w = (target !== null) ? target.width : device.width;
@@ -90,7 +95,7 @@ pc.extend(pc, (() => {
         device.setBlending(false);
         device.setDepthTest(false);
         device.setDepthWrite(false);
-        device.setCullMode(pc.CULLFACE_BACK);
+        device.setCullMode(pc.GraphicsConfig.CULLFACE_BACK);
         device.setColorWrite(true, true, true, true);
         device.setVertexBuffer(vertexBuffer, 0);
         device.setShader(shader);
@@ -103,9 +108,4 @@ pc.extend(pc, (() => {
         device.updateEnd();
     }
 
-    return {
-        PostEffect,
-        createFullscreenQuad,
-        drawFullscreenQuad
-    };
-})());
+}
