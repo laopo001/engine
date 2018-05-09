@@ -12,13 +12,13 @@
  * PROFILER BUILD
 // #endif
  */
-const pc = {
+export const code = {
     version: "__CURRENT_SDK_VERSION__",
-    revision: "__REVISION__",
-    config: { },
-    common: { },
-    apps: { }, // Storage for the applications using the PlayCanvas Engine
-    data: { }, // Storage for exported entity data
+    // revision: "__REVISION__",
+    // config: {},
+    // common: {},
+    // apps: {}, // Storage for the applications using the PlayCanvas Engine
+    // data: {}, // Storage for exported entity data
 
     /**
      * @private
@@ -64,7 +64,7 @@ const pc = {
             return "null";
         }
 
-        const type = typeof(obj);
+        const type = typeof (obj);
 
         if (type == "undefined" || type == "number" || type == "string" || type == "boolean") {
             return type;
@@ -130,8 +130,8 @@ const pc = {
  * @description Create look up table for types
  */
 var _typeLookup = (() => {
-    const result = { };
-    const names = [ "Array", "Object", "Function", "Date", "RegExp", "Float32Array" ];
+    const result = {};
+    const names = ["Array", "Object", "Function", "Date", "RegExp", "Float32Array"];
 
     for (let i = 0; i < names.length; i++)
         result[`[object ${names[i]}]`] = names[i].toLowerCase();
@@ -139,5 +139,4 @@ var _typeLookup = (() => {
     return result;
 })();
 
-if (typeof (exports) !== 'undefined')
-    exports.pc = pc;
+

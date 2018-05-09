@@ -1,5 +1,6 @@
 // String.startsWith polyfill
-if (! String.prototype.startsWith) {
+
+if (!(String as any).prototype.startsWith) {
     Object.defineProperty(String.prototype, 'startsWith', {
         enumerable: false,
         configurable: true,
@@ -14,7 +15,7 @@ if (! String.prototype.startsWith) {
 }
 
 // String.endsWith polyfill
-if (! String.prototype.endsWith) {
+if (!(String as any).prototype.endsWith) {
     Object.defineProperty(String.prototype, 'endsWith', {
         enumerable: false,
         configurable: true,
@@ -29,16 +30,21 @@ if (! String.prototype.endsWith) {
     });
 }
 
-if (!String.prototype.includes) {
-    String.prototype.includes = function(search, start) {
-        if (typeof start !== 'number') {
-            start = 0;
-        }
+if (!(String as any).prototype.includes) {
+    Object.defineProperty(String.prototype, 'includes', {
+        enumerable: false,
+        configurable: true,
+        writable: true,
+        value(search, start) {
+            if (typeof start !== 'number') {
+                start = 0;
+            }
 
-        if (start + search.length > this.length) {
-            return false;
-        } else {
-            return this.indexOf(search, start) !== -1;
+            if (start + search.length > this.length) {
+                return false;
+            } else {
+                return this.indexOf(search, start) !== -1;
+            }
         }
-    };
+    });
 }
