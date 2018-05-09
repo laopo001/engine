@@ -1,4 +1,4 @@
-pc.extend(pc, (() => {
+namespace pc {
     const tmpRay = new pc.Ray();
     const tmpVec3 = new pc.Vec3();
     const tmpSphere = new pc.BoundingSphere();
@@ -13,8 +13,11 @@ pc.extend(pc, (() => {
      * @param {pc.Mat4} [worldTransform] Transform that has the orientation and position of the box. Scale is assumed to be one.
      * @param {pc.Vec3} [halfExtents] Half the distance across the box in each local axis. The constructor takes a reference of this parameter.
      */
-    class OrientedBox {
-        constructor(worldTransform, halfExtents) {
+    export class OrientedBox {
+        halfExtents: pc.Vec3;
+        _modelTransform: pc.Mat4;
+        _aabb: BoundingBox;
+        constructor(worldTransform?: pc.Mat4, halfExtents?: pc.Vec3) {
             this.halfExtents = halfExtents || new pc.Vec3(0.5, 0.5, 0.5);
 
             worldTransform = worldTransform || tmpMat4.setIdentity();
@@ -30,7 +33,7 @@ pc.extend(pc, (() => {
          * @param {pc.Vec3} [point] If there is an intersection, the intersection point will be copied into here.
          * @returns {Boolean} True if there is an intersection.
          */
-        intersectsRay({origin, direction}, point) {
+        intersectsRay({ origin, direction }, point) {
             this._modelTransform.transformPoint(origin, tmpRay.origin);
             this._modelTransform.transformVector(direction, tmpRay.direction);
 
@@ -62,7 +65,7 @@ pc.extend(pc, (() => {
          * @param {pc.BoundingSphere} sphere Bounding Sphere to test.
          * @returns {Boolean} true if the Bounding Sphere is overlapping, enveloping or inside this OBB and false otherwise.
          */
-        intersectsBoundingSphere({center, radius}) {
+        intersectsBoundingSphere({ center, radius }) {
             this._modelTransform.transformPoint(center, tmpSphere.center);
             tmpSphere.radius = radius;
 
@@ -78,7 +81,4 @@ pc.extend(pc, (() => {
         }
     }
 
-    return {
-        OrientedBox
-    };
-})());
+}

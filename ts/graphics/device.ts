@@ -1,14 +1,14 @@
-pc.extend(pc, (() => {
+namespace pc {
     const EVENT_RESIZE = 'resizecanvas';
 
     // Exceptions
-    function UnsupportedBrowserError(message) {
+    export function UnsupportedBrowserError(message?) {
         this.name = "UnsupportedBrowserError";
         this.message = (message || "");
     }
     UnsupportedBrowserError.prototype = Error.prototype;
 
-    function ContextCreationError(message) {
+    export function ContextCreationError(message?) {
         this.name = "ContextCreationError";
         this.message = (message || "");
     }
@@ -51,30 +51,30 @@ pc.extend(pc, (() => {
     function gpuTexSize(gl, tex) {
         if (!_pixelFormat2Size) {
             _pixelFormat2Size = {};
-            _pixelFormat2Size[pc.PIXELFORMAT_A8] = 1;
-            _pixelFormat2Size[pc.PIXELFORMAT_L8] = 1;
-            _pixelFormat2Size[pc.PIXELFORMAT_L8_A8] = 1;
-            _pixelFormat2Size[pc.PIXELFORMAT_R5_G6_B5] = 2;
-            _pixelFormat2Size[pc.PIXELFORMAT_R5_G5_B5_A1] = 2;
-            _pixelFormat2Size[pc.PIXELFORMAT_R4_G4_B4_A4] = 2;
-            _pixelFormat2Size[pc.PIXELFORMAT_R8_G8_B8] = 4;
-            _pixelFormat2Size[pc.PIXELFORMAT_R8_G8_B8_A8] = 4;
-            _pixelFormat2Size[pc.PIXELFORMAT_RGB16F] = 8;
-            _pixelFormat2Size[pc.PIXELFORMAT_RGBA16F] = 8;
-            _pixelFormat2Size[pc.PIXELFORMAT_RGB32F] = 16;
-            _pixelFormat2Size[pc.PIXELFORMAT_RGBA32F] = 16;
-            _pixelFormat2Size[pc.PIXELFORMAT_R32F] = 4;
-            _pixelFormat2Size[pc.PIXELFORMAT_DEPTH] = 4; // can be smaller using WebGL1 extension?
-            _pixelFormat2Size[pc.PIXELFORMAT_DEPTHSTENCIL] = 4;
-            _pixelFormat2Size[pc.PIXELFORMAT_111110F] = 4;
-            _pixelFormat2Size[pc.PIXELFORMAT_SRGB] = 4;
-            _pixelFormat2Size[pc.PIXELFORMAT_SRGBA] = 4;
+            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_A8] = 1;
+            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_L8] = 1;
+            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_L8_A8] = 1;
+            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_R5_G6_B5] = 2;
+            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_R5_G5_B5_A1] = 2;
+            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_R4_G4_B4_A4] = 2;
+            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8] = 4;
+            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8_A8] = 4;
+            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_RGB16F] = 8;
+            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_RGBA16F] = 8;
+            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_RGB32F] = 16;
+            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_RGBA32F] = 16;
+            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_R32F] = 4;
+            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_DEPTH] = 4; // can be smaller using WebGL1 extension?
+            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_DEPTHSTENCIL] = 4;
+            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_111110F] = 4;
+            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_SRGB] = 4;
+            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_SRGBA] = 4;
         }
 
         let mips = 1;
-        if (tex._pot && (tex._mipmaps || tex._minFilter === pc.FILTER_NEAREST_MIPMAP_NEAREST ||
-            tex._minFilter === pc.FILTER_NEAREST_MIPMAP_LINEAR || tex._minFilter === pc.FILTER_LINEAR_MIPMAP_NEAREST ||
-            tex._minFilter === pc.FILTER_LINEAR_MIPMAP_LINEAR) && ! (tex._compressed && tex._levels.length === 1)) {
+        if (tex._pot && (tex._mipmaps || tex._minFilter === pc.GraphicsConfig.FILTER_NEAREST_MIPMAP_NEAREST ||
+            tex._minFilter === pc.GraphicsConfig.FILTER_NEAREST_MIPMAP_LINEAR || tex._minFilter === pc.GraphicsConfig.FILTER_LINEAR_MIPMAP_NEAREST ||
+            tex._minFilter === pc.GraphicsConfig.FILTER_LINEAR_MIPMAP_LINEAR) && !(tex._compressed && tex._levels.length === 1)) {
 
             mips = Math.round(Math.log2(Math.max(tex._width, tex._height)) + 1);
         }
@@ -84,18 +84,18 @@ pc.extend(pc, (() => {
         let size = 0;
 
         for (let i = 0; i < mips; i++) {
-            if (! tex._compressed) {
+            if (!tex._compressed) {
                 size += mipWidth * mipHeight * mipDepth * _pixelFormat2Size[tex._format];
-            } else if (tex._format === pc.PIXELFORMAT_ETC1) {
+            } else if (tex._format === pc.GraphicsConfig.PIXELFORMAT_ETC1) {
                 size += Math.floor((mipWidth + 3) / 4) * Math.floor((mipHeight + 3) / 4) * 8 * mipDepth;
-            } else if (tex._format === pc.PIXELFORMAT_PVRTC_2BPP_RGB_1 || tex._format === pc.PIXELFORMAT_PVRTC_2BPP_RGBA_1) {
+            } else if (tex._format === pc.GraphicsConfig.PIXELFORMAT_PVRTC_2BPP_RGB_1 || tex._format === pc.GraphicsConfig.PIXELFORMAT_PVRTC_2BPP_RGBA_1) {
                 size += Math.max(mipWidth, 16) * Math.max(mipHeight, 8) / 4 * mipDepth;
-            } else if (tex._format === pc.PIXELFORMAT_PVRTC_4BPP_RGB_1 || tex._format === pc.PIXELFORMAT_PVRTC_4BPP_RGBA_1) {
+            } else if (tex._format === pc.GraphicsConfig.PIXELFORMAT_PVRTC_4BPP_RGB_1 || tex._format === pc.GraphicsConfig.PIXELFORMAT_PVRTC_4BPP_RGBA_1) {
                 size += Math.max(mipWidth, 8) * Math.max(mipHeight, 8) / 2 * mipDepth;
             } else {
                 const DXT_BLOCK_WIDTH = 4;
                 const DXT_BLOCK_HEIGHT = 4;
-                const blockSize = tex._format === pc.PIXELFORMAT_DXT1 ? 8 : 16;
+                const blockSize = tex._format === pc.GraphicsConfig.PIXELFORMAT_DXT1 ? 8 : 16;
                 const numBlocksAcross = Math.floor((mipWidth + DXT_BLOCK_WIDTH - 1) / DXT_BLOCK_WIDTH);
                 const numBlocksDown = Math.floor((mipHeight + DXT_BLOCK_HEIGHT - 1) / DXT_BLOCK_HEIGHT);
                 const numBlocks = numBlocksAcross * numBlocksDown;
@@ -193,20 +193,153 @@ pc.extend(pc, (() => {
      * @param {Object} canvas The canvas to which the graphics device is tied.
      * @param {Object} [options] Options passed when creating the WebGL context. More info here https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/getContext
      */
-    class GraphicsDevice {
+    export class GraphicsDevice {
+        canvas: any;
+        shader: any;
+        indexBuffer: any;
+        vertexBuffers: any[];
+        vbOffsets: any[];
+        _enableAutoInstancing: boolean;
+        autoInstancingMaxObjects: number;
+        attributesInvalidated: boolean;
+        boundBuffer: any;
+        instancedAttribs: {};
+        enabledAttributes: {};
+        transformFeedbackBuffer: any;
+        activeFramebuffer: any;
+        activeTexture: number;
+        textureUnits: any[];
+        _maxPixelRatio: number;
+        renderTarget: any;
+        feedback: any;
+        _width: number;
+        _height: number;
+        shaders: any[];
+        buffers: any[];
+        textures: any[];
+        targets: any[];
+        contextLost: boolean;
+        webgl2: boolean;
+        gl: any;
+        extBlendMinmax: boolean;
+        extDrawBuffers: any;
+        extInstancing: any;
+        extStandardDerivatives: any;
+        extTextureFloat: boolean;
+        extTextureHalfFloat: boolean;
+        extTextureHalfFloatLinear: boolean;
+        extTextureLod: boolean;
+        extUintElement: boolean;
+        extRendererInfo: any;
+        extTextureFloatLinear: any;
+        extColorBufferFloat: any;
+        extTextureFilterAnisotropic: any;
+        extCompressedTextureETC1: any;
+        extCompressedTexturePVRTC: any;
+        extCompressedTextureS3TC: any;
+        maxPrecision: string;
+        precision: string;
+        supportsMsaa: any;
+        supportsStencil: any;
+        maxTextureSize: any;
+        maxCubeMapSize: any;
+        maxRenderBufferSize: any;
+        samplerCount: any;
+        maxVertexTextures: any;
+        vertexUniformsCount: any;
+        fragmentUniformsCount: any;
+        unmaskedRenderer: any;
+        unmaskedVendor: any;
+        maxDrawBuffers: any;
+        maxColorAttachments: any;
+        maxVolumeSize: any;
+        blending: boolean;
+        blendSrc: any;
+        blendDst: any;
+        blendSrcAlpha: any;
+        blendDstAlpha: any;
+        separateAlphaBlend: boolean;
+        blendEquation: any;
+        blendAlphaEquation: any;
+        separateAlphaEquation: boolean;
+        writeRed: boolean;
+        writeGreen: boolean;
+        writeBlue: boolean;
+        writeAlpha: boolean;
+        cullMode: any;
+        depthTest: boolean;
+        depthFunc: any;
+        depthWrite: boolean;
+        stencil: boolean;
+        stencilFuncFront: any;
+        stencilFuncBack: any;
+        stencilRefFront: number;
+        stencilRefBack: number;
+        stencilMaskFront: number;
+        stencilMaskBack: number;
+        stencilFailFront: any;
+        stencilFailBack: any;
+        stencilZfailFront: any;
+        stencilZfailBack: any;
+        stencilZpassFront: any;
+        stencilZpassBack: any;
+        stencilWriteMaskFront: number;
+        stencilWriteMaskBack: number;
+        alphaToCoverage: boolean;
+        raster: boolean;
+        depthBiasEnabled: boolean;
+        clearDepth: number;
+        clearRed: number;
+        clearBlue: number;
+        clearGreen: number;
+        clearAlpha: number;
+        clearStencil: number;
+        vx: number;
+        vy: number;
+        vw: number;
+        vh: number;
+        sx: number;
+        sy: number;
+        sw: number;
+        sh: number;
+        clientRect: any;
+        programLib: any;
+        _copyShader: any;
+        constantTexSource: any;
+        _renderTargetCreationTime: number;
+        _vram: any;
+        glFilter: any;
+        glAddress: any;
+        glComparison: any;
+        glType: any;
+        commitFunction: any;
+        _drawCallsPerFrame: any;
+        _primsPerFrame: any;
+        glPrimitive: any;
+        defaultClearOptions: any;
+        glClearFlag: any;
+        glStencilOp: any;
+        glBlendFunction: any;
+        glBlendEquation: any;
+        glCull: any;
+        cullFace: any;
+        _shaderSwitchesPerFrame: any;
+        extTextureHalfFloatRenderable: any;
+        extTextureFloatRenderable: any;
+        boneLimit: any;
         constructor(canvas, options) {
             let i;
             this.canvas = canvas;
             this.shader = null;
             this.indexBuffer = null;
-            this.vertexBuffers = [ ];
-            this.vbOffsets = [ ];
+            this.vertexBuffers = [];
+            this.vbOffsets = [];
             this._enableAutoInstancing = false;
             this.autoInstancingMaxObjects = 16384;
             this.attributesInvalidated = true;
             this.boundBuffer = null;
-            this.instancedAttribs = { };
-            this.enabledAttributes = { };
+            this.instancedAttribs = {};
+            this.enabledAttributes = {};
             this.transformFeedbackBuffer = null;
             this.activeFramebuffer = null;
             this.activeTexture = 0;
@@ -221,7 +354,7 @@ pc.extend(pc, (() => {
 
             this.updateClientRect();
 
-            if (!window.WebGLRenderingContext)
+            if (!(window as any).WebGLRenderingContext)
                 throw new pc.UnsupportedBrowserError();
 
             // Array of WebGL objects that need to be re-initialized after a context restore event
@@ -239,7 +372,7 @@ pc.extend(pc, (() => {
                 // #ifdef DEBUG
                 console.log('pc.GraphicsDevice: WebGL context lost.');
                 // #endif
-                this.fire('devicelost');
+                (this as any).fire('devicelost');
             }, false);
 
             canvas.addEventListener("webglcontextrestored", () => {
@@ -248,7 +381,7 @@ pc.extend(pc, (() => {
                 // #endif
                 this.initializeContext();
                 this.contextLost = false;
-                this.fire('devicerestored');
+                (this as any).fire('devicerestored');
             }, false);
 
             // Retrieve the WebGL context
@@ -282,12 +415,12 @@ pc.extend(pc, (() => {
             // put the rest of the constructor in a function
             // so that the constructor remains small. Small constructors
             // are optimized by Firefox due to type inference
-            (function() {
+            (function () {
                 this.defaultClearOptions = {
                     color: [0, 0, 0, 1],
                     depth: 1,
                     stencil: 0,
-                    flags: pc.CLEARFLAG_COLOR | pc.CLEARFLAG_DEPTH
+                    flags: pc.GraphicsConfig.CLEARFLAG_COLOR | pc.GraphicsConfig.CLEARFLAG_DEPTH
                 };
 
                 this.glAddress = [
@@ -391,20 +524,20 @@ pc.extend(pc, (() => {
                 let scopeX, scopeY, scopeZ, scopeW;
                 let uniformValue;
                 this.commitFunction = [];
-                this.commitFunction[pc.UNIFORMTYPE_BOOL] = (uniform, value) => {
+                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_BOOL] = (uniform, value) => {
                     if (uniform.value !== value) {
                         gl.uniform1i(uniform.locationId, value);
                         uniform.value = value;
                     }
                 };
-                this.commitFunction[pc.UNIFORMTYPE_INT] = this.commitFunction[pc.UNIFORMTYPE_BOOL];
-                this.commitFunction[pc.UNIFORMTYPE_FLOAT] = (uniform, value) => {
+                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_INT] = this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_BOOL];
+                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_FLOAT] = (uniform, value) => {
                     if (uniform.value !== value) {
                         gl.uniform1f(uniform.locationId, value);
                         uniform.value = value;
                     }
                 };
-                this.commitFunction[pc.UNIFORMTYPE_VEC2]  = (uniform, value) => {
+                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_VEC2] = (uniform, value) => {
                     uniformValue = uniform.value;
                     scopeX = value[0];
                     scopeY = value[1];
@@ -414,7 +547,7 @@ pc.extend(pc, (() => {
                         uniformValue[1] = scopeY;
                     }
                 };
-                this.commitFunction[pc.UNIFORMTYPE_VEC3]  = (uniform, value) => {
+                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_VEC3] = (uniform, value) => {
                     uniformValue = uniform.value;
                     scopeX = value[0];
                     scopeY = value[1];
@@ -426,7 +559,7 @@ pc.extend(pc, (() => {
                         uniformValue[2] = scopeZ;
                     }
                 };
-                this.commitFunction[pc.UNIFORMTYPE_VEC4]  = (uniform, value) => {
+                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_VEC4] = (uniform, value) => {
                     uniformValue = uniform.value;
                     scopeX = value[0];
                     scopeY = value[1];
@@ -440,7 +573,7 @@ pc.extend(pc, (() => {
                         uniformValue[3] = scopeW;
                     }
                 };
-                this.commitFunction[pc.UNIFORMTYPE_IVEC2] = (uniform, value) => {
+                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_IVEC2] = (uniform, value) => {
                     uniformValue = uniform.value;
                     scopeX = value[0];
                     scopeY = value[1];
@@ -450,8 +583,8 @@ pc.extend(pc, (() => {
                         uniformValue[1] = scopeY;
                     }
                 };
-                this.commitFunction[pc.UNIFORMTYPE_BVEC2] = this.commitFunction[pc.UNIFORMTYPE_IVEC2];
-                this.commitFunction[pc.UNIFORMTYPE_IVEC3] = (uniform, value) => {
+                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_BVEC2] = this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_IVEC2];
+                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_IVEC3] = (uniform, value) => {
                     uniformValue = uniform.value;
                     scopeX = value[0];
                     scopeY = value[1];
@@ -463,8 +596,8 @@ pc.extend(pc, (() => {
                         uniformValue[2] = scopeZ;
                     }
                 };
-                this.commitFunction[pc.UNIFORMTYPE_BVEC3] = this.commitFunction[pc.UNIFORMTYPE_IVEC3];
-                this.commitFunction[pc.UNIFORMTYPE_IVEC4] = (uniform, value) => {
+                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_BVEC3] = this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_IVEC3];
+                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_IVEC4] = (uniform, value) => {
                     uniformValue = uniform.value;
                     scopeX = value[0];
                     scopeY = value[1];
@@ -478,17 +611,17 @@ pc.extend(pc, (() => {
                         uniformValue[3] = scopeW;
                     }
                 };
-                this.commitFunction[pc.UNIFORMTYPE_BVEC4] = this.commitFunction[pc.UNIFORMTYPE_IVEC4];
-                this.commitFunction[pc.UNIFORMTYPE_MAT2]  = ({locationId}, value) => {
+                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_BVEC4] = this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_IVEC4];
+                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_MAT2] = ({ locationId }, value) => {
                     gl.uniformMatrix2fv(locationId, false, value);
                 };
-                this.commitFunction[pc.UNIFORMTYPE_MAT3]  = ({locationId}, value) => {
+                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_MAT3] = ({ locationId }, value) => {
                     gl.uniformMatrix3fv(locationId, false, value);
                 };
-                this.commitFunction[pc.UNIFORMTYPE_MAT4]  = ({locationId}, value) => {
+                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_MAT4] = ({ locationId }, value) => {
                     gl.uniformMatrix4fv(locationId, false, value);
                 };
-                this.commitFunction[pc.UNIFORMTYPE_FLOATARRAY] = ({locationId}, value) => {
+                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_FLOATARRAY] = ({ locationId }, value) => {
                     gl.uniform1fv(locationId, value);
                 };
 
@@ -533,7 +666,7 @@ pc.extend(pc, (() => {
                 this._drawCallsPerFrame = 0;
                 this._shaderSwitchesPerFrame = 0;
                 this._primsPerFrame = [];
-                for (i = pc.PRIMITIVE_POINTS; i <= pc.PRIMITIVE_TRIFAN; i++) {
+                for (i = pc.GraphicsConfig.PRIMITIVE_POINTS; i <= pc.GraphicsConfig.PRIMITIVE_TRIFAN; i++) {
                     this._primsPerFrame[i] = 0;
                 }
                 this._renderTargetCreationTime = 0;
@@ -589,12 +722,12 @@ pc.extend(pc, (() => {
                         const size = 1;
 
                         const tex = new pc.Texture(device, {
-                            format: pc.PIXELFORMAT_RGBA32F,
+                            format: pc.GraphicsConfig.PIXELFORMAT_RGBA32F,
                             width: size,
                             height: size,
                             mipmaps: false,
-                            minFilter: pc.FILTER_NEAREST,
-                            magFilter: pc.FILTER_NEAREST
+                            minFilter: pc.GraphicsConfig.FILTER_NEAREST,
+                            magFilter: pc.GraphicsConfig.FILTER_NEAREST
                         });
                         const targ = new pc.RenderTarget(device, tex, {
                             depth: false
@@ -602,12 +735,12 @@ pc.extend(pc, (() => {
                         pc.drawQuadWithShader(device, targ, test1);
 
                         const tex2 = new pc.Texture(device, {
-                            format: pc.PIXELFORMAT_R8_G8_B8_A8,
+                            format: pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8_A8,
                             width: size,
                             height: size,
                             mipmaps: false,
-                            minFilter: pc.FILTER_NEAREST,
-                            magFilter: pc.FILTER_NEAREST
+                            minFilter: pc.GraphicsConfig.FILTER_NEAREST,
+                            magFilter: pc.GraphicsConfig.FILTER_NEAREST
                         });
                         const targ2 = new pc.RenderTarget(device, tex2, {
                             depth: false
@@ -659,7 +792,7 @@ pc.extend(pc, (() => {
                 const vertexShaderPrecisionMediumpFloat = gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.MEDIUM_FLOAT);
 
                 const fragmentShaderPrecisionHighpFloat = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
-                const fragmentShaderPrecisionMediumpFloat = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT );
+                const fragmentShaderPrecisionMediumpFloat = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT);
 
                 const highpAvailable = vertexShaderPrecisionHighpFloat.precision > 0 && fragmentShaderPrecisionHighpFloat.precision > 0;
                 const mediumpAvailable = vertexShaderPrecisionMediumpFloat.precision > 0 && fragmentShaderPrecisionMediumpFloat.precision > 0;
@@ -673,7 +806,7 @@ pc.extend(pc, (() => {
                     } else {
                         precision = "lowp";
                         // #ifdef DEBUG
-                        console.warn( "WARNING: highp and mediump not supported, using lowp" );
+                        console.warn("WARNING: highp and mediump not supported, using lowp");
                         // #endif
                     }
                 }
@@ -714,15 +847,15 @@ pc.extend(pc, (() => {
             this.extColorBufferFloat = gl.getExtension('EXT_color_buffer_float');
 
             this.extTextureFilterAnisotropic = gl.getExtension('EXT_texture_filter_anisotropic') ||
-                                               gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic');
+                gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic');
 
             this.extCompressedTextureETC1 = gl.getExtension('WEBGL_compressed_texture_etc1');
 
             this.extCompressedTexturePVRTC = gl.getExtension('WEBGL_compressed_texture_pvrtc') ||
-                                             gl.getExtension('WEBKIT_WEBGL_compressed_texture_pvrtc');
+                gl.getExtension('WEBKIT_WEBGL_compressed_texture_pvrtc');
 
             this.extCompressedTextureS3TC = gl.getExtension('WEBGL_compressed_texture_s3tc') ||
-                                            gl.getExtension('WEBKIT_WEBGL_compressed_texture_s3tc');
+                gl.getExtension('WEBKIT_WEBGL_compressed_texture_s3tc');
 
             // IE 11 can't use mip maps with S3TC
             if (this.extCompressedTextureS3TC && _isIE())
@@ -766,13 +899,13 @@ pc.extend(pc, (() => {
             this.blending = false;
             gl.disable(gl.BLEND);
 
-            this.blendSrc = pc.BLENDMODE_ONE;
-            this.blendDst = pc.BLENDMODE_ZERO;
-            this.blendSrcAlpha = pc.BLENDMODE_ONE;
-            this.blendDstAlpha = pc.BLENDMODE_ZERO;
+            this.blendSrc = pc.GraphicsConfig.BLENDMODE_ONE;
+            this.blendDst = pc.GraphicsConfig.BLENDMODE_ZERO;
+            this.blendSrcAlpha = pc.GraphicsConfig.BLENDMODE_ONE;
+            this.blendDstAlpha = pc.GraphicsConfig.BLENDMODE_ZERO;
             this.separateAlphaBlend = false;
-            this.blendEquation = pc.BLENDEQUATION_ADD;
-            this.blendAlphaEquation = pc.BLENDEQUATION_ADD;
+            this.blendEquation = pc.GraphicsConfig.BLENDEQUATION_ADD;
+            this.blendAlphaEquation = pc.GraphicsConfig.BLENDEQUATION_ADD;
             this.separateAlphaEquation = false;
             gl.blendFunc(gl.ONE, gl.ZERO);
             gl.blendEquation(gl.FUNC_ADD);
@@ -783,14 +916,14 @@ pc.extend(pc, (() => {
             this.writeAlpha = true;
             gl.colorMask(true, true, true, true);
 
-            this.cullMode = pc.CULLFACE_BACK;
+            this.cullMode = pc.GraphicsConfig.CULLFACE_BACK;
             gl.enable(gl.CULL_FACE);
             gl.cullFace(gl.BACK);
 
             this.depthTest = true;
             gl.enable(gl.DEPTH_TEST);
 
-            this.depthFunc = pc.FUNC_LESSEQUAL;
+            this.depthFunc = pc.GraphicsConfig.FUNC_LESSEQUAL;
             gl.depthFunc(gl.LEQUAL);
 
             this.depthWrite = true;
@@ -799,14 +932,14 @@ pc.extend(pc, (() => {
             this.stencil = false;
             gl.disable(gl.STENCIL_TEST);
 
-            this.stencilFuncFront = this.stencilFuncBack = pc.FUNC_ALWAYS;
+            this.stencilFuncFront = this.stencilFuncBack = pc.GraphicsConfig.FUNC_ALWAYS;
             this.stencilRefFront = this.stencilRefBack = 0;
             this.stencilMaskFront = this.stencilMaskBack = 0xFF;
             gl.stencilFunc(gl.ALWAYS, 0, 0xFF);
 
-            this.stencilFailFront = this.stencilFailBack = pc.STENCILOP_KEEP;
-            this.stencilZfailFront = this.stencilZfailBack = pc.STENCILOP_KEEP;
-            this.stencilZpassFront = this.stencilZpassBack = pc.STENCILOP_KEEP;
+            this.stencilFailFront = this.stencilFailBack = pc.GraphicsConfig.STENCILOP_KEEP;
+            this.stencilZfailFront = this.stencilZfailBack = pc.GraphicsConfig.STENCILOP_KEEP;
+            this.stencilZpassFront = this.stencilZpassBack = pc.GraphicsConfig.STENCILOP_KEEP;
             this.stencilWriteMaskFront = 0xFF;
             this.stencilWriteMaskBack = 0xFF;
             gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
@@ -1055,10 +1188,10 @@ pc.extend(pc, (() => {
                 gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, dest._glFrameBuffer);
                 const w = source ? source.width : dest.width;
                 const h = source ? source.height : dest.height;
-                gl.blitFramebuffer( 0, 0, w, h,
-                                    0, 0, w, h,
-                                    (color ? gl.COLOR_BUFFER_BIT : 0) | (depth ? gl.DEPTH_BUFFER_BIT : 0),
-                                    gl.NEAREST);
+                gl.blitFramebuffer(0, 0, w, h,
+                    0, 0, w, h,
+                    (color ? gl.COLOR_BUFFER_BIT : 0) | (depth ? gl.DEPTH_BUFFER_BIT : 0),
+                    gl.NEAREST);
                 this.renderTarget = prevRt;
                 gl.bindFramebuffer(gl.FRAMEBUFFER, prevRt ? prevRt._glFrameBuffer : null);
             } else {
@@ -1095,7 +1228,7 @@ pc.extend(pc, (() => {
 
                     // #ifdef PROFILER
                     const startTime = pc.now();
-                    this.fire('fbo:create', {
+                    (this as any).fire('fbo:create', {
                         timestamp: startTime,
                         target: this
                     });
@@ -1139,12 +1272,12 @@ pc.extend(pc, (() => {
                         // Attach
                         if (target._stencil) {
                             gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT,
-                                                    depthBuffer._cubemap ? gl.TEXTURE_CUBE_MAP_POSITIVE_X + target._face : gl.TEXTURE_2D,
-                                                    target._depthBuffer._glTextureId, 0);
+                                depthBuffer._cubemap ? gl.TEXTURE_CUBE_MAP_POSITIVE_X + target._face : gl.TEXTURE_2D,
+                                target._depthBuffer._glTextureId, 0);
                         } else {
                             gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT,
-                                                    depthBuffer._cubemap ? gl.TEXTURE_CUBE_MAP_POSITIVE_X + target._face : gl.TEXTURE_2D,
-                                                    target._depthBuffer._glTextureId, 0);
+                                depthBuffer._cubemap ? gl.TEXTURE_CUBE_MAP_POSITIVE_X + target._face : gl.TEXTURE_2D,
+                                target._depthBuffer._glTextureId, 0);
                         }
                     } else if (target._depth) {
                         // --- Init a new depth/stencil buffer (optional) ---
@@ -1268,87 +1401,87 @@ pc.extend(pc, (() => {
 
 
             switch (texture._format) {
-                case pc.PIXELFORMAT_A8:
+                case pc.GraphicsConfig.PIXELFORMAT_A8:
                     texture._glFormat = gl.ALPHA;
                     texture._glInternalFormat = gl.ALPHA;
                     texture._glPixelType = gl.UNSIGNED_BYTE;
                     break;
-                case pc.PIXELFORMAT_L8:
+                case pc.GraphicsConfig.PIXELFORMAT_L8:
                     texture._glFormat = gl.LUMINANCE;
                     texture._glInternalFormat = gl.LUMINANCE;
                     texture._glPixelType = gl.UNSIGNED_BYTE;
                     break;
-                case pc.PIXELFORMAT_L8_A8:
+                case pc.GraphicsConfig.PIXELFORMAT_L8_A8:
                     texture._glFormat = gl.LUMINANCE_ALPHA;
                     texture._glInternalFormat = gl.LUMINANCE_ALPHA;
                     texture._glPixelType = gl.UNSIGNED_BYTE;
                     break;
-                case pc.PIXELFORMAT_R5_G6_B5:
+                case pc.GraphicsConfig.PIXELFORMAT_R5_G6_B5:
                     texture._glFormat = gl.RGB;
                     texture._glInternalFormat = gl.RGB;
                     texture._glPixelType = gl.UNSIGNED_SHORT_5_6_5;
                     break;
-                case pc.PIXELFORMAT_R5_G5_B5_A1:
+                case pc.GraphicsConfig.PIXELFORMAT_R5_G5_B5_A1:
                     texture._glFormat = gl.RGBA;
                     texture._glInternalFormat = gl.RGBA;
                     texture._glPixelType = gl.UNSIGNED_SHORT_5_5_5_1;
                     break;
-                case pc.PIXELFORMAT_R4_G4_B4_A4:
+                case pc.GraphicsConfig.PIXELFORMAT_R4_G4_B4_A4:
                     texture._glFormat = gl.RGBA;
                     texture._glInternalFormat = gl.RGBA;
                     texture._glPixelType = gl.UNSIGNED_SHORT_4_4_4_4;
                     break;
-                case pc.PIXELFORMAT_R8_G8_B8:
+                case pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8:
                     texture._glFormat = gl.RGB;
                     texture._glInternalFormat = this.webgl2 ? gl.RGB8 : gl.RGB;
                     texture._glPixelType = gl.UNSIGNED_BYTE;
                     break;
-                case pc.PIXELFORMAT_R8_G8_B8_A8:
+                case pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8_A8:
                     texture._glFormat = gl.RGBA;
                     texture._glInternalFormat = this.webgl2 ? gl.RGBA8 : gl.RGBA;
                     texture._glPixelType = gl.UNSIGNED_BYTE;
                     break;
-                case pc.PIXELFORMAT_DXT1:
+                case pc.GraphicsConfig.PIXELFORMAT_DXT1:
                     ext = this.extCompressedTextureS3TC;
                     texture._glFormat = gl.RGB;
                     texture._glInternalFormat = ext.COMPRESSED_RGB_S3TC_DXT1_EXT;
                     break;
-                case pc.PIXELFORMAT_DXT3:
+                case pc.GraphicsConfig.PIXELFORMAT_DXT3:
                     ext = this.extCompressedTextureS3TC;
                     texture._glFormat = gl.RGBA;
                     texture._glInternalFormat = ext.COMPRESSED_RGBA_S3TC_DXT3_EXT;
                     break;
-                case pc.PIXELFORMAT_DXT5:
+                case pc.GraphicsConfig.PIXELFORMAT_DXT5:
                     ext = this.extCompressedTextureS3TC;
                     texture._glFormat = gl.RGBA;
                     texture._glInternalFormat = ext.COMPRESSED_RGBA_S3TC_DXT5_EXT;
                     break;
-                case pc.PIXELFORMAT_ETC1:
+                case pc.GraphicsConfig.PIXELFORMAT_ETC1:
                     ext = this.extCompressedTextureETC1;
                     texture._glFormat = gl.RGB;
                     texture._glInternalFormat = ext.COMPRESSED_RGB_ETC1_WEBGL;
                     break;
-                case pc.PIXELFORMAT_PVRTC_2BPP_RGB_1:
+                case pc.GraphicsConfig.PIXELFORMAT_PVRTC_2BPP_RGB_1:
                     ext = this.extCompressedTexturePVRTC;
                     texture._glFormat = gl.RGB;
                     texture._glInternalFormat = ext.COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
                     break;
-                case pc.PIXELFORMAT_PVRTC_2BPP_RGBA_1:
+                case pc.GraphicsConfig.PIXELFORMAT_PVRTC_2BPP_RGBA_1:
                     ext = this.extCompressedTexturePVRTC;
                     texture._glFormat = gl.RGBA;
                     texture._glInternalFormat = ext.COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
                     break;
-                case pc.PIXELFORMAT_PVRTC_4BPP_RGB_1:
+                case pc.GraphicsConfig.PIXELFORMAT_PVRTC_4BPP_RGB_1:
                     ext = this.extCompressedTexturePVRTC;
                     texture._glFormat = gl.RGB;
                     texture._glInternalFormat = ext.COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
                     break;
-                case pc.PIXELFORMAT_PVRTC_4BPP_RGBA_1:
+                case pc.GraphicsConfig.PIXELFORMAT_PVRTC_4BPP_RGBA_1:
                     ext = this.extCompressedTexturePVRTC;
                     texture._glFormat = gl.RGBA;
                     texture._glInternalFormat = ext.COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
                     break;
-                case pc.PIXELFORMAT_RGB16F:
+                case pc.GraphicsConfig.PIXELFORMAT_RGB16F:
                     // definition varies between WebGL1 and 2
                     ext = this.extTextureHalfFloat;
                     texture._glFormat = gl.RGB;
@@ -1360,7 +1493,7 @@ pc.extend(pc, (() => {
                         texture._glPixelType = ext.HALF_FLOAT_OES;
                     }
                     break;
-                case pc.PIXELFORMAT_RGBA16F:
+                case pc.GraphicsConfig.PIXELFORMAT_RGBA16F:
                     // definition varies between WebGL1 and 2
                     ext = this.extTextureHalfFloat;
                     texture._glFormat = gl.RGBA;
@@ -1372,7 +1505,7 @@ pc.extend(pc, (() => {
                         texture._glPixelType = ext.HALF_FLOAT_OES;
                     }
                     break;
-                case pc.PIXELFORMAT_RGB32F:
+                case pc.GraphicsConfig.PIXELFORMAT_RGB32F:
                     // definition varies between WebGL1 and 2
                     texture._glFormat = gl.RGB;
                     if (this.webgl2) {
@@ -1382,7 +1515,7 @@ pc.extend(pc, (() => {
                     }
                     texture._glPixelType = gl.FLOAT;
                     break;
-                case pc.PIXELFORMAT_RGBA32F:
+                case pc.GraphicsConfig.PIXELFORMAT_RGBA32F:
                     // definition varies between WebGL1 and 2
                     texture._glFormat = gl.RGBA;
                     if (this.webgl2) {
@@ -1392,12 +1525,12 @@ pc.extend(pc, (() => {
                     }
                     texture._glPixelType = gl.FLOAT;
                     break;
-                case pc.PIXELFORMAT_R32F: // WebGL2 only
+                case pc.GraphicsConfig.PIXELFORMAT_R32F: // WebGL2 only
                     texture._glFormat = gl.RED;
                     texture._glInternalFormat = gl.R32F;
                     texture._glPixelType = gl.FLOAT;
                     break;
-                case pc.PIXELFORMAT_DEPTH:
+                case pc.GraphicsConfig.PIXELFORMAT_DEPTH:
                     if (this.webgl2) {
                         // native WebGL2
                         texture._glFormat = gl.DEPTH_COMPONENT;
@@ -1410,22 +1543,22 @@ pc.extend(pc, (() => {
                         texture._glPixelType = gl.UNSIGNED_SHORT; // the only acceptable value?
                     }
                     break;
-                case pc.PIXELFORMAT_DEPTHSTENCIL: // WebGL2 only
+                case pc.GraphicsConfig.PIXELFORMAT_DEPTHSTENCIL: // WebGL2 only
                     texture._glFormat = gl.DEPTH_STENCIL;
                     texture._glInternalFormat = gl.DEPTH24_STENCIL8;
                     texture._glPixelType = gl.UNSIGNED_INT_24_8;
                     break;
-                case pc.PIXELFORMAT_111110F: // WebGL2 only
+                case pc.GraphicsConfig.PIXELFORMAT_111110F: // WebGL2 only
                     texture._glFormat = gl.RGB;
                     texture._glInternalFormat = gl.R11F_G11F_B10F;
                     texture._glPixelType = gl.FLOAT;
                     break;
-                case pc.PIXELFORMAT_SRGB: // WebGL2 only
+                case pc.GraphicsConfig.PIXELFORMAT_SRGB: // WebGL2 only
                     texture._glFormat = gl.RGB;
                     texture._glInternalFormat = gl.SRGB8;
                     texture._glPixelType = gl.UNSIGNED_BYTE;
                     break;
-                case pc.PIXELFORMAT_SRGBA: // WebGL2 only
+                case pc.GraphicsConfig.PIXELFORMAT_SRGBA: // WebGL2 only
                     texture._glFormat = gl.RGBA;
                     texture._glInternalFormat = gl.SRGB8_ALPHA8;
                     texture._glPixelType = gl.UNSIGNED_BYTE;
@@ -1436,7 +1569,7 @@ pc.extend(pc, (() => {
         uploadTexture(texture) {
             const gl = this.gl;
 
-            if (! texture._needsUpload && ((texture._needsMipmapsUpload && texture._mipmapsUploaded) || ! texture._pot))
+            if (!texture._needsUpload && ((texture._needsMipmapsUpload && texture._mipmapsUploaded) || !texture._pot))
                 return;
 
             let mipLevel = 0;
@@ -1446,16 +1579,16 @@ pc.extend(pc, (() => {
             while (texture._levels[mipLevel] || mipLevel === 0) {
                 // Upload all existing mip levels. Initialize 0 mip anyway.
 
-                if (! texture._needsUpload && mipLevel === 0) {
+                if (!texture._needsUpload && mipLevel === 0) {
                     mipLevel++;
                     continue;
-                } else if (mipLevel && (! texture._needsMipmapsUpload || ! texture._mipmaps)) {
+                } else if (mipLevel && (!texture._needsMipmapsUpload || !texture._mipmaps)) {
                     break;
                 }
 
                 mipObject = texture._levels[mipLevel];
 
-                if (mipLevel == 1 && ! texture._compressed) {
+                if (mipLevel == 1 && !texture._compressed) {
                     // We have more than one mip levels we want to assign, but we need all mips to make
                     // the texture complete. Therefore first generate all mip chain from 0, then assign custom mips.
                     gl.generateMipmap(texture._glTarget);
@@ -1472,7 +1605,7 @@ pc.extend(pc, (() => {
                     if ((mipObject[0] instanceof HTMLCanvasElement) || (mipObject[0] instanceof HTMLImageElement) || (mipObject[0] instanceof HTMLVideoElement)) {
                         // Upload the image, canvas or video
                         for (face = 0; face < 6; face++) {
-                            if (! texture._levelsUpdated[0][face])
+                            if (!texture._levelsUpdated[0][face])
                                 continue;
 
                             let src = mipObject[face];
@@ -1500,7 +1633,7 @@ pc.extend(pc, (() => {
                         // Upload the byte array
                         resMult = 1 / (2 ** mipLevel);
                         for (face = 0; face < 6; face++) {
-                            if (! texture._levelsUpdated[0][face])
+                            if (!texture._levelsUpdated[0][face])
                                 continue;
 
                             const texData = mipObject[face];
@@ -1537,24 +1670,24 @@ pc.extend(pc, (() => {
                     resMult = 1 / (2 ** mipLevel);
                     if (texture._compressed) {
                         gl.compressedTexImage3D(gl.TEXTURE_3D,
-                                                mipLevel,
-                                                texture._glInternalFormat,
-                                                Math.max(texture._width * resMult, 1),
-                                                Math.max(texture._height * resMult, 1),
-                                                Math.max(texture._depth * resMult, 1),
-                                                0,
-                                                mipObject);
+                            mipLevel,
+                            texture._glInternalFormat,
+                            Math.max(texture._width * resMult, 1),
+                            Math.max(texture._height * resMult, 1),
+                            Math.max(texture._depth * resMult, 1),
+                            0,
+                            mipObject);
                     } else {
                         gl.texImage3D(gl.TEXTURE_3D,
-                                      mipLevel,
-                                      texture._glInternalFormat,
-                                      Math.max(texture._width * resMult, 1),
-                                      Math.max(texture._height * resMult, 1),
-                                      Math.max(texture._depth * resMult, 1),
-                                      0,
-                                      texture._glFormat,
-                                      texture._glPixelType,
-                                      mipObject);
+                            mipLevel,
+                            texture._glInternalFormat,
+                            Math.max(texture._width * resMult, 1),
+                            Math.max(texture._height * resMult, 1),
+                            Math.max(texture._depth * resMult, 1),
+                            0,
+                            texture._glFormat,
+                            texture._glPixelType,
+                            mipObject);
                     }
                 } else {
                     // ----- 2D -----
@@ -1628,7 +1761,7 @@ pc.extend(pc, (() => {
                 }
             }
 
-            if (! texture._compressed && texture._mipmaps && texture._needsMipmapsUpload && texture._pot && texture._levels.length === 1) {
+            if (!texture._compressed && texture._mipmaps && texture._needsMipmapsUpload && texture._pot && texture._levels.length === 1) {
                 gl.generateMipmap(texture._glTarget);
                 texture._mipmapsUploaded = true;
             }
@@ -1636,11 +1769,11 @@ pc.extend(pc, (() => {
             if (texture._gpuSize) {
                 this._vram.tex -= texture._gpuSize;
                 // #ifdef PROFILER
-                if (texture.profilerHint === pc.TEXHINT_SHADOWMAP) {
+                if (texture.profilerHint === pc.GraphicsConfig.TEXHINT_SHADOWMAP) {
                     this._vram.texShadow -= texture._gpuSize;
-                } else if (texture.profilerHint === pc.TEXHINT_ASSET) {
+                } else if (texture.profilerHint === pc.GraphicsConfig.TEXHINT_ASSET) {
                     this._vram.texAsset -= texture._gpuSize;
-                } else if (texture.profilerHint === pc.TEXHINT_LIGHTMAP) {
+                } else if (texture.profilerHint === pc.GraphicsConfig.TEXHINT_LIGHTMAP) {
                     this._vram.texLightmap -= texture._gpuSize;
                 }
                 // #endif
@@ -1649,11 +1782,11 @@ pc.extend(pc, (() => {
             texture._gpuSize = gpuTexSize(gl, texture);
             this._vram.tex += texture._gpuSize;
             // #ifdef PROFILER
-            if (texture.profilerHint === pc.TEXHINT_SHADOWMAP) {
+            if (texture.profilerHint === pc.GraphicsConfig.TEXHINT_SHADOWMAP) {
                 this._vram.texShadow += texture._gpuSize;
-            } else if (texture.profilerHint === pc.TEXHINT_ASSET) {
+            } else if (texture.profilerHint === pc.GraphicsConfig.TEXHINT_ASSET) {
                 this._vram.texAsset += texture._gpuSize;
-            } else if (texture.profilerHint === pc.TEXHINT_LIGHTMAP) {
+            } else if (texture.profilerHint === pc.GraphicsConfig.TEXHINT_LIGHTMAP) {
                 this._vram.texLightmap += texture._gpuSize;
             }
             // #endif
@@ -1666,8 +1799,8 @@ pc.extend(pc, (() => {
                 this.initializeTexture(texture);
 
             const paramDirty = texture._minFilterDirty || texture._magFilterDirty ||
-                             texture._addressUDirty || texture._addressVDirty || texture._addressWDirty ||
-                             texture._anisotropyDirty || texture._compareModeDirty;
+                texture._addressUDirty || texture._addressVDirty || texture._addressWDirty ||
+                texture._anisotropyDirty || texture._compareModeDirty;
 
             if ((this.textureUnits[textureUnit] !== texture) || paramDirty) {
                 if (this.activeTexture !== textureUnit) {
@@ -1681,11 +1814,11 @@ pc.extend(pc, (() => {
             if (paramDirty) {
                 if (texture._minFilterDirty) {
                     let filter = texture._minFilter;
-                    if (! texture._pot || ! texture._mipmaps || (texture._compressed && texture._levels.length === 1)) {
-                        if (filter === pc.FILTER_NEAREST_MIPMAP_NEAREST || filter === pc.FILTER_NEAREST_MIPMAP_LINEAR) {
-                            filter = pc.FILTER_NEAREST;
-                        } else if (filter === pc.FILTER_LINEAR_MIPMAP_NEAREST || filter === pc.FILTER_LINEAR_MIPMAP_LINEAR) {
-                            filter = pc.FILTER_LINEAR;
+                    if (!texture._pot || !texture._mipmaps || (texture._compressed && texture._levels.length === 1)) {
+                        if (filter === pc.GraphicsConfig.FILTER_NEAREST_MIPMAP_NEAREST || filter === pc.GraphicsConfig.FILTER_NEAREST_MIPMAP_LINEAR) {
+                            filter = pc.GraphicsConfig.FILTER_NEAREST;
+                        } else if (filter === pc.GraphicsConfig.FILTER_LINEAR_MIPMAP_NEAREST || filter === pc.GraphicsConfig.FILTER_LINEAR_MIPMAP_LINEAR) {
+                            filter = pc.GraphicsConfig.FILTER_LINEAR;
                         }
                     }
                     gl.texParameteri(texture._glTarget, gl.TEXTURE_MIN_FILTER, this.glFilter[filter]);
@@ -1700,7 +1833,7 @@ pc.extend(pc, (() => {
                         gl.texParameteri(texture._glTarget, gl.TEXTURE_WRAP_S, this.glAddress[texture._addressU]);
                     } else {
                         // WebGL1 doesn't support all addressing modes with NPOT textures
-                        gl.texParameteri(texture._glTarget, gl.TEXTURE_WRAP_S, this.glAddress[texture._pot ? texture._addressU : pc.ADDRESS_CLAMP_TO_EDGE]);
+                        gl.texParameteri(texture._glTarget, gl.TEXTURE_WRAP_S, this.glAddress[texture._pot ? texture._addressU : pc.GraphicsConfig.ADDRESS_CLAMP_TO_EDGE]);
                     }
                     texture._addressUDirty = false;
                 }
@@ -1709,7 +1842,7 @@ pc.extend(pc, (() => {
                         gl.texParameteri(texture._glTarget, gl.TEXTURE_WRAP_T, this.glAddress[texture._addressV]);
                     } else {
                         // WebGL1 doesn't support all addressing modes with NPOT textures
-                        gl.texParameteri(texture._glTarget, gl.TEXTURE_WRAP_T, this.glAddress[texture._pot ? texture._addressV : pc.ADDRESS_CLAMP_TO_EDGE]);
+                        gl.texParameteri(texture._glTarget, gl.TEXTURE_WRAP_T, this.glAddress[texture._pot ? texture._addressV : pc.GraphicsConfig.ADDRESS_CLAMP_TO_EDGE]);
                     }
                     texture._addressVDirty = false;
                 }
@@ -1765,7 +1898,7 @@ pc.extend(pc, (() => {
          *     indexed: false
          * )};
          */
-        draw({type, count, indexed, base}, numInstances) {
+        draw({ type, count, indexed, base }, numInstances) {
             const gl = this.gl;
 
             let i, j, len; // Loop counting
@@ -1993,12 +2126,12 @@ pc.extend(pc, (() => {
                 const gl = this.gl;
 
                 // Set the clear color
-                if (flags & pc.CLEARFLAG_COLOR) {
+                if (flags & pc.GraphicsConfig.CLEARFLAG_COLOR) {
                     const color = (options.color == undefined) ? defaultOptions.color : options.color;
                     this.setClearColor(color[0], color[1], color[2], color[3]);
                 }
 
-                if (flags & pc.CLEARFLAG_DEPTH) {
+                if (flags & pc.GraphicsConfig.CLEARFLAG_DEPTH) {
                     // Set the clear depth
                     const depth = (options.depth == undefined) ? defaultOptions.depth : options.depth;
                     this.setClearDepth(depth);
@@ -2007,7 +2140,7 @@ pc.extend(pc, (() => {
                     }
                 }
 
-                if (flags & pc.CLEARFLAG_STENCIL) {
+                if (flags & pc.GraphicsConfig.CLEARFLAG_STENCIL) {
                     // Set the clear stencil
                     const stencil = (options.stencil == undefined) ? defaultOptions.stencil : options.stencil;
                     this.setClearStencil(stencil);
@@ -2016,7 +2149,7 @@ pc.extend(pc, (() => {
                 // Clear the frame buffer
                 gl.clear(this.glClearFlag[flags]);
 
-                if (flags & pc.CLEARFLAG_DEPTH) {
+                if (flags & pc.GraphicsConfig.CLEARFLAG_DEPTH) {
                     if (!this.depthWrite) {
                         gl.depthMask(false);
                     }
@@ -2572,7 +2705,7 @@ pc.extend(pc, (() => {
         setBlendFunctionSeparate(blendSrc, blendDst, blendSrcAlpha, blendDstAlpha) {
             if (this.blendSrc !== blendSrc || this.blendDst !== blendDst || this.blendSrcAlpha !== blendSrcAlpha || this.blendDstAlpha !== blendDstAlpha || !this.separateAlphaBlend) {
                 this.gl.blendFuncSeparate(this.glBlendFunction[blendSrc], this.glBlendFunction[blendDst],
-                                          this.glBlendFunction[blendSrcAlpha], this.glBlendFunction[blendDstAlpha]);
+                    this.glBlendFunction[blendSrcAlpha], this.glBlendFunction[blendDstAlpha]);
                 this.blendSrc = blendSrc;
                 this.blendDst = blendDst;
                 this.blendSrcAlpha = blendSrcAlpha;
@@ -2644,10 +2777,10 @@ pc.extend(pc, (() => {
          */
         setCullMode(cullMode) {
             if (this.cullMode !== cullMode) {
-                if (cullMode === pc.CULLFACE_NONE) {
+                if (cullMode === pc.GraphicsConfig.CULLFACE_NONE) {
                     this.gl.disable(this.gl.CULL_FACE);
                 } else {
-                    if (this.cullMode === pc.CULLFACE_NONE) {
+                    if (this.cullMode === pc.GraphicsConfig.CULLFACE_NONE) {
                         this.gl.enable(this.gl.CULL_FACE);
                     }
 
@@ -2742,11 +2875,11 @@ pc.extend(pc, (() => {
 
         getHdrFormat() {
             if (this.extTextureHalfFloatRenderable) {
-                return pc.PIXELFORMAT_RGB16F;
+                return pc.GraphicsConfig.PIXELFORMAT_RGB16F;
             } else if (this.extTextureFloatRenderable) {
-                return pc.PIXELFORMAT_RGB32F;
+                return pc.GraphicsConfig.PIXELFORMAT_RGB32F;
             }
-            return pc.PIXELFORMAT_R8_G8_B8_A8;
+            return pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8_A8;
         }
 
         /**
@@ -2806,7 +2939,7 @@ pc.extend(pc, (() => {
             height *= ratio;
             this.canvas.width = width;
             this.canvas.height = height;
-            this.fire(EVENT_RESIZE, width, height);
+            (this as any).fire(EVENT_RESIZE, width, height);
         }
 
         setResolution(width, height) {
@@ -2814,7 +2947,7 @@ pc.extend(pc, (() => {
             this._height = height;
             this.canvas.width = width;
             this.canvas.height = height;
-            this.fire(EVENT_RESIZE, width, height);
+            (this as any).fire(EVENT_RESIZE, width, height);
         }
 
         /**
@@ -2885,38 +3018,58 @@ pc.extend(pc, (() => {
             this._maxPixelRatio = ratio;
             this.resizeCanvas(this._width, this._height);
         }
+        /**
+         * @readonly
+         * @name pc.GraphicsDevice#maxAnisotropy
+         * @type Number
+         * @description The maximum supported texture anisotropy setting.
+         */
+        get maxAnisotropy() {
+            return (() => {
+                let maxAniso;
+
+                return function () {
+                    if (maxAniso === undefined) {
+                        maxAniso = 1;
+
+                        const gl = this.gl;
+                        const glExt = this.extTextureFilterAnisotropic;
+                        if (glExt) {
+                            maxAniso = gl.getParameter(glExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+                        }
+                    }
+
+                    return maxAniso;
+                };
+            })()();
+        }
     }
 
-    /**
-     * @readonly
-     * @name pc.GraphicsDevice#maxAnisotropy
-     * @type Number
-     * @description The maximum supported texture anisotropy setting.
-     */
-    Object.defineProperty(GraphicsDevice.prototype, 'maxAnisotropy', {
-        get: ( (() => {
-            let maxAniso;
+    // /**
+    //  * @readonly
+    //  * @name pc.GraphicsDevice#maxAnisotropy
+    //  * @type Number
+    //  * @description The maximum supported texture anisotropy setting.
+    //  */
+    // Object.defineProperty(GraphicsDevice.prototype, 'maxAnisotropy', {
+    //     get: ((() => {
+    //         let maxAniso;
 
-            return function () {
-                if (maxAniso === undefined) {
-                    maxAniso = 1;
+    //         return function () {
+    //             if (maxAniso === undefined) {
+    //                 maxAniso = 1;
 
-                    const gl = this.gl;
-                    const glExt = this.extTextureFilterAnisotropic;
-                    if (glExt) {
-                        maxAniso = gl.getParameter(glExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
-                    }
-                }
+    //                 const gl = this.gl;
+    //                 const glExt = this.extTextureFilterAnisotropic;
+    //                 if (glExt) {
+    //                     maxAniso = gl.getParameter(glExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+    //                 }
+    //             }
 
-                return maxAniso;
-            };
-        }) )()
-    });
+    //             return maxAniso;
+    //         };
+    //     }))()
+    // });
 
-    return {
-        UnsupportedBrowserError,
-        ContextCreationError,
-        GraphicsDevice,
-        precalculatedTangents: true
-    };
-})());
+    export const precalculatedTangents = true;
+}

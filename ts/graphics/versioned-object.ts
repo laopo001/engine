@@ -1,7 +1,8 @@
-pc.extend(pc, (() => {
+namespace pc {
     let idCounter = 0;
 
-    class VersionedObject {
+    export class VersionedObject {
+        version: Version;
         constructor() {
             // Increment the global object ID counter
             idCounter++;
@@ -19,7 +20,5 @@ pc.extend(pc, (() => {
         }
     }
 
-    return {
-        VersionedObject
-    };
-})());
+
+}

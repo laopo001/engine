@@ -1,4 +1,4 @@
-pc.extend(pc, (() => {
+namespace pc {
     const defaultOptions = {
         depth: true,
         face: 0
@@ -43,7 +43,20 @@ pc.extend(pc, (() => {
      * // Set the render target on a layer
      * layer.renderTarget = renderTarget;
      */
-    class RenderTarget {
+    export class RenderTarget {
+        _colorBuffer: any;
+        _glFrameBuffer: any;
+        _glDepthBuffer: any;
+        _depthBuffer: any;
+        _face: any;
+        _depth: boolean;
+        _stencil: boolean;
+        _samples: any;
+        autoResolve: any;
+        _glResolveFrameBuffer: any;
+        _glMsaaColorBuffer: any;
+        _glMsaaDepthBuffer: any;
+        _device: any;
         constructor(options, _arg2, _arg3) {
 
             if (options instanceof pc.GraphicsDevice) {
@@ -65,10 +78,10 @@ pc.extend(pc, (() => {
 
             if (this._depthBuffer) {
                 const format = this._depthBuffer._format;
-                if (format === pc.PIXELFORMAT_DEPTH) {
+                if (format === pc.GraphicsConfig.PIXELFORMAT_DEPTH) {
                     this._depth = true;
                     this._stencil = false;
-                } else if (format === pc.PIXELFORMAT_DEPTHSTENCIL) {
+                } else if (format === pc.GraphicsConfig.PIXELFORMAT_DEPTHSTENCIL) {
                     this._depth = true;
                     this._stencil = true;
                 } else {
@@ -154,10 +167,10 @@ pc.extend(pc, (() => {
 
             gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._glFrameBuffer);
             gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this._glResolveFrameBuffer);
-            gl.blitFramebuffer( 0, 0, this.width, this.height,
-                                0, 0, this.width, this.height,
-                                (color ? gl.COLOR_BUFFER_BIT : 0) | (depth ? gl.DEPTH_BUFFER_BIT : 0),
-                                gl.NEAREST);
+            gl.blitFramebuffer(0, 0, this.width, this.height,
+                0, 0, this.width, this.height,
+                (color ? gl.COLOR_BUFFER_BIT : 0) | (depth ? gl.DEPTH_BUFFER_BIT : 0),
+                gl.NEAREST);
 
             gl.bindFramebuffer(gl.FRAMEBUFFER, this._glFrameBuffer);
         }
@@ -255,7 +268,4 @@ pc.extend(pc, (() => {
         }
     }
 
-    return {
-        RenderTarget
-    };
-})());
+}

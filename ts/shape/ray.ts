@@ -1,4 +1,4 @@
-pc.extend(pc, (() => {
+namespace pc {
     /**
      * @constructor
      * @name pc.Ray
@@ -13,12 +13,12 @@ pc.extend(pc, (() => {
      * @param {pc.Vec3} [direction] The direction of the ray. The constructor takes a reference of this parameter.
      * Defaults to a direction down the world negative Z axis (0, 0, -1).
      */
-    const Ray = function Ray(origin, direction) {
-        this.origin = origin || new pc.Vec3(0, 0, 0);
-        this.direction = direction || new pc.Vec3(0, 0, -1);
-    };
-
-    return {
-        Ray
-    };
-})());
+    export class Ray {
+        origin: pc.Vec3;
+        direction: pc.Vec3;
+        constructor(origin?: pc.Vec3, direction?: pc.Vec3) {
+            this.origin = origin || new pc.Vec3(0, 0, 0);
+            this.direction = direction || new pc.Vec3(0, 0, -1);
+        }
+    }
+}

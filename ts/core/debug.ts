@@ -9,7 +9,6 @@ namespace pc {
     let title = null;
     let field = null;
 
-
     export const debug = {
         /**
          * @private

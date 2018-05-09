@@ -1,30 +1,30 @@
-pc.extend(pc, ((() => {
+namespace pc {
     // Draws shaded full-screen quad in a single call
     let _postEffectQuadVB = null;
     const _postEffectQuadDraw = {
-        type: pc.PRIMITIVE_TRISTRIP,
+        type: pc.GraphicsConfig.PRIMITIVE_TRISTRIP,
         base: 0,
         count: 4,
         indexed: false
     };
 
-    function drawQuadWithShader(device, target, shader, rect, scissorRect, useBlend) {
+    export function drawQuadWithShader(device, target, shader, rect?, scissorRect?, useBlend?) {
         if (_postEffectQuadVB === null) {
             const vertexFormat = new pc.VertexFormat(device, [{
-                semantic: pc.SEMANTIC_POSITION,
+                semantic: pc.GraphicsConfig.SEMANTIC_POSITION,
                 components: 2,
-                type: pc.TYPE_FLOAT32
+                type: pc.GraphicsConfig.TYPE_FLOAT32
             }]);
             _postEffectQuadVB = new pc.VertexBuffer(device, vertexFormat, 4);
 
             const iterator = new pc.VertexIterator(_postEffectQuadVB);
-            iterator.element[pc.SEMANTIC_POSITION].set(-1.0, -1.0);
+            iterator.element[pc.GraphicsConfig.SEMANTIC_POSITION].set(-1.0, -1.0);
             iterator.next();
-            iterator.element[pc.SEMANTIC_POSITION].set(1.0, -1.0);
+            iterator.element[pc.GraphicsConfig.SEMANTIC_POSITION].set(1.0, -1.0);
             iterator.next();
-            iterator.element[pc.SEMANTIC_POSITION].set(-1.0, 1.0);
+            iterator.element[pc.GraphicsConfig.SEMANTIC_POSITION].set(-1.0, 1.0);
             iterator.next();
-            iterator.element[pc.SEMANTIC_POSITION].set(1.0, 1.0);
+            iterator.element[pc.GraphicsConfig.SEMANTIC_POSITION].set(1.0, 1.0);
             iterator.end();
         }
 
@@ -65,7 +65,7 @@ pc.extend(pc, ((() => {
         const oldCull = device.getCullMode();
         device.setDepthTest(false);
         device.setDepthWrite(false);
-        device.setCullMode(pc.CULLFACE_NONE);
+        device.setCullMode(pc.GraphicsConfig.CULLFACE_NONE);
         if (!useBlend) device.setBlending(false);
         device.setVertexBuffer(_postEffectQuadVB, 0);
         device.setShader(shader);
@@ -79,13 +79,9 @@ pc.extend(pc, ((() => {
         device.updateBegin();
     }
 
-    function destroyPostEffectQuad() {
+    export function destroyPostEffectQuad() {
         _postEffectQuadVB = null;
     }
 
-    return {
-        drawQuadWithShader,
-        destroyPostEffectQuad
-    };
-})()));
+}
 

@@ -1,4 +1,4 @@
-pc.extend(pc, (() => {
+namespace pc {
     const tmpVecA = new pc.Vec3();
 
     /**
@@ -10,8 +10,10 @@ pc.extend(pc, (() => {
      * @param {pc.Vec3} [point] Point position on the plane. The constructor takes a reference of this parameter.
      * @param {pc.Vec3} [normal] Normal of the plane. The constructor takes a reference of this parameter.
      */
-    class Plane {
-        constructor(point, normal) {
+    export class Plane {
+        normal: any;
+        point: any;
+        constructor(point?:pc.Vec3, normal?:pc.Vec3) {
             this.normal = normal || new pc.Vec3(0, 0, 1);
             this.point = point || new pc.Vec3(0, 0, 0);
         }
@@ -46,7 +48,7 @@ pc.extend(pc, (() => {
          * @param {pc.Vec3} [point] If there is an intersection, the intersection point will be copied into here
          * @returns {Boolean} True if there is an intersection
          */
-        intersectsRay({origin, direction}, point) {
+        intersectsRay({ origin, direction }, point) {
             const pointToOrigin = tmpVecA.sub2(this.point, origin);
             const t = this.normal.dot(pointToOrigin) / this.normal.dot(direction);
             const intersects = t >= 0;
@@ -58,7 +60,4 @@ pc.extend(pc, (() => {
         }
     }
 
-    return {
-        Plane
-    };
-})());
+}

@@ -1,4 +1,4 @@
-pc.extend(pc, (() => {
+namespace pc {
     /**
      * @constructor
      * @name pc.IndexBuffer
@@ -15,11 +15,20 @@ pc.extend(pc, (() => {
      * @param {Number} [usage] The usage type of the vertex buffer (see pc.BUFFER_*).
      * @param {ArrayBuffer} [initialData] Initial data.
      */
-    class IndexBuffer {
+    export class IndexBuffer {
+        usage: any;
+        format: any;
+        numIndices: any;
+        device: any;
+        glFormat: any;
+        bytesPerIndex: any;
+        numBytes: number;
+        storage: ArrayBuffer;
+        bufferId: any;
         constructor(graphicsDevice, format, numIndices, usage, initialData) {
             // Initialize optional parameters
             // By default, index buffers are static (better for performance since buffer data can be cached in VRAM)
-            this.usage = usage || pc.BUFFER_STATIC;
+            this.usage = usage || pc.GraphicsConfig.BUFFER_STATIC;
 
             // Store the index format
             this.format = format;
@@ -34,13 +43,13 @@ pc.extend(pc, (() => {
 
             // Allocate the storage
             let bytesPerIndex;
-            if (format === pc.INDEXFORMAT_UINT8) {
+            if (format === pc.GraphicsConfig.INDEXFORMAT_UINT8) {
                 bytesPerIndex = 1;
                 this.glFormat = gl.UNSIGNED_BYTE;
-            } else if (format === pc.INDEXFORMAT_UINT16) {
+            } else if (format === pc.GraphicsConfig.INDEXFORMAT_UINT16) {
                 bytesPerIndex = 2;
                 this.glFormat = gl.UNSIGNED_SHORT;
-            } else if (format === pc.INDEXFORMAT_UINT32) {
+            } else if (format === pc.GraphicsConfig.INDEXFORMAT_UINT32) {
                 bytesPerIndex = 4;
                 this.glFormat = gl.UNSIGNED_INT;
             }
@@ -130,16 +139,16 @@ pc.extend(pc, (() => {
 
             let glUsage;
             switch (this.usage) {
-                case pc.BUFFER_STATIC:
+                case pc.GraphicsConfig.BUFFER_STATIC:
                     glUsage = gl.STATIC_DRAW;
                     break;
-                case pc.BUFFER_DYNAMIC:
+                case pc.GraphicsConfig.BUFFER_DYNAMIC:
                     glUsage = gl.DYNAMIC_DRAW;
                     break;
-                case pc.BUFFER_STREAM:
+                case pc.GraphicsConfig.BUFFER_STREAM:
                     glUsage = gl.STREAM_DRAW;
                     break;
-                case pc.BUFFER_GPUDYNAMIC:
+                case pc.GraphicsConfig.BUFFER_GPUDYNAMIC:
                     if (this.device.webgl2) {
                         glUsage = gl.DYNAMIC_COPY;
                     } else {
@@ -163,7 +172,4 @@ pc.extend(pc, (() => {
         }
     }
 
-    return {
-        IndexBuffer
-    };
-})());
+}

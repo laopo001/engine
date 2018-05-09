@@ -1,14 +1,14 @@
-pc.extend(pc, ((() => {
+namespace pc {
     function fixChrome() {
         // https://code.google.com/p/chromium/issues/detail?id=447419
         // Workaround: wait a little
         const endTime = Date.now() + 10;
-        while (Date.now() < endTime) {}
+        while (Date.now() < endTime) { }
     }
 
-    function syncToCpu(device, {_colorBuffer, _glFrameBuffer}, face) {
+    function syncToCpu(device, { _colorBuffer, _glFrameBuffer }, face) {
         const tex = _colorBuffer;
-        if (tex.format!=pc.PIXELFORMAT_R8_G8_B8_A8) return;
+        if (tex.format != pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8_A8) return;
         const pixels = new Uint8Array(tex.width * tex.height * 4);
         const gl = device.gl;
         device.setFramebuffer(_glFrameBuffer);
@@ -18,7 +18,7 @@ pc.extend(pc, ((() => {
         tex._levels[0][face] = pixels;
     }
 
-    function prefilterCubemap(options) {
+    export function prefilterCubemap(options) {
         const device = options.device;
         let sourceCubemap = options.sourceCubemap;
         const method = options.method;
@@ -35,10 +35,10 @@ pc.extend(pc, ((() => {
         const rgbmSource = sourceCubemap.rgbm;
         const shader = chunks.createShaderFromCode(device, chunks.fullscreenQuadVS, chunks.rgbmPS +
             chunks.prefilterCubemapPS.
-                replace(/\$METHOD/g, method===0? "cos" : "phong").
+                replace(/\$METHOD/g, method === 0 ? "cos" : "phong").
                 replace(/\$NUMSAMPLES/g, samples).
-                replace(/\$textureCube/g, rgbmSource? "textureCubeRGBM" : "textureCube"),
-                                                 `prefilter${method}${samples}${rgbmSource}`);
+                replace(/\$textureCube/g, rgbmSource ? "textureCubeRGBM" : "textureCube"),
+            `prefilter${method}${samples}${rgbmSource}`);
         const shader2 = chunks.createShaderFromCode(device, chunks.fullscreenQuadVS, chunks.outputCubemapPS, "outputCubemap");
         const constantTexSource = device.scope.resolve("source");
         const constantParams = device.scope.resolve("params");
@@ -47,13 +47,13 @@ pc.extend(pc, ((() => {
         let format = sourceCubemap.format;
 
         const cmapsList = [[], options.filteredFixed, options.filteredRgbm, options.filteredFixedRgbm];
-        const gloss = method===0? [0.9, 0.85, 0.7, 0.4, 0.25] : [512, 128, 32, 8, 2]; // TODO: calc more correct values depending on mip
+        const gloss = method === 0 ? [0.9, 0.85, 0.7, 0.4, 0.25] : [512, 128, 32, 8, 2]; // TODO: calc more correct values depending on mip
         const mipSize = [64, 32, 16, 8, 4]; // TODO: make non-static?
         const numMips = 5;
         let targ;
         let i, face, pass;
 
-        const rgbFormat = format===pc.PIXELFORMAT_R8_G8_B8;
+        const rgbFormat = format === pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8;
         let isImg = false;
         let nextCubemap, cubemap;
         if (cpuSync) {
@@ -61,8 +61,8 @@ pc.extend(pc, ((() => {
         }
         if ((rgbFormat || isImg) && cpuSync) {
             // WebGL can't read non-RGBA pixels
-            format = pc.PIXELFORMAT_R8_G8_B8_A8;
-            nextCubemap = new pc.gfx.Texture(device, {
+            format = pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8_A8;
+            nextCubemap = new pc.Texture(device, {
                 cubemap: true,
                 rgbm: rgbmSource,
                 format,
@@ -70,7 +70,7 @@ pc.extend(pc, ((() => {
                 height: size,
                 mipmaps: false
             });
-            for (face=0; face<6; face++) {
+            for (face = 0; face < 6; face++) {
                 targ = new pc.RenderTarget(device, nextCubemap, {
                     face,
                     depth: false
@@ -92,10 +92,10 @@ pc.extend(pc, ((() => {
             const log128 = Math.round(Math.log2(128));
             const logSize = Math.round(Math.log2(size));
             const steps = logSize - log128;
-            for (i=0; i<steps; i++) {
+            for (i = 0; i < steps; i++) {
                 size = sourceCubemap.width * 0.5;
-                const sampleGloss = method===0? 1 : 2 ** Math.round(Math.log2(gloss[0]) + (steps - i) * 2);
-                nextCubemap = new pc.gfx.Texture(device, {
+                const sampleGloss = method === 0 ? 1 : 2 ** Math.round(Math.log2(gloss[0]) + (steps - i) * 2);
+                nextCubemap = new pc.Texture(device, {
                     cubemap: true,
                     rgbm: rgbmSource,
                     format,
@@ -103,7 +103,7 @@ pc.extend(pc, ((() => {
                     height: size,
                     mipmaps: false
                 });
-                for (face=0; face<6; face++) {
+                for (face = 0; face < 6; face++) {
                     targ = new pc.RenderTarget(device, nextCubemap, {
                         face,
                         depth: false
@@ -111,13 +111,13 @@ pc.extend(pc, ((() => {
                     params.x = face;
                     params.y = sampleGloss;
                     params.z = size;
-                    params.w = rgbmSource? 3 : 0;
+                    params.w = rgbmSource ? 3 : 0;
                     constantTexSource.setValue(sourceCubemap);
                     constantParams.setValue(params.data);
 
                     if (chromeFix) fixChrome();
                     pc.drawQuadWithShader(device, targ, shader2);
-                    if (i===steps-1 && cpuSync) {
+                    if (i === steps - 1 && cpuSync) {
                         syncToCpu(device, targ, face);
                     }
                 }
@@ -128,15 +128,15 @@ pc.extend(pc, ((() => {
 
         let sourceCubemapRgbm = null;
         if (!rgbmSource && options.filteredFixedRgbm) {
-            nextCubemap = new pc.gfx.Texture(device, {
+            nextCubemap = new pc.Texture(device, {
                 cubemap: true,
                 rgbm: true,
-                format: pc.PIXELFORMAT_R8_G8_B8_A8,
+                format: pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8_A8,
                 width: size,
                 height: size,
                 mipmaps: false
             });
-            for (face=0; face<6; face++) {
+            for (face = 0; face < 6; face++) {
                 targ = new pc.RenderTarget(device, nextCubemap, {
                     face,
                     depth: false
@@ -153,19 +153,19 @@ pc.extend(pc, ((() => {
             sourceCubemapRgbm = nextCubemap;
         }
 
-        const unblurredGloss = method===0? 1 : 2048;
-        const startPass = method===0 ? 0 : -1; // do prepass for unblurred downsampled textures when using importance sampling
+        const unblurredGloss = method === 0 ? 1 : 2048;
+        const startPass = method === 0 ? 0 : -1; // do prepass for unblurred downsampled textures when using importance sampling
         cmapsList[startPass] = [];
 
         // Initialize textures
-        for (i=0; i<numMips; i++) {
-            for (pass=startPass; pass<cmapsList.length; pass++) {
+        for (i = 0; i < numMips; i++) {
+            for (pass = startPass; pass < cmapsList.length; pass++) {
                 if (cmapsList[pass] != null) {
-                    cmapsList[pass][i] = new pc.gfx.Texture(device, {
+                    cmapsList[pass][i] = new pc.Texture(device, {
                         cubemap: true,
-                        rgbm: pass<2? rgbmSource : true,
-                        format: pass<2? format : pc.PIXELFORMAT_R8_G8_B8_A8,
-                        fixCubemapSeams: pass===1 || pass===3,
+                        rgbm: pass < 2 ? rgbmSource : true,
+                        format: pass < 2 ? format : pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8_A8,
+                        fixCubemapSeams: pass === 1 || pass === 3,
                         width: mipSize[i],
                         height: mipSize[i],
                         mipmaps: false
@@ -180,25 +180,25 @@ pc.extend(pc, ((() => {
         // Pass 1: filter + edge fixup
         // Pass 2: filter + encode to RGBM
         // Pass 3: filter + edge fixup + encode to RGBM
-        for (pass=startPass; pass<cmapsList.length; pass++) {
+        for (pass = startPass; pass < cmapsList.length; pass++) {
             if (cmapsList[pass] != null) {
-                if (pass>1 && rgbmSource) {
+                if (pass > 1 && rgbmSource) {
                     // already RGBM
                     cmapsList[pass] = cmapsList[pass - 2];
                     continue;
                 }
-                for (i=0; i<numMips; i++) {
-                    for (face=0; face<6; face++) {
+                for (i = 0; i < numMips; i++) {
+                    for (face = 0; face < 6; face++) {
                         targ = new pc.RenderTarget(device, cmapsList[pass][i], { // TODO: less excessive allocations
                             face,
                             depth: false
                         });
                         params.x = face;
-                        params.y = pass<0? unblurredGloss : gloss[i];
+                        params.y = pass < 0 ? unblurredGloss : gloss[i];
                         params.z = mipSize[i];
-                        params.w = rgbmSource? 3 : pass;
-                        constantTexSource.setValue(i===0? sourceCubemap :
-                            method===0? cmapsList[0][i - 1] : cmapsList[-1][i - 1]);
+                        params.w = rgbmSource ? 3 : pass;
+                        constantTexSource.setValue(i === 0 ? sourceCubemap :
+                            method === 0 ? cmapsList[0][i - 1] : cmapsList[-1][i - 1]);
                         constantParams.setValue(params.data);
 
                         if (chromeFix) fixChrome();
@@ -222,17 +222,17 @@ pc.extend(pc, ((() => {
                 options.filteredFixed[4],
                 options.filteredFixed[5]
             ];
-            cubemap = new pc.gfx.Texture(device, {
+            cubemap = new pc.Texture(device, {
                 cubemap: true,
                 rgbm: rgbmSource,
                 fixCubemapSeams: true,
                 format,
                 width: 128,
                 height: 128,
-                addressU: pc.ADDRESS_CLAMP_TO_EDGE,
-                addressV: pc.ADDRESS_CLAMP_TO_EDGE
+                addressU: pc.GraphicsConfig.ADDRESS_CLAMP_TO_EDGE,
+                addressV: pc.GraphicsConfig.ADDRESS_CLAMP_TO_EDGE
             });
-            for (i=0; i<6; i++)
+            for (i = 0; i < 6; i++)
                 cubemap._levels[i] = mips[i]._levels[0];
 
             cubemap.upload();
@@ -250,17 +250,17 @@ pc.extend(pc, ((() => {
                 options.filteredFixedRgbm[4],
                 options.filteredFixedRgbm[5]
             ];
-            cubemap = new pc.gfx.Texture(device, {
+            cubemap = new pc.Texture(device, {
                 cubemap: true,
                 rgbm: true,
                 fixCubemapSeams: true,
-                format: pc.PIXELFORMAT_R8_G8_B8_A8,
+                format: pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8_A8,
                 width: 128,
                 height: 128,
-                addressU: pc.ADDRESS_CLAMP_TO_EDGE,
-                addressV: pc.ADDRESS_CLAMP_TO_EDGE
+                addressU: pc.GraphicsConfig.ADDRESS_CLAMP_TO_EDGE,
+                addressV: pc.GraphicsConfig.ADDRESS_CLAMP_TO_EDGE
             });
-            for (i=0; i<6; i++) {
+            for (i = 0; i < 6; i++) {
                 cubemap._levels[i] = mips[i]._levels[0];
             }
             cubemap.upload();
@@ -270,13 +270,13 @@ pc.extend(pc, ((() => {
     }
 
     // https://seblagarde.wordpress.com/2012/06/10/amd-cubemapgen-for-physically-based-rendering/
-    function areaElement(x,y) {
+    function areaElement(x, y) {
         return Math.atan2(x * y, Math.sqrt(x * x + y * y + 1));
     }
     function texelCoordSolidAngle(u, v, size) {
         //scale up to [-1, 1] range (inclusive), offset by 0.5 to point to texel center.
-        let _u = (2.0 * (u + 0.5) / size ) - 1.0;
-        let _v = (2.0 * (v + 0.5) / size ) - 1.0;
+        let _u = (2.0 * (u + 0.5) / size) - 1.0;
+        let _v = (2.0 * (v + 0.5) / size) - 1.0;
 
         // fixSeams
         _u *= 1.0 - 1.0 / size;
@@ -293,21 +293,21 @@ pc.extend(pc, ((() => {
         let solidAngle = areaElement(x0, y0) - areaElement(x0, y1) - areaElement(x1, y0) + areaElement(x1, y1);
 
         // fixSeams cut
-        if ((u===0 && v===0) || (u===size-1 && v===0) || (u===0 && v===size-1) || (u===size-1 && v===size-1)) {
+        if ((u === 0 && v === 0) || (u === size - 1 && v === 0) || (u === 0 && v === size - 1) || (u === size - 1 && v === size - 1)) {
             solidAngle /= 3;
-        } else if (u===0 || v===0 || u===size-1 || v===size-1) {
+        } else if (u === 0 || v === 0 || u === size - 1 || v === size - 1) {
             solidAngle *= 0.5;
         }
 
         return solidAngle;
     }
 
-    function shFromCubemap({width, format, _levels, rgbm}, dontFlipX) {
+    export function shFromCubemap({ width, format, _levels, rgbm }, dontFlipX) {
         let face;
         const cubeSize = width;
         let x, y;
 
-        if (format!=pc.PIXELFORMAT_R8_G8_B8_A8) {
+        if (format != pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8_A8) {
             console.error("ERROR: SH: cubemap must be RGBA8");
             return;
         }
@@ -324,7 +324,7 @@ pc.extend(pc, ((() => {
                 const chunks = pc.shaderChunks;
                 const shader = chunks.createShaderFromCode(device, chunks.fullscreenQuadVS, chunks.fullscreenQuadPS, "fsQuadSimple");
                 const constantTexSource = device.scope.resolve("source");
-                for (face=0; face<6; face++) {
+                for (face = 0; face < 6; face++) {
                     const img = _levels[0][face];
 
                     const tex = new pc.Texture(device, {
@@ -366,10 +366,10 @@ pc.extend(pc, ((() => {
         }
 
         const dirs = [];
-        for (y=0; y<cubeSize; y++) {
-            for (x=0; x<cubeSize; x++) {
-                const u = (x / (cubeSize-1)) * 2 - 1;
-                const v = (y / (cubeSize-1)) * 2 - 1;
+        for (y = 0; y < cubeSize; y++) {
+            for (x = 0; x < cubeSize; x++) {
+                const u = (x / (cubeSize - 1)) * 2 - 1;
+                const v = (y / (cubeSize - 1)) * 2 - 1;
                 dirs[y * cubeSize + x] = new pc.Vec3(u, v, 1.0).normalize();
             }
         }
@@ -396,42 +396,42 @@ pc.extend(pc, ((() => {
         let weight1, weight2, weight3, weight4, weight5;
 
         let accum = 0;
-        for (face=0; face<6; face++) {
-            for (y=0; y<cubeSize; y++) {
-                for (x=0; x<cubeSize; x++) {
+        for (face = 0; face < 6; face++) {
+            for (y = 0; y < cubeSize; y++) {
+                for (x = 0; x < cubeSize; x++) {
 
                     addr = y * cubeSize + x;
                     weight = texelCoordSolidAngle(x, y, cubeSize);
 
                     // http://home.comcast.net/~tom_forsyth/blog.wiki.html#[[Spherical%20Harmonics%20in%20Actual%20Games%20notes]]
-                    weight1 = weight * 4/17;
-                    weight2 = weight * 8/17;
-                    weight3 = weight * 15/17;
-                    weight4 = weight * 5/68;
-                    weight5 = weight * 15/68;
+                    weight1 = weight * 4 / 17;
+                    weight2 = weight * 8 / 17;
+                    weight3 = weight * 15 / 17;
+                    weight4 = weight * 5 / 68;
+                    weight5 = weight * 15 / 68;
 
                     dir = dirs[addr];
-                    if (face==nx) {
+                    if (face == nx) {
                         dx = dir.z;
                         dy = -dir.y;
                         dz = -dir.x;
-                    } else if (face==px) {
+                    } else if (face == px) {
                         dx = -dir.z;
                         dy = -dir.y;
                         dz = dir.x;
-                    } else if (face==ny) {
+                    } else if (face == ny) {
                         dx = dir.x;
                         dy = dir.z;
                         dz = dir.y;
-                    } else if (face==py) {
+                    } else if (face == py) {
                         dx = dir.x;
                         dy = -dir.z;
                         dz = -dir.y;
-                    } else if (face==nz) {
+                    } else if (face == nz) {
                         dx = dir.x;
                         dy = -dir.y;
                         dz = dir.z;
-                    } else if (face==pz) {
+                    } else if (face == pz) {
                         dx = -dir.x;
                         dy = -dir.y;
                         dz = -dir.z;
@@ -441,8 +441,8 @@ pc.extend(pc, ((() => {
 
                     a = _levels[0][face][addr * 4 + 3] / 255.0;
 
-                    for (c=0; c<3; c++) {
-                        value =  _levels[0][face][addr * 4 + c] / 255.0;
+                    for (c = 0; c < 3; c++) {
+                        value = _levels[0][face][addr * 4 + c] / 255.0;
                         if (rgbm) {
                             value *= a * 8.0;
                             value *= value;
@@ -468,16 +468,11 @@ pc.extend(pc, ((() => {
             }
         }
 
-        for (c=0; c<sh.length; c++) {
+        for (c = 0; c < sh.length; c++) {
             sh[c] *= 4 * Math.PI / accum;
         }
 
         return sh;
     }
 
-
-    return {
-        prefilterCubemap,
-        shFromCubemap
-    };
-})()));
+}

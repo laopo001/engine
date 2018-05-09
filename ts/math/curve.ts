@@ -1,28 +1,28 @@
-pc.extend(pc, ((() => {
+namespace pc {
     /**
      * @enum pc.CURVE
      * @name pc.CURVE_LINEAR
      * @description A linear interpolation scheme.
      */
-    const CURVE_LINEAR = 0;
+    export const CURVE_LINEAR = 0;
     /**
      * @enum pc.CURVE
      * @name pc.CURVE_SMOOTHSTEP
      * @description A smooth step interpolation scheme.
      */
-    const CURVE_SMOOTHSTEP = 1;
+    export const CURVE_SMOOTHSTEP = 1;
     /**
      * @enum pc.CURVE
      * @name pc.CURVE_CATMULL
      * @description A Catmull-Rom spline interpolation scheme.
      */
-    const CURVE_CATMULL = 2;
+    export const CURVE_CATMULL = 2;
     /**
      * @enum pc.CURVE
      * @name pc.CURVE_CARDINAL
      * @description A cardinal spline interpolation scheme.
      */
-    const CURVE_CARDINAL = 3;
+    export const CURVE_CARDINAL = 3;
 
     /**
      * @constructor
@@ -34,8 +34,11 @@ pc.extend(pc, ((() => {
      * value second)
      * @property {Number} length The number of keys in the curve. [read only]
      */
-    class Curve {
-        constructor(data) {
+    export class Curve {
+        keys: any[];
+        type: number;
+        tension: number;
+        constructor(data?) {
             this.keys = [];
             this.type = CURVE_SMOOTHSTEP;
 
@@ -261,11 +264,4 @@ pc.extend(pc, ((() => {
         }
     }
 
-    return {
-        Curve,
-        CURVE_LINEAR,
-        CURVE_SMOOTHSTEP,
-        CURVE_CATMULL,
-        CURVE_CARDINAL
-    };
-})()));
+}

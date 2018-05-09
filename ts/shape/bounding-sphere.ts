@@ -1,4 +1,4 @@
-pc.extend(pc, (() => {
+namespace pc {
     const tmpVecA = new pc.Vec3();
     const tmpVecB = new pc.Vec3();
     const tmpVecC = new pc.Vec3();
@@ -15,8 +15,10 @@ pc.extend(pc, (() => {
      * @param {pc.Vec3} [center] The world space coordinate marking the center of the sphere. The constructor takes a reference of this parameter.
      * @param {Number} [radius] The radius of the bounding sphere. Defaults to 0.5.
      */
-    class BoundingSphere {
-        constructor(center, radius) {
+    export class BoundingSphere {
+        center: any;
+        radius: any;
+        constructor(center?: pc.Vec3, radius?: number) {
             this.center = center || new pc.Vec3(0, 0, 0);
             this.radius = radius === undefined ? 0.5 : radius;
         }
@@ -39,7 +41,7 @@ pc.extend(pc, (() => {
             // Find the "average vertex", which is the sphere's center...
 
             for (i = 0; i < numVerts; i++) {
-                vertex.set(vertices[ i * 3 ], vertices[ i * 3 + 1 ], vertices[ i * 3 + 2 ]);
+                vertex.set(vertices[i * 3], vertices[i * 3 + 1], vertices[i * 3 + 2]);
                 sum.addSelf(vertex);
 
                 // apply a part-result to avoid float-overflows
@@ -61,7 +63,7 @@ pc.extend(pc, (() => {
             const centerToVert = tmpVecD;
 
             for (i = 0; i < numVerts; i++) {
-                vertex.set(vertices[ i * 3 ], vertices[ i * 3 + 1 ], vertices[ i * 3 + 2 ]);
+                vertex.set(vertices[i * 3], vertices[i * 3 + 1], vertices[i * 3 + 2]);
 
                 centerToVert.sub2(vertex, this.center);
                 maxDistSq = Math.max(centerToVert.lengthSq(), maxDistSq);
@@ -78,7 +80,7 @@ pc.extend(pc, (() => {
          * @param {pc.Vec3} [point] If there is an intersection, the intersection point will be copied into here.
          * @returns {Boolean} True if there is an intersection.
          */
-        intersectsRay({origin, direction}, point) {
+        intersectsRay({ origin, direction }, point) {
             const m = tmpVecA.copy(origin).sub(this.center);
             const b = m.dot(tmpVecB.copy(direction).normalize());
             const c = m.dot(m) - this.radius * this.radius;
@@ -109,7 +111,7 @@ pc.extend(pc, (() => {
          * @param {pc.BoundingSphere} sphere Bounding Sphere to test.
          * @returns {Boolean} true if the Bounding Sphere is overlapping, enveloping, or inside this Bounding Sphere and false otherwise.
          */
-        intersectsBoundingSphere({center, radius}) {
+        intersectsBoundingSphere({ center, radius }) {
             tmpVecA.sub2(center, this.center);
             const totalRadius = radius + this.radius;
             if (tmpVecA.lengthSq() <= totalRadius * totalRadius) {
@@ -119,8 +121,4 @@ pc.extend(pc, (() => {
             return false;
         }
     }
-
-    return {
-        BoundingSphere
-    };
-})());
+}

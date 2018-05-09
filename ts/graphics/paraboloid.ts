@@ -1,7 +1,7 @@
-pc.extend(pc, ((() => {
+namespace pc {
     const dpMult = 2.0;
 
-    function paraboloidFromCubemap(device, sourceCubemap, fixSeamsAmount, dontFlipX) {
+    export function paraboloidFromCubemap(device, sourceCubemap, fixSeamsAmount, dontFlipX) {
         const chunks = pc.shaderChunks;
         const shader = chunks.createShaderFromCode(device, chunks.fullscreenQuadVS,
                                                  (sourceCubemap.fixCubemapSeams? chunks.fixCubemapSeamsStretchPS : chunks.fixCubemapSeamsNonePS) + chunks.genParaboloidPS, "genParaboloid");
@@ -14,7 +14,7 @@ pc.extend(pc, ((() => {
 
         size = Math.max(size, 8) * dpMult;
 
-        const tex = new pc.gfx.Texture(device, {
+        const tex = new pc.Texture(device, {
             rgbm: rgbmSource,
             format,
             width: size * 2,
@@ -49,7 +49,7 @@ pc.extend(pc, ((() => {
         return 1.0 / rect.z;
     }
 
-    function generateDpAtlas(device, sixCubemaps, dontFlipX) {
+    export function generateDpAtlas(device, sixCubemaps, dontFlipX) {
         let dp, rect;
         rect = new pc.Vec4();
         const params = new pc.Vec4();
@@ -60,7 +60,7 @@ pc.extend(pc, ((() => {
         const constantTexSource = device.scope.resolve("source");
         const constantParams = device.scope.resolve("params");
 
-        const tex = new pc.gfx.Texture(device, {
+        const tex = new pc.Texture(device, {
             rgbm: sixCubemaps[0].rgbm,
             format: sixCubemaps[0].format,
             width: size,
@@ -94,8 +94,4 @@ pc.extend(pc, ((() => {
         return tex;
     }
 
-    return {
-        paraboloidFromCubemap,
-        generateDpAtlas
-    };
-})()));
+}

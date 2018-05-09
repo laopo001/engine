@@ -21,6 +21,12 @@ namespace pc {
     export const apps = {} // Storage for the applications using the PlayCanvas Engine
     export const data = {} // Storage for exported entity data
 
+    export let _benchmarked: boolean;
+
+    export let extTextureFloatHighPrecision;
+    export let extTextureHalfFloatRenderable;
+    export let extTextureFloatRenderable;
+
     /**
      * @private
      * @function
@@ -84,6 +90,24 @@ namespace pc {
     export function isDefined(o) {
         let a;
         return (o !== a);
+    }
+
+    export function extend(target, ex) {
+        var prop,
+            copy;
+
+        for (prop in ex) {
+            copy = ex[prop];
+            if (pc.type(copy) == "object") {
+                target[prop] = pc.extend({}, copy);
+            } else if (pc.type(copy) == "array") {
+                target[prop] = pc.extend([], copy);
+            } else {
+                target[prop] = copy;
+            }
+        }
+
+        return target;
     }
 
     /**

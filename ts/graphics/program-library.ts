@@ -1,6 +1,10 @@
-pc.extend(pc, (() => {
+namespace pc {
     // Public interface
-    class ProgramLibrary {
+   export  class ProgramLibrary {
+       _device: any;
+       _cache: {};
+       _generators: {};
+       _isClearingCache: boolean;
         constructor(device) {
             this._device = device;
             this._cache = {};
@@ -67,7 +71,4 @@ pc.extend(pc, (() => {
         }
     }
 
-    return {
-        ProgramLibrary
-    };
-})());
+}

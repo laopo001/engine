@@ -1,5 +1,7 @@
-pc.extend(pc, (() => {
-    class Version {
+namespace pc {
+    export class Version {
+        globalId: number;
+        revision: number;
         constructor() {
             // Set the variables
             this.globalId = 0;
@@ -26,8 +28,4 @@ pc.extend(pc, (() => {
             this.revision = 0;
         }
     }
-
-    return {
-        Version
-    };
-})());
+}
