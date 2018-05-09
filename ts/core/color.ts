@@ -1,0 +1,180 @@
+pc.extend(pc, ((() => {
+    /**
+     * @constructor
+     * @name pc.Color
+     * @classdesc Representation of an RGBA color
+     * @description Create a new Color object
+     * @param {Number} [r] The value of the red component (0-1). If r is an array of length 3 or 4, the array will be used to populate all components.
+     * @param {Number} [g] The value of the green component (0-1)
+     * @param {Number} [b] The value of the blue component (0-1)
+     * @param {Number} [a] The value of the alpha component (0-1)
+     * @property {Number} r The red component of the color
+     * @property {Number} g The green component of the color
+     * @property {Number} b The blue component of the color
+     * @property {Number} a The alpha component of the color
+     */
+    class Color {
+        constructor(r, g, b, a) {
+            this.buffer = new ArrayBuffer(4 * 4);
+
+            this.data = new Float32Array(this.buffer, 0, 4);
+            this.data3 = new Float32Array(this.buffer, 0, 3);
+
+            const length = r && r.length;
+            if (length === 3 || length === 4) {
+                this.data[0] = r[0];
+                this.data[1] = r[1];
+                this.data[2] = r[2];
+                this.data[3] = r[3] !== undefined ? r[3] : 1.0;
+            } else {
+                this.data[0] = r || 0;
+                this.data[1] = g || 0;
+                this.data[2] = b || 0;
+                this.data[3] = a !== undefined ? a : 1.0;
+            }
+        }
+
+        /**
+        * @function
+        * @name pc.Color#clone
+        * @description Returns a clone of the specified color.
+        * @returns {pc.Color} A duplicate color object
+        */
+        clone() {
+            return new pc.Color(this.data[0], this.data[1], this.data[2], this.data[3]);
+        }
+
+        /**
+         * @function
+         * @name pc.Color#copy
+         * @description Copies the contents of a source color to a destination color.
+         * @param {pc.Color} rhs A color to copy to the specified color.
+         * @returns {pc.Color} Self for chaining
+         * @example
+         * var src = new pc.Color(1, 0, 0, 1);
+         * var dst = new pc.Color();
+         *
+         * dst.copy(src);
+         *
+         * console.log("The two colors are " + (dst.equals(src) ? "equal" : "different"));
+         */
+        copy({data}) {
+            const a = this.data, b = data;
+
+            a[0] = b[0];
+            a[1] = b[1];
+            a[2] = b[2];
+            a[3] = b[3];
+
+            return this;
+        }
+
+        /**
+         * @function
+         * @name pc.Color#set
+         * @description Assign values to the color components, including alpha
+         * @param {Number} r The value for red (0-1)
+         * @param {Number} g The value for blue (0-1)
+         * @param {Number} b The value for green (0-1)
+         * @param {Number} [a] The value for the alpha (0-1), defaults to 1
+         * @returns {pc.Color} Self for chaining
+         */
+        set(r, g, b, a) {
+            const c = this.data;
+
+            c[0] = r;
+            c[1] = g;
+            c[2] = b;
+            c[3] = (a === undefined) ? 1 : a;
+
+            return this;
+        }
+
+        /**
+         * @function
+         * @name pc.Color#fromString
+         * @description Set the values of the color from a string representation '#11223344' or '#112233'.
+         * @param {String} hex A string representation in the format '#RRGGBBAA' or '#RRGGBB'. Where RR, GG, BB, AA are red, green, blue and alpha values.
+         * This is the same format used in HTML/CSS.
+         * @returns {pc.Color} Self for chaining
+         */
+        fromString(hex) {
+            const i = parseInt(hex.replace('#', '0x'));
+            let bytes;
+            if (hex.length > 7) {
+                bytes = pc.math.intToBytes32(i);
+            } else {
+                bytes = pc.math.intToBytes24(i);
+                bytes[3] = 255;
+            }
+
+            this.set(bytes[0]/255, bytes[1]/255, bytes[2]/255, bytes[3]/255);
+
+            return this;
+        }
+
+        /**
+         * @function
+         * @name pc.Color#toString
+         * @description Converts the color to string form. The format is '#RRGGBBAA', where
+         * RR, GG, BB, AA are the red, green, blue and alpha values. When the alpha value is not
+         * included (the default), this is the same format as used in HTML/CSS.
+         * @param {Boolean} alpha If true, the output string will include the alpha value.
+         * @returns {String} The color in string form.
+         * @example
+         * var c = new pc.Color(1, 1, 1);
+         * // Should output '#ffffffff'
+         * console.log(c.toString());
+         */
+        toString(alpha) {
+            let s = `#${((1 << 24) + (parseInt(this.r*255) << 16) + (parseInt(this.g*255) << 8) + parseInt(this.b*255)).toString(16).slice(1)}`;
+            if (alpha === true) {
+                const a = parseInt(this.a * 255).toString(16);
+                if (this.a < 16/255) {
+                    s += `0${a}`;
+                } else {
+                    s += a;
+                }
+
+            }
+
+            return s;
+        }
+
+        get r() {
+            return this.data[0];
+        }
+
+        set r(value) {
+            this.data[0] = value;
+        }
+
+        get g() {
+            return this.data[1];
+        }
+
+        set g(value) {
+            this.data[1] = value;
+        }
+
+        get b() {
+            return this.data[2];
+        }
+
+        set b(value) {
+            this.data[2] = value;
+        }
+
+        get a() {
+            return this.data[3];
+        }
+
+        set a(value) {
+            this.data[3] = value;
+        }
+    }
+
+    return {
+        Color
+    };
+})()));
