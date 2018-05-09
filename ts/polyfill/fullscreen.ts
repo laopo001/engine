@@ -1,5 +1,7 @@
 // Shim the Fullscreen API
+
 ((() => {
+
     if (typeof document === 'undefined') {
         // Not running in a browser
         return;
@@ -25,23 +27,23 @@
     document.addEventListener('mozfullscreenerror', fullscreenerror, false);
     document.addEventListener('MSFullscreenError', fullscreenerror, false);
 
-    if (Element.prototype.mozRequestFullScreen) {
+    if ((Element as any).prototype.mozRequestFullScreen) {
         // FF requires a new function for some reason
         Element.prototype.requestFullscreen = function () {
             this.mozRequestFullScreen();
         };
     } else {
-        Element.prototype.requestFullscreen = Element.prototype.requestFullscreen || Element.prototype.webkitRequestFullscreen || Element.prototype.msRequestFullscreen;
+        Element.prototype.requestFullscreen = Element.prototype.requestFullscreen || Element.prototype.webkitRequestFullscreen || (Element as any).prototype.msRequestFullscreen;
     }
 
-    document.exitFullscreen = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+    document.exitFullscreen = document.exitFullscreen || document.webkitExitFullscreen || (document as any).mozCancelFullScreen || (document as any).msExitFullscreen;
 
     if (!document.hasOwnProperty('fullscreenElement')) {
         Object.defineProperty(document, 'fullscreenElement', {
             enumerable: true,
             configurable: false,
             get() {
-                return document.webkitCurrentFullScreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+                return document.webkitCurrentFullScreenElement || document.webkitFullscreenElement || (document as any).mozFullScreenElement || (document as any).msFullscreenElement;
             }
         });
     }
@@ -51,7 +53,7 @@
             enumerable: true,
             configurable: false,
             get() {
-                return document.webkitFullscreenEnabled || document.mozFullScreenEnabled || document.msFullscreenEnabled;
+                return document.webkitFullscreenEnabled || (document as any).mozFullScreenEnabled || (document as any).msFullscreenEnabled;
             }
         });
     }

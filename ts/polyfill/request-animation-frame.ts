@@ -14,7 +14,7 @@
     }
 
     if (!window.requestAnimationFrame) {
-        window.requestAnimationFrame = (callback, element) => {
+        (window as any).requestAnimationFrame = (callback, element) => {
             const currTime = new Date().getTime();
             const timeToCall = Math.max(0, 16 - (currTime - lastTime));
             const id = window.setTimeout(() => {
