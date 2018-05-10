@@ -10,8 +10,8 @@ namespace pc {
         this.version = new pc.Version();
 
         // Set the data type
-        if (type === pc.GraphicsConfig.UNIFORMTYPE_FLOAT) {
-            if (name.substr(name.length - 3) === "[0]") type = pc.GraphicsConfig.UNIFORMTYPE_FLOATARRAY;
+        if (type === pc.UNIFORMTYPE_FLOAT) {
+            if (name.substr(name.length - 3) === "[0]") type = pc.UNIFORMTYPE_FLOATARRAY;
         }
         this.dataType = type;
 

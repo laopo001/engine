@@ -2,7 +2,7 @@ namespace pc {
     // Draws shaded full-screen quad in a single call
     let _postEffectQuadVB = null;
     const _postEffectQuadDraw = {
-        type: pc.GraphicsConfig.PRIMITIVE_TRISTRIP,
+        type: pc.PRIMITIVE_TRISTRIP,
         base: 0,
         count: 4,
         indexed: false
@@ -11,20 +11,20 @@ namespace pc {
     export function drawQuadWithShader(device, target, shader, rect?, scissorRect?, useBlend?) {
         if (_postEffectQuadVB === null) {
             const vertexFormat = new pc.VertexFormat(device, [{
-                semantic: pc.GraphicsConfig.SEMANTIC_POSITION,
+                semantic: pc.SEMANTIC_POSITION,
                 components: 2,
-                type: pc.GraphicsConfig.TYPE_FLOAT32
+                type: pc.TYPE_FLOAT32
             }]);
             _postEffectQuadVB = new pc.VertexBuffer(device, vertexFormat, 4);
 
             const iterator = new pc.VertexIterator(_postEffectQuadVB);
-            iterator.element[pc.GraphicsConfig.SEMANTIC_POSITION].set(-1.0, -1.0);
+            iterator.element[pc.SEMANTIC_POSITION].set(-1.0, -1.0);
             iterator.next();
-            iterator.element[pc.GraphicsConfig.SEMANTIC_POSITION].set(1.0, -1.0);
+            iterator.element[pc.SEMANTIC_POSITION].set(1.0, -1.0);
             iterator.next();
-            iterator.element[pc.GraphicsConfig.SEMANTIC_POSITION].set(-1.0, 1.0);
+            iterator.element[pc.SEMANTIC_POSITION].set(-1.0, 1.0);
             iterator.next();
-            iterator.element[pc.GraphicsConfig.SEMANTIC_POSITION].set(1.0, 1.0);
+            iterator.element[pc.SEMANTIC_POSITION].set(1.0, 1.0);
             iterator.end();
         }
 
@@ -65,7 +65,7 @@ namespace pc {
         const oldCull = device.getCullMode();
         device.setDepthTest(false);
         device.setDepthWrite(false);
-        device.setCullMode(pc.GraphicsConfig.CULLFACE_NONE);
+        device.setCullMode(pc.CULLFACE_NONE);
         if (!useBlend) device.setBlending(false);
         device.setVertexBuffer(_postEffectQuadVB, 0);
         device.setShader(shader);

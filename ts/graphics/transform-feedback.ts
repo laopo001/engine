@@ -69,12 +69,12 @@ namespace pc {
         _outputBuffer: any;
         static createShader: (graphicsDevice: any, vsCode: any, name: any) => any;
         constructor(inputBuffer, usage) {
-            usage = usage || pc.GraphicsConfig.BUFFER_GPUDYNAMIC;
+            usage = usage || pc.BUFFER_GPUDYNAMIC;
             this.device = inputBuffer.device;
             const gl = this.device.gl;
 
             this._inputBuffer = inputBuffer;
-            if (usage === pc.GraphicsConfig.BUFFER_GPUDYNAMIC && inputBuffer.usage !== usage) {
+            if (usage === pc.BUFFER_GPUDYNAMIC && inputBuffer.usage !== usage) {
                 // have to recreate input buffer with other usage
                 gl.bindBuffer(gl.ARRAY_BUFFER, inputBuffer.bufferId);
                 gl.bufferData(gl.ARRAY_BUFFER, inputBuffer.storage, gl.DYNAMIC_COPY);
@@ -110,7 +110,7 @@ namespace pc {
             device.setTransformFeedbackBuffer(this._outputBuffer);
             device.setShader(shader);
             device.draw({
-                type: pc.GraphicsConfig.PRIMITIVE_POINTS,
+                type: pc.PRIMITIVE_POINTS,
                 base: 0,
                 count: this._inputBuffer.numVertices,
                 indexed: false

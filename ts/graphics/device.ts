@@ -51,30 +51,30 @@ namespace pc {
     function gpuTexSize(gl, tex) {
         if (!_pixelFormat2Size) {
             _pixelFormat2Size = {};
-            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_A8] = 1;
-            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_L8] = 1;
-            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_L8_A8] = 1;
-            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_R5_G6_B5] = 2;
-            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_R5_G5_B5_A1] = 2;
-            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_R4_G4_B4_A4] = 2;
-            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8] = 4;
-            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8_A8] = 4;
-            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_RGB16F] = 8;
-            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_RGBA16F] = 8;
-            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_RGB32F] = 16;
-            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_RGBA32F] = 16;
-            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_R32F] = 4;
-            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_DEPTH] = 4; // can be smaller using WebGL1 extension?
-            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_DEPTHSTENCIL] = 4;
-            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_111110F] = 4;
-            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_SRGB] = 4;
-            _pixelFormat2Size[pc.GraphicsConfig.PIXELFORMAT_SRGBA] = 4;
+            _pixelFormat2Size[pc.PIXELFORMAT_A8] = 1;
+            _pixelFormat2Size[pc.PIXELFORMAT_L8] = 1;
+            _pixelFormat2Size[pc.PIXELFORMAT_L8_A8] = 1;
+            _pixelFormat2Size[pc.PIXELFORMAT_R5_G6_B5] = 2;
+            _pixelFormat2Size[pc.PIXELFORMAT_R5_G5_B5_A1] = 2;
+            _pixelFormat2Size[pc.PIXELFORMAT_R4_G4_B4_A4] = 2;
+            _pixelFormat2Size[pc.PIXELFORMAT_R8_G8_B8] = 4;
+            _pixelFormat2Size[pc.PIXELFORMAT_R8_G8_B8_A8] = 4;
+            _pixelFormat2Size[pc.PIXELFORMAT_RGB16F] = 8;
+            _pixelFormat2Size[pc.PIXELFORMAT_RGBA16F] = 8;
+            _pixelFormat2Size[pc.PIXELFORMAT_RGB32F] = 16;
+            _pixelFormat2Size[pc.PIXELFORMAT_RGBA32F] = 16;
+            _pixelFormat2Size[pc.PIXELFORMAT_R32F] = 4;
+            _pixelFormat2Size[pc.PIXELFORMAT_DEPTH] = 4; // can be smaller using WebGL1 extension?
+            _pixelFormat2Size[pc.PIXELFORMAT_DEPTHSTENCIL] = 4;
+            _pixelFormat2Size[pc.PIXELFORMAT_111110F] = 4;
+            _pixelFormat2Size[pc.PIXELFORMAT_SRGB] = 4;
+            _pixelFormat2Size[pc.PIXELFORMAT_SRGBA] = 4;
         }
 
         let mips = 1;
-        if (tex._pot && (tex._mipmaps || tex._minFilter === pc.GraphicsConfig.FILTER_NEAREST_MIPMAP_NEAREST ||
-            tex._minFilter === pc.GraphicsConfig.FILTER_NEAREST_MIPMAP_LINEAR || tex._minFilter === pc.GraphicsConfig.FILTER_LINEAR_MIPMAP_NEAREST ||
-            tex._minFilter === pc.GraphicsConfig.FILTER_LINEAR_MIPMAP_LINEAR) && !(tex._compressed && tex._levels.length === 1)) {
+        if (tex._pot && (tex._mipmaps || tex._minFilter === pc.FILTER_NEAREST_MIPMAP_NEAREST ||
+            tex._minFilter === pc.FILTER_NEAREST_MIPMAP_LINEAR || tex._minFilter === pc.FILTER_LINEAR_MIPMAP_NEAREST ||
+            tex._minFilter === pc.FILTER_LINEAR_MIPMAP_LINEAR) && !(tex._compressed && tex._levels.length === 1)) {
 
             mips = Math.round(Math.log2(Math.max(tex._width, tex._height)) + 1);
         }
@@ -86,16 +86,16 @@ namespace pc {
         for (let i = 0; i < mips; i++) {
             if (!tex._compressed) {
                 size += mipWidth * mipHeight * mipDepth * _pixelFormat2Size[tex._format];
-            } else if (tex._format === pc.GraphicsConfig.PIXELFORMAT_ETC1) {
+            } else if (tex._format === pc.PIXELFORMAT_ETC1) {
                 size += Math.floor((mipWidth + 3) / 4) * Math.floor((mipHeight + 3) / 4) * 8 * mipDepth;
-            } else if (tex._format === pc.GraphicsConfig.PIXELFORMAT_PVRTC_2BPP_RGB_1 || tex._format === pc.GraphicsConfig.PIXELFORMAT_PVRTC_2BPP_RGBA_1) {
+            } else if (tex._format === pc.PIXELFORMAT_PVRTC_2BPP_RGB_1 || tex._format === pc.PIXELFORMAT_PVRTC_2BPP_RGBA_1) {
                 size += Math.max(mipWidth, 16) * Math.max(mipHeight, 8) / 4 * mipDepth;
-            } else if (tex._format === pc.GraphicsConfig.PIXELFORMAT_PVRTC_4BPP_RGB_1 || tex._format === pc.GraphicsConfig.PIXELFORMAT_PVRTC_4BPP_RGBA_1) {
+            } else if (tex._format === pc.PIXELFORMAT_PVRTC_4BPP_RGB_1 || tex._format === pc.PIXELFORMAT_PVRTC_4BPP_RGBA_1) {
                 size += Math.max(mipWidth, 8) * Math.max(mipHeight, 8) / 2 * mipDepth;
             } else {
                 const DXT_BLOCK_WIDTH = 4;
                 const DXT_BLOCK_HEIGHT = 4;
-                const blockSize = tex._format === pc.GraphicsConfig.PIXELFORMAT_DXT1 ? 8 : 16;
+                const blockSize = tex._format === pc.PIXELFORMAT_DXT1 ? 8 : 16;
                 const numBlocksAcross = Math.floor((mipWidth + DXT_BLOCK_WIDTH - 1) / DXT_BLOCK_WIDTH);
                 const numBlocksDown = Math.floor((mipHeight + DXT_BLOCK_HEIGHT - 1) / DXT_BLOCK_HEIGHT);
                 const numBlocks = numBlocksAcross * numBlocksDown;
@@ -420,7 +420,7 @@ namespace pc {
                     color: [0, 0, 0, 1],
                     depth: 1,
                     stencil: 0,
-                    flags: pc.GraphicsConfig.CLEARFLAG_COLOR | pc.GraphicsConfig.CLEARFLAG_DEPTH
+                    flags: pc.CLEARFLAG_COLOR | pc.CLEARFLAG_DEPTH
                 };
 
                 this.glAddress = [
@@ -524,20 +524,20 @@ namespace pc {
                 let scopeX, scopeY, scopeZ, scopeW;
                 let uniformValue;
                 this.commitFunction = [];
-                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_BOOL] = (uniform, value) => {
+                this.commitFunction[pc.UNIFORMTYPE_BOOL] = (uniform, value) => {
                     if (uniform.value !== value) {
                         gl.uniform1i(uniform.locationId, value);
                         uniform.value = value;
                     }
                 };
-                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_INT] = this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_BOOL];
-                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_FLOAT] = (uniform, value) => {
+                this.commitFunction[pc.UNIFORMTYPE_INT] = this.commitFunction[pc.UNIFORMTYPE_BOOL];
+                this.commitFunction[pc.UNIFORMTYPE_FLOAT] = (uniform, value) => {
                     if (uniform.value !== value) {
                         gl.uniform1f(uniform.locationId, value);
                         uniform.value = value;
                     }
                 };
-                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_VEC2] = (uniform, value) => {
+                this.commitFunction[pc.UNIFORMTYPE_VEC2] = (uniform, value) => {
                     uniformValue = uniform.value;
                     scopeX = value[0];
                     scopeY = value[1];
@@ -547,7 +547,7 @@ namespace pc {
                         uniformValue[1] = scopeY;
                     }
                 };
-                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_VEC3] = (uniform, value) => {
+                this.commitFunction[pc.UNIFORMTYPE_VEC3] = (uniform, value) => {
                     uniformValue = uniform.value;
                     scopeX = value[0];
                     scopeY = value[1];
@@ -559,7 +559,7 @@ namespace pc {
                         uniformValue[2] = scopeZ;
                     }
                 };
-                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_VEC4] = (uniform, value) => {
+                this.commitFunction[pc.UNIFORMTYPE_VEC4] = (uniform, value) => {
                     uniformValue = uniform.value;
                     scopeX = value[0];
                     scopeY = value[1];
@@ -573,7 +573,7 @@ namespace pc {
                         uniformValue[3] = scopeW;
                     }
                 };
-                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_IVEC2] = (uniform, value) => {
+                this.commitFunction[pc.UNIFORMTYPE_IVEC2] = (uniform, value) => {
                     uniformValue = uniform.value;
                     scopeX = value[0];
                     scopeY = value[1];
@@ -583,8 +583,8 @@ namespace pc {
                         uniformValue[1] = scopeY;
                     }
                 };
-                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_BVEC2] = this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_IVEC2];
-                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_IVEC3] = (uniform, value) => {
+                this.commitFunction[pc.UNIFORMTYPE_BVEC2] = this.commitFunction[pc.UNIFORMTYPE_IVEC2];
+                this.commitFunction[pc.UNIFORMTYPE_IVEC3] = (uniform, value) => {
                     uniformValue = uniform.value;
                     scopeX = value[0];
                     scopeY = value[1];
@@ -596,8 +596,8 @@ namespace pc {
                         uniformValue[2] = scopeZ;
                     }
                 };
-                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_BVEC3] = this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_IVEC3];
-                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_IVEC4] = (uniform, value) => {
+                this.commitFunction[pc.UNIFORMTYPE_BVEC3] = this.commitFunction[pc.UNIFORMTYPE_IVEC3];
+                this.commitFunction[pc.UNIFORMTYPE_IVEC4] = (uniform, value) => {
                     uniformValue = uniform.value;
                     scopeX = value[0];
                     scopeY = value[1];
@@ -611,17 +611,17 @@ namespace pc {
                         uniformValue[3] = scopeW;
                     }
                 };
-                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_BVEC4] = this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_IVEC4];
-                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_MAT2] = ({ locationId }, value) => {
+                this.commitFunction[pc.UNIFORMTYPE_BVEC4] = this.commitFunction[pc.UNIFORMTYPE_IVEC4];
+                this.commitFunction[pc.UNIFORMTYPE_MAT2] = ({ locationId }, value) => {
                     gl.uniformMatrix2fv(locationId, false, value);
                 };
-                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_MAT3] = ({ locationId }, value) => {
+                this.commitFunction[pc.UNIFORMTYPE_MAT3] = ({ locationId }, value) => {
                     gl.uniformMatrix3fv(locationId, false, value);
                 };
-                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_MAT4] = ({ locationId }, value) => {
+                this.commitFunction[pc.UNIFORMTYPE_MAT4] = ({ locationId }, value) => {
                     gl.uniformMatrix4fv(locationId, false, value);
                 };
-                this.commitFunction[pc.GraphicsConfig.UNIFORMTYPE_FLOATARRAY] = ({ locationId }, value) => {
+                this.commitFunction[pc.UNIFORMTYPE_FLOATARRAY] = ({ locationId }, value) => {
                     gl.uniform1fv(locationId, value);
                 };
 
@@ -666,7 +666,7 @@ namespace pc {
                 this._drawCallsPerFrame = 0;
                 this._shaderSwitchesPerFrame = 0;
                 this._primsPerFrame = [];
-                for (i = pc.GraphicsConfig.PRIMITIVE_POINTS; i <= pc.GraphicsConfig.PRIMITIVE_TRIFAN; i++) {
+                for (i = pc.PRIMITIVE_POINTS; i <= pc.PRIMITIVE_TRIFAN; i++) {
                     this._primsPerFrame[i] = 0;
                 }
                 this._renderTargetCreationTime = 0;
@@ -722,12 +722,12 @@ namespace pc {
                         const size = 1;
 
                         const tex = new pc.Texture(device, {
-                            format: pc.GraphicsConfig.PIXELFORMAT_RGBA32F,
+                            format: pc.PIXELFORMAT_RGBA32F,
                             width: size,
                             height: size,
                             mipmaps: false,
-                            minFilter: pc.GraphicsConfig.FILTER_NEAREST,
-                            magFilter: pc.GraphicsConfig.FILTER_NEAREST
+                            minFilter: pc.FILTER_NEAREST,
+                            magFilter: pc.FILTER_NEAREST
                         });
                         const targ = new pc.RenderTarget(device, tex, {
                             depth: false
@@ -735,12 +735,12 @@ namespace pc {
                         pc.drawQuadWithShader(device, targ, test1);
 
                         const tex2 = new pc.Texture(device, {
-                            format: pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8_A8,
+                            format: pc.PIXELFORMAT_R8_G8_B8_A8,
                             width: size,
                             height: size,
                             mipmaps: false,
-                            minFilter: pc.GraphicsConfig.FILTER_NEAREST,
-                            magFilter: pc.GraphicsConfig.FILTER_NEAREST
+                            minFilter: pc.FILTER_NEAREST,
+                            magFilter: pc.FILTER_NEAREST
                         });
                         const targ2 = new pc.RenderTarget(device, tex2, {
                             depth: false
@@ -899,13 +899,13 @@ namespace pc {
             this.blending = false;
             gl.disable(gl.BLEND);
 
-            this.blendSrc = pc.GraphicsConfig.BLENDMODE_ONE;
-            this.blendDst = pc.GraphicsConfig.BLENDMODE_ZERO;
-            this.blendSrcAlpha = pc.GraphicsConfig.BLENDMODE_ONE;
-            this.blendDstAlpha = pc.GraphicsConfig.BLENDMODE_ZERO;
+            this.blendSrc = pc.BLENDMODE_ONE;
+            this.blendDst = pc.BLENDMODE_ZERO;
+            this.blendSrcAlpha = pc.BLENDMODE_ONE;
+            this.blendDstAlpha = pc.BLENDMODE_ZERO;
             this.separateAlphaBlend = false;
-            this.blendEquation = pc.GraphicsConfig.BLENDEQUATION_ADD;
-            this.blendAlphaEquation = pc.GraphicsConfig.BLENDEQUATION_ADD;
+            this.blendEquation = pc.BLENDEQUATION_ADD;
+            this.blendAlphaEquation = pc.BLENDEQUATION_ADD;
             this.separateAlphaEquation = false;
             gl.blendFunc(gl.ONE, gl.ZERO);
             gl.blendEquation(gl.FUNC_ADD);
@@ -916,14 +916,14 @@ namespace pc {
             this.writeAlpha = true;
             gl.colorMask(true, true, true, true);
 
-            this.cullMode = pc.GraphicsConfig.CULLFACE_BACK;
+            this.cullMode = pc.CULLFACE_BACK;
             gl.enable(gl.CULL_FACE);
             gl.cullFace(gl.BACK);
 
             this.depthTest = true;
             gl.enable(gl.DEPTH_TEST);
 
-            this.depthFunc = pc.GraphicsConfig.FUNC_LESSEQUAL;
+            this.depthFunc = pc.FUNC_LESSEQUAL;
             gl.depthFunc(gl.LEQUAL);
 
             this.depthWrite = true;
@@ -932,14 +932,14 @@ namespace pc {
             this.stencil = false;
             gl.disable(gl.STENCIL_TEST);
 
-            this.stencilFuncFront = this.stencilFuncBack = pc.GraphicsConfig.FUNC_ALWAYS;
+            this.stencilFuncFront = this.stencilFuncBack = pc.FUNC_ALWAYS;
             this.stencilRefFront = this.stencilRefBack = 0;
             this.stencilMaskFront = this.stencilMaskBack = 0xFF;
             gl.stencilFunc(gl.ALWAYS, 0, 0xFF);
 
-            this.stencilFailFront = this.stencilFailBack = pc.GraphicsConfig.STENCILOP_KEEP;
-            this.stencilZfailFront = this.stencilZfailBack = pc.GraphicsConfig.STENCILOP_KEEP;
-            this.stencilZpassFront = this.stencilZpassBack = pc.GraphicsConfig.STENCILOP_KEEP;
+            this.stencilFailFront = this.stencilFailBack = pc.STENCILOP_KEEP;
+            this.stencilZfailFront = this.stencilZfailBack = pc.STENCILOP_KEEP;
+            this.stencilZpassFront = this.stencilZpassBack = pc.STENCILOP_KEEP;
             this.stencilWriteMaskFront = 0xFF;
             this.stencilWriteMaskBack = 0xFF;
             gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
@@ -1401,87 +1401,87 @@ namespace pc {
 
 
             switch (texture._format) {
-                case pc.GraphicsConfig.PIXELFORMAT_A8:
+                case pc.PIXELFORMAT_A8:
                     texture._glFormat = gl.ALPHA;
                     texture._glInternalFormat = gl.ALPHA;
                     texture._glPixelType = gl.UNSIGNED_BYTE;
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_L8:
+                case pc.PIXELFORMAT_L8:
                     texture._glFormat = gl.LUMINANCE;
                     texture._glInternalFormat = gl.LUMINANCE;
                     texture._glPixelType = gl.UNSIGNED_BYTE;
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_L8_A8:
+                case pc.PIXELFORMAT_L8_A8:
                     texture._glFormat = gl.LUMINANCE_ALPHA;
                     texture._glInternalFormat = gl.LUMINANCE_ALPHA;
                     texture._glPixelType = gl.UNSIGNED_BYTE;
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_R5_G6_B5:
+                case pc.PIXELFORMAT_R5_G6_B5:
                     texture._glFormat = gl.RGB;
                     texture._glInternalFormat = gl.RGB;
                     texture._glPixelType = gl.UNSIGNED_SHORT_5_6_5;
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_R5_G5_B5_A1:
+                case pc.PIXELFORMAT_R5_G5_B5_A1:
                     texture._glFormat = gl.RGBA;
                     texture._glInternalFormat = gl.RGBA;
                     texture._glPixelType = gl.UNSIGNED_SHORT_5_5_5_1;
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_R4_G4_B4_A4:
+                case pc.PIXELFORMAT_R4_G4_B4_A4:
                     texture._glFormat = gl.RGBA;
                     texture._glInternalFormat = gl.RGBA;
                     texture._glPixelType = gl.UNSIGNED_SHORT_4_4_4_4;
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8:
+                case pc.PIXELFORMAT_R8_G8_B8:
                     texture._glFormat = gl.RGB;
                     texture._glInternalFormat = this.webgl2 ? gl.RGB8 : gl.RGB;
                     texture._glPixelType = gl.UNSIGNED_BYTE;
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8_A8:
+                case pc.PIXELFORMAT_R8_G8_B8_A8:
                     texture._glFormat = gl.RGBA;
                     texture._glInternalFormat = this.webgl2 ? gl.RGBA8 : gl.RGBA;
                     texture._glPixelType = gl.UNSIGNED_BYTE;
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_DXT1:
+                case pc.PIXELFORMAT_DXT1:
                     ext = this.extCompressedTextureS3TC;
                     texture._glFormat = gl.RGB;
                     texture._glInternalFormat = ext.COMPRESSED_RGB_S3TC_DXT1_EXT;
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_DXT3:
+                case pc.PIXELFORMAT_DXT3:
                     ext = this.extCompressedTextureS3TC;
                     texture._glFormat = gl.RGBA;
                     texture._glInternalFormat = ext.COMPRESSED_RGBA_S3TC_DXT3_EXT;
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_DXT5:
+                case pc.PIXELFORMAT_DXT5:
                     ext = this.extCompressedTextureS3TC;
                     texture._glFormat = gl.RGBA;
                     texture._glInternalFormat = ext.COMPRESSED_RGBA_S3TC_DXT5_EXT;
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_ETC1:
+                case pc.PIXELFORMAT_ETC1:
                     ext = this.extCompressedTextureETC1;
                     texture._glFormat = gl.RGB;
                     texture._glInternalFormat = ext.COMPRESSED_RGB_ETC1_WEBGL;
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_PVRTC_2BPP_RGB_1:
+                case pc.PIXELFORMAT_PVRTC_2BPP_RGB_1:
                     ext = this.extCompressedTexturePVRTC;
                     texture._glFormat = gl.RGB;
                     texture._glInternalFormat = ext.COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_PVRTC_2BPP_RGBA_1:
+                case pc.PIXELFORMAT_PVRTC_2BPP_RGBA_1:
                     ext = this.extCompressedTexturePVRTC;
                     texture._glFormat = gl.RGBA;
                     texture._glInternalFormat = ext.COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_PVRTC_4BPP_RGB_1:
+                case pc.PIXELFORMAT_PVRTC_4BPP_RGB_1:
                     ext = this.extCompressedTexturePVRTC;
                     texture._glFormat = gl.RGB;
                     texture._glInternalFormat = ext.COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_PVRTC_4BPP_RGBA_1:
+                case pc.PIXELFORMAT_PVRTC_4BPP_RGBA_1:
                     ext = this.extCompressedTexturePVRTC;
                     texture._glFormat = gl.RGBA;
                     texture._glInternalFormat = ext.COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_RGB16F:
+                case pc.PIXELFORMAT_RGB16F:
                     // definition varies between WebGL1 and 2
                     ext = this.extTextureHalfFloat;
                     texture._glFormat = gl.RGB;
@@ -1493,7 +1493,7 @@ namespace pc {
                         texture._glPixelType = ext.HALF_FLOAT_OES;
                     }
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_RGBA16F:
+                case pc.PIXELFORMAT_RGBA16F:
                     // definition varies between WebGL1 and 2
                     ext = this.extTextureHalfFloat;
                     texture._glFormat = gl.RGBA;
@@ -1505,7 +1505,7 @@ namespace pc {
                         texture._glPixelType = ext.HALF_FLOAT_OES;
                     }
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_RGB32F:
+                case pc.PIXELFORMAT_RGB32F:
                     // definition varies between WebGL1 and 2
                     texture._glFormat = gl.RGB;
                     if (this.webgl2) {
@@ -1515,7 +1515,7 @@ namespace pc {
                     }
                     texture._glPixelType = gl.FLOAT;
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_RGBA32F:
+                case pc.PIXELFORMAT_RGBA32F:
                     // definition varies between WebGL1 and 2
                     texture._glFormat = gl.RGBA;
                     if (this.webgl2) {
@@ -1525,12 +1525,12 @@ namespace pc {
                     }
                     texture._glPixelType = gl.FLOAT;
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_R32F: // WebGL2 only
+                case pc.PIXELFORMAT_R32F: // WebGL2 only
                     texture._glFormat = gl.RED;
                     texture._glInternalFormat = gl.R32F;
                     texture._glPixelType = gl.FLOAT;
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_DEPTH:
+                case pc.PIXELFORMAT_DEPTH:
                     if (this.webgl2) {
                         // native WebGL2
                         texture._glFormat = gl.DEPTH_COMPONENT;
@@ -1543,22 +1543,22 @@ namespace pc {
                         texture._glPixelType = gl.UNSIGNED_SHORT; // the only acceptable value?
                     }
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_DEPTHSTENCIL: // WebGL2 only
+                case pc.PIXELFORMAT_DEPTHSTENCIL: // WebGL2 only
                     texture._glFormat = gl.DEPTH_STENCIL;
                     texture._glInternalFormat = gl.DEPTH24_STENCIL8;
                     texture._glPixelType = gl.UNSIGNED_INT_24_8;
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_111110F: // WebGL2 only
+                case pc.PIXELFORMAT_111110F: // WebGL2 only
                     texture._glFormat = gl.RGB;
                     texture._glInternalFormat = gl.R11F_G11F_B10F;
                     texture._glPixelType = gl.FLOAT;
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_SRGB: // WebGL2 only
+                case pc.PIXELFORMAT_SRGB: // WebGL2 only
                     texture._glFormat = gl.RGB;
                     texture._glInternalFormat = gl.SRGB8;
                     texture._glPixelType = gl.UNSIGNED_BYTE;
                     break;
-                case pc.GraphicsConfig.PIXELFORMAT_SRGBA: // WebGL2 only
+                case pc.PIXELFORMAT_SRGBA: // WebGL2 only
                     texture._glFormat = gl.RGBA;
                     texture._glInternalFormat = gl.SRGB8_ALPHA8;
                     texture._glPixelType = gl.UNSIGNED_BYTE;
@@ -1769,11 +1769,11 @@ namespace pc {
             if (texture._gpuSize) {
                 this._vram.tex -= texture._gpuSize;
                 // #ifdef PROFILER
-                if (texture.profilerHint === pc.GraphicsConfig.TEXHINT_SHADOWMAP) {
+                if (texture.profilerHint === pc.TEXHINT_SHADOWMAP) {
                     this._vram.texShadow -= texture._gpuSize;
-                } else if (texture.profilerHint === pc.GraphicsConfig.TEXHINT_ASSET) {
+                } else if (texture.profilerHint === pc.TEXHINT_ASSET) {
                     this._vram.texAsset -= texture._gpuSize;
-                } else if (texture.profilerHint === pc.GraphicsConfig.TEXHINT_LIGHTMAP) {
+                } else if (texture.profilerHint === pc.TEXHINT_LIGHTMAP) {
                     this._vram.texLightmap -= texture._gpuSize;
                 }
                 // #endif
@@ -1782,11 +1782,11 @@ namespace pc {
             texture._gpuSize = gpuTexSize(gl, texture);
             this._vram.tex += texture._gpuSize;
             // #ifdef PROFILER
-            if (texture.profilerHint === pc.GraphicsConfig.TEXHINT_SHADOWMAP) {
+            if (texture.profilerHint === pc.TEXHINT_SHADOWMAP) {
                 this._vram.texShadow += texture._gpuSize;
-            } else if (texture.profilerHint === pc.GraphicsConfig.TEXHINT_ASSET) {
+            } else if (texture.profilerHint === pc.TEXHINT_ASSET) {
                 this._vram.texAsset += texture._gpuSize;
-            } else if (texture.profilerHint === pc.GraphicsConfig.TEXHINT_LIGHTMAP) {
+            } else if (texture.profilerHint === pc.TEXHINT_LIGHTMAP) {
                 this._vram.texLightmap += texture._gpuSize;
             }
             // #endif
@@ -1815,10 +1815,10 @@ namespace pc {
                 if (texture._minFilterDirty) {
                     let filter = texture._minFilter;
                     if (!texture._pot || !texture._mipmaps || (texture._compressed && texture._levels.length === 1)) {
-                        if (filter === pc.GraphicsConfig.FILTER_NEAREST_MIPMAP_NEAREST || filter === pc.GraphicsConfig.FILTER_NEAREST_MIPMAP_LINEAR) {
-                            filter = pc.GraphicsConfig.FILTER_NEAREST;
-                        } else if (filter === pc.GraphicsConfig.FILTER_LINEAR_MIPMAP_NEAREST || filter === pc.GraphicsConfig.FILTER_LINEAR_MIPMAP_LINEAR) {
-                            filter = pc.GraphicsConfig.FILTER_LINEAR;
+                        if (filter === pc.FILTER_NEAREST_MIPMAP_NEAREST || filter === pc.FILTER_NEAREST_MIPMAP_LINEAR) {
+                            filter = pc.FILTER_NEAREST;
+                        } else if (filter === pc.FILTER_LINEAR_MIPMAP_NEAREST || filter === pc.FILTER_LINEAR_MIPMAP_LINEAR) {
+                            filter = pc.FILTER_LINEAR;
                         }
                     }
                     gl.texParameteri(texture._glTarget, gl.TEXTURE_MIN_FILTER, this.glFilter[filter]);
@@ -1833,7 +1833,7 @@ namespace pc {
                         gl.texParameteri(texture._glTarget, gl.TEXTURE_WRAP_S, this.glAddress[texture._addressU]);
                     } else {
                         // WebGL1 doesn't support all addressing modes with NPOT textures
-                        gl.texParameteri(texture._glTarget, gl.TEXTURE_WRAP_S, this.glAddress[texture._pot ? texture._addressU : pc.GraphicsConfig.ADDRESS_CLAMP_TO_EDGE]);
+                        gl.texParameteri(texture._glTarget, gl.TEXTURE_WRAP_S, this.glAddress[texture._pot ? texture._addressU : pc.ADDRESS_CLAMP_TO_EDGE]);
                     }
                     texture._addressUDirty = false;
                 }
@@ -1842,7 +1842,7 @@ namespace pc {
                         gl.texParameteri(texture._glTarget, gl.TEXTURE_WRAP_T, this.glAddress[texture._addressV]);
                     } else {
                         // WebGL1 doesn't support all addressing modes with NPOT textures
-                        gl.texParameteri(texture._glTarget, gl.TEXTURE_WRAP_T, this.glAddress[texture._pot ? texture._addressV : pc.GraphicsConfig.ADDRESS_CLAMP_TO_EDGE]);
+                        gl.texParameteri(texture._glTarget, gl.TEXTURE_WRAP_T, this.glAddress[texture._pot ? texture._addressV : pc.ADDRESS_CLAMP_TO_EDGE]);
                     }
                     texture._addressVDirty = false;
                 }
@@ -2126,12 +2126,12 @@ namespace pc {
                 const gl = this.gl;
 
                 // Set the clear color
-                if (flags & pc.GraphicsConfig.CLEARFLAG_COLOR) {
+                if (flags & pc.CLEARFLAG_COLOR) {
                     const color = (options.color == undefined) ? defaultOptions.color : options.color;
                     this.setClearColor(color[0], color[1], color[2], color[3]);
                 }
 
-                if (flags & pc.GraphicsConfig.CLEARFLAG_DEPTH) {
+                if (flags & pc.CLEARFLAG_DEPTH) {
                     // Set the clear depth
                     const depth = (options.depth == undefined) ? defaultOptions.depth : options.depth;
                     this.setClearDepth(depth);
@@ -2140,7 +2140,7 @@ namespace pc {
                     }
                 }
 
-                if (flags & pc.GraphicsConfig.CLEARFLAG_STENCIL) {
+                if (flags & pc.CLEARFLAG_STENCIL) {
                     // Set the clear stencil
                     const stencil = (options.stencil == undefined) ? defaultOptions.stencil : options.stencil;
                     this.setClearStencil(stencil);
@@ -2149,7 +2149,7 @@ namespace pc {
                 // Clear the frame buffer
                 gl.clear(this.glClearFlag[flags]);
 
-                if (flags & pc.GraphicsConfig.CLEARFLAG_DEPTH) {
+                if (flags & pc.CLEARFLAG_DEPTH) {
                     if (!this.depthWrite) {
                         gl.depthMask(false);
                     }
@@ -2777,10 +2777,10 @@ namespace pc {
          */
         setCullMode(cullMode) {
             if (this.cullMode !== cullMode) {
-                if (cullMode === pc.GraphicsConfig.CULLFACE_NONE) {
+                if (cullMode === pc.CULLFACE_NONE) {
                     this.gl.disable(this.gl.CULL_FACE);
                 } else {
-                    if (this.cullMode === pc.GraphicsConfig.CULLFACE_NONE) {
+                    if (this.cullMode === pc.CULLFACE_NONE) {
                         this.gl.enable(this.gl.CULL_FACE);
                     }
 
@@ -2875,11 +2875,11 @@ namespace pc {
 
         getHdrFormat() {
             if (this.extTextureHalfFloatRenderable) {
-                return pc.GraphicsConfig.PIXELFORMAT_RGB16F;
+                return pc.PIXELFORMAT_RGB16F;
             } else if (this.extTextureFloatRenderable) {
-                return pc.GraphicsConfig.PIXELFORMAT_RGB32F;
+                return pc.PIXELFORMAT_RGB32F;
             }
-            return pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8_A8;
+            return pc.PIXELFORMAT_R8_G8_B8_A8;
         }
 
         /**

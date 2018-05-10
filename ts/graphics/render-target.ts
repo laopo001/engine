@@ -78,10 +78,10 @@ namespace pc {
 
             if (this._depthBuffer) {
                 const format = this._depthBuffer._format;
-                if (format === pc.GraphicsConfig.PIXELFORMAT_DEPTH) {
+                if (format === pc.PIXELFORMAT_DEPTH) {
                     this._depth = true;
                     this._stencil = false;
-                } else if (format === pc.GraphicsConfig.PIXELFORMAT_DEPTHSTENCIL) {
+                } else if (format === pc.PIXELFORMAT_DEPTHSTENCIL) {
                     this._depth = true;
                     this._stencil = true;
                 } else {

@@ -36,7 +36,7 @@ namespace pc {
             }
         },
 
-        skinCode(device, chunks) {
+        skinCode(device, chunks?) {
             if (!chunks) chunks = pc.shaderChunks;
             if (device.supportsBoneTextures) {
                 return chunks.skinTexVS;
@@ -67,6 +67,8 @@ namespace pc {
 
         end() {
             return '}\n';
-        }
+        },
+        skybox,
+        standard
     };
 }
