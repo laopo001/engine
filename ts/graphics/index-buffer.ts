@@ -28,7 +28,7 @@ namespace pc {
         constructor(graphicsDevice, format, numIndices, usage, initialData) {
             // Initialize optional parameters
             // By default, index buffers are static (better for performance since buffer data can be cached in VRAM)
-            this.usage = usage || pc.GraphicsConfig.BUFFER_STATIC;
+            this.usage = usage || pc.BUFFER_STATIC;
 
             // Store the index format
             this.format = format;
@@ -43,13 +43,13 @@ namespace pc {
 
             // Allocate the storage
             let bytesPerIndex;
-            if (format === pc.GraphicsConfig.INDEXFORMAT_UINT8) {
+            if (format === pc.INDEXFORMAT_UINT8) {
                 bytesPerIndex = 1;
                 this.glFormat = gl.UNSIGNED_BYTE;
-            } else if (format === pc.GraphicsConfig.INDEXFORMAT_UINT16) {
+            } else if (format === pc.INDEXFORMAT_UINT16) {
                 bytesPerIndex = 2;
                 this.glFormat = gl.UNSIGNED_SHORT;
-            } else if (format === pc.GraphicsConfig.INDEXFORMAT_UINT32) {
+            } else if (format === pc.INDEXFORMAT_UINT32) {
                 bytesPerIndex = 4;
                 this.glFormat = gl.UNSIGNED_INT;
             }
@@ -139,16 +139,16 @@ namespace pc {
 
             let glUsage;
             switch (this.usage) {
-                case pc.GraphicsConfig.BUFFER_STATIC:
+                case pc.BUFFER_STATIC:
                     glUsage = gl.STATIC_DRAW;
                     break;
-                case pc.GraphicsConfig.BUFFER_DYNAMIC:
+                case pc.BUFFER_DYNAMIC:
                     glUsage = gl.DYNAMIC_DRAW;
                     break;
-                case pc.GraphicsConfig.BUFFER_STREAM:
+                case pc.BUFFER_STREAM:
                     glUsage = gl.STREAM_DRAW;
                     break;
-                case pc.GraphicsConfig.BUFFER_GPUDYNAMIC:
+                case pc.BUFFER_GPUDYNAMIC:
                     if (this.device.webgl2) {
                         glUsage = gl.DYNAMIC_COPY;
                     } else {

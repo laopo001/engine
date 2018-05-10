@@ -115,7 +115,7 @@ namespace pc {
             this.device._shaderStats.vsCompiled++;
             this.device._shaderStats.fsCompiled++;
             this.device._shaderStats.linked++;
-            if (this.definition.tag===pc.GraphicsConfig.SHADERTAG_MATERIAL) {
+            if (this.definition.tag===pc.SHADERTAG_MATERIAL) {
                 this.device._shaderStats.materialShaders++;
             }
 
@@ -184,27 +184,27 @@ namespace pc {
             let info, location;
 
             const _typeToPc = {};
-            _typeToPc[gl.BOOL]         = pc.GraphicsConfig.UNIFORMTYPE_BOOL;
-            _typeToPc[gl.INT]          = pc.GraphicsConfig.UNIFORMTYPE_INT;
-            _typeToPc[gl.FLOAT]        = pc.GraphicsConfig.UNIFORMTYPE_FLOAT;
-            _typeToPc[gl.FLOAT_VEC2]   = pc.GraphicsConfig.UNIFORMTYPE_VEC2;
-            _typeToPc[gl.FLOAT_VEC3]   = pc.GraphicsConfig.UNIFORMTYPE_VEC3;
-            _typeToPc[gl.FLOAT_VEC4]   = pc.GraphicsConfig.UNIFORMTYPE_VEC4;
-            _typeToPc[gl.INT_VEC2]     = pc.GraphicsConfig.UNIFORMTYPE_IVEC2;
-            _typeToPc[gl.INT_VEC3]     = pc.GraphicsConfig.UNIFORMTYPE_IVEC3;
-            _typeToPc[gl.INT_VEC4]     = pc.GraphicsConfig.UNIFORMTYPE_IVEC4;
-            _typeToPc[gl.BOOL_VEC2]    = pc.GraphicsConfig.UNIFORMTYPE_BVEC2;
-            _typeToPc[gl.BOOL_VEC3]    = pc.GraphicsConfig.UNIFORMTYPE_BVEC3;
-            _typeToPc[gl.BOOL_VEC4]    = pc.GraphicsConfig.UNIFORMTYPE_BVEC4;
-            _typeToPc[gl.FLOAT_MAT2]   = pc.GraphicsConfig.UNIFORMTYPE_MAT2;
-            _typeToPc[gl.FLOAT_MAT3]   = pc.GraphicsConfig.UNIFORMTYPE_MAT3;
-            _typeToPc[gl.FLOAT_MAT4]   = pc.GraphicsConfig.UNIFORMTYPE_MAT4;
-            _typeToPc[gl.SAMPLER_2D]   = pc.GraphicsConfig.UNIFORMTYPE_TEXTURE2D;
-            _typeToPc[gl.SAMPLER_CUBE] = pc.GraphicsConfig.UNIFORMTYPE_TEXTURECUBE;
+            _typeToPc[gl.BOOL]         = pc.UNIFORMTYPE_BOOL;
+            _typeToPc[gl.INT]          = pc.UNIFORMTYPE_INT;
+            _typeToPc[gl.FLOAT]        = pc.UNIFORMTYPE_FLOAT;
+            _typeToPc[gl.FLOAT_VEC2]   = pc.UNIFORMTYPE_VEC2;
+            _typeToPc[gl.FLOAT_VEC3]   = pc.UNIFORMTYPE_VEC3;
+            _typeToPc[gl.FLOAT_VEC4]   = pc.UNIFORMTYPE_VEC4;
+            _typeToPc[gl.INT_VEC2]     = pc.UNIFORMTYPE_IVEC2;
+            _typeToPc[gl.INT_VEC3]     = pc.UNIFORMTYPE_IVEC3;
+            _typeToPc[gl.INT_VEC4]     = pc.UNIFORMTYPE_IVEC4;
+            _typeToPc[gl.BOOL_VEC2]    = pc.UNIFORMTYPE_BVEC2;
+            _typeToPc[gl.BOOL_VEC3]    = pc.UNIFORMTYPE_BVEC3;
+            _typeToPc[gl.BOOL_VEC4]    = pc.UNIFORMTYPE_BVEC4;
+            _typeToPc[gl.FLOAT_MAT2]   = pc.UNIFORMTYPE_MAT2;
+            _typeToPc[gl.FLOAT_MAT3]   = pc.UNIFORMTYPE_MAT3;
+            _typeToPc[gl.FLOAT_MAT4]   = pc.UNIFORMTYPE_MAT4;
+            _typeToPc[gl.SAMPLER_2D]   = pc.UNIFORMTYPE_TEXTURE2D;
+            _typeToPc[gl.SAMPLER_CUBE] = pc.UNIFORMTYPE_TEXTURECUBE;
             if (this.device.webgl2) {
-                _typeToPc[gl.SAMPLER_2D_SHADOW]   = pc.GraphicsConfig.UNIFORMTYPE_TEXTURE2D_SHADOW;
-                _typeToPc[gl.SAMPLER_CUBE_SHADOW] = pc.GraphicsConfig.UNIFORMTYPE_TEXTURECUBE_SHADOW;
-                _typeToPc[gl.SAMPLER_3D]          = pc.GraphicsConfig.UNIFORMTYPE_TEXTURE3D;
+                _typeToPc[gl.SAMPLER_2D_SHADOW]   = pc.UNIFORMTYPE_TEXTURE2D_SHADOW;
+                _typeToPc[gl.SAMPLER_CUBE_SHADOW] = pc.UNIFORMTYPE_TEXTURECUBE_SHADOW;
+                _typeToPc[gl.SAMPLER_3D]          = pc.UNIFORMTYPE_TEXTURE3D;
             }
 
             const numAttributes = gl.getProgramParameter(this.program, gl.ACTIVE_ATTRIBUTES);

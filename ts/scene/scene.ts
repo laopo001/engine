@@ -1,327 +1,252 @@
-((() => {
+namespace pc {
     // Scene API enums
-    const enums = {
-        /**
-         * @enum pc.BLEND
-         * @name pc.BLEND_SUBTRACTIVE
-         * @description Subtract the color of the source fragment from the destination fragment
-         * and write the result to the frame buffer.
-         */
-        BLEND_SUBTRACTIVE: 0,
-        /**
-         * @enum pc.BLEND
-         * @name pc.BLEND_ADDITIVE
-         * @description Add the color of the source fragment to the destination fragment
-         * and write the result to the frame buffer.
-         */
-        BLEND_ADDITIVE: 1,
-        /**
-         * @enum pc.BLEND
-         * @name pc.BLEND_NORMAL
-         * @description Enable simple translucency for materials such as glass. This is
-         * equivalent to enabling a source blend mode of pc.BLENDMODE_SRC_ALPHA and a destination
-         * blend mode of pc.BLENDMODE_ONE_MINUS_SRC_ALPHA.
-         */
-        BLEND_NORMAL: 2,
-        /**
-         * @enum pc.BLEND
-         * @name pc.BLEND_NONE
-         * @description Disable blending.
-         */
-        BLEND_NONE: 3,
-        /**
-         * @enum pc.BLEND
-         * @name pc.BLEND_PREMULTIPLIED
-         * @description Similar to pc.BLEND_NORMAL expect the source fragment is assumed to have
-         * already been multiplied by the source alpha value.
-         */
-        BLEND_PREMULTIPLIED: 4,
-        /**
-         * @enum pc.BLEND
-         * @name pc.BLEND_MULTIPLICATIVE
-         * @description Multiply the color of the source fragment by the color of the destination
-         * fragment and write the result to the frame buffer.
-         */
-        BLEND_MULTIPLICATIVE: 5,
-        /**
-         * @enum pc.BLEND
-         * @name pc.BLEND_ADDITIVEALPHA
-         * @description Same as pc.BLEND_ADDITIVE except the source RGB is multiplied by the source alpha.
-         */
-        BLEND_ADDITIVEALPHA: 6,
+    /**
+     * @enum pc.BLEND
+     * @name pc.BLEND_SUBTRACTIVE
+     * @description Subtract the color of the source fragment from the destination fragment
+     * and write the result to the frame buffer.
+     */
+    export const BLEND_SUBTRACTIVE = 0;
+    /**
+     * @enum pc.BLEND
+     * @name pc.BLEND_ADDITIVE
+     * @description Add the color of the source fragment to the destination fragment
+     * and write the result to the frame buffer.
+     */
+    export const BLEND_ADDITIVE = 1;
+    /**
+     * @enum pc.BLEND
+     * @name pc.BLEND_NORMAL
+     * @description Enable simple translucency for materials such as glass. This is
+     * equivalent to enabling a source blend mode of pc.BLENDMODE_SRC_ALPHA and a destination
+     * blend mode of pc.BLENDMODE_ONE_MINUS_SRC_ALPHA.
+     */
+    export const BLEND_NORMAL = 2;
+    /**
+     * @enum pc.BLEND
+     * @name pc.BLEND_NONE
+     * @description Disable blending.
+     */
+    export const BLEND_NONE = 3;
+    /**
+     * @enum pc.BLEND
+     * @name pc.BLEND_PREMULTIPLIED
+     * @description Similar to pc.BLEND_NORMAL expect the source fragment is assumed to have
+     * already been multiplied by the source alpha value.
+     */
+    export const BLEND_PREMULTIPLIED = 4;
+    /**
+     * @enum pc.BLEND
+     * @name pc.BLEND_MULTIPLICATIVE
+     * @description Multiply the color of the source fragment by the color of the destination
+     * fragment and write the result to the frame buffer.
+     */
+    export const BLEND_MULTIPLICATIVE = 5;
+    /**
+     * @enum pc.BLEND
+     * @name pc.BLEND_ADDITIVEALPHA
+     * @description Same as pc.BLEND_ADDITIVE except the source RGB is multiplied by the source alpha.
+     */
+    export const BLEND_ADDITIVEALPHA = 6;
 
-        /**
-         * @enum pc.BLEND
-         * @name pc.BLEND_MULTIPLICATIVE2X
-         * @description Multiplies colors and doubles the result
-         */
-        BLEND_MULTIPLICATIVE2X: 7,
+    /**
+     * @enum pc.BLEND
+     * @name pc.BLEND_MULTIPLICATIVE2X
+     * @description Multiplies colors and doubles the result
+     */
+    export const BLEND_MULTIPLICATIVE2X = 7;
 
-        /**
-         * @enum pc.BLEND
-         * @name pc.BLEND_SCREEN
-         * @description Softer version of additive
-         */
-        BLEND_SCREEN: 8,
+    /**
+     * @enum pc.BLEND
+     * @name pc.BLEND_SCREEN
+     * @description Softer version of additive
+     */
+    export const BLEND_SCREEN = 8;
 
-        /**
-         * @enum pc.BLEND
-         * @name pc.BLEND_MIN
-         * @description Minimum color. Check app.graphicsDevice.extBlendMinmax for support.
-         */
-        BLEND_MIN: 9,
+    /**
+     * @enum pc.BLEND
+     * @name pc.BLEND_MIN
+     * @description Minimum color. Check app.graphicsDevice.extBlendMinmax for support.
+     */
+    export const BLEND_MIN = 9;
 
-        /**
-         * @enum pc.BLEND
-         * @name pc.BLEND_MAX
-         * @description Maximum color. Check app.graphicsDevice.extBlendMinmax for support.
-         */
-        BLEND_MAX: 10,
+    /**
+     * @enum pc.BLEND
+     * @name pc.BLEND_MAX
+     * @description Maximum color. Check app.graphicsDevice.extBlendMinmax for support.
+     */
+    export const BLEND_MAX = 10;
 
-        /**
-         * @enum pc.FOG
-         * @name pc.FOG_NONE
-         * @description No fog is applied to the scene.
-         */
-        FOG_NONE: 'none',
-        /**
-         * @enum pc.FOG
-         * @name pc.FOG_LINEAR
-         * @description Fog rises linearly from zero to 1 between a start and end depth.
-         */
-        FOG_LINEAR: 'linear',
-        /**
-         * @enum pc.FOG
-         * @name pc.FOG_EXP
-         * @description Fog rises according to an exponential curve controlled by a density value.
-         */
-        FOG_EXP: 'exp',
-        /**
-         * @enum pc.FOG
-         * @name pc.FOG_EXP2
-         * @description Fog rises according to an exponential curve controlled by a density value.
-         */
-        FOG_EXP2: 'exp2',
+    /**
+     * @enum pc.FOG
+     * @name pc.FOG_NONE
+     * @description No fog is applied to the scene.
+     */
+    export const FOG_NONE = 'none';
+    /**
+     * @enum pc.FOG
+     * @name pc.FOG_LINEAR
+     * @description Fog rises linearly from zero to 1 between a start and end depth.
+     */
+    export const FOG_LINEAR = 'linear';
+    /**
+     * @enum pc.FOG
+     * @name pc.FOG_EXP
+     * @description Fog rises according to an exponential curve controlled by a density value.
+     */
+    export const FOG_EXP = 'exp';
+    /**
+     * @enum pc.FOG
+     * @name pc.FOG_EXP2
+     * @description Fog rises according to an exponential curve controlled by a density value.
+     */
+    export const FOG_EXP2 = 'exp2';
 
-        FRESNEL_NONE: 0,
-        FRESNEL_SCHLICK: 2,
+    export const FRESNEL_NONE = 0;
+    export const FRESNEL_SCHLICK = 2;
 
-        // Legacy
-        LAYER_HUD: 0,
-        LAYER_GIZMO: 1,
-        LAYER_FX: 2,
-        // 3 - 14 are custom user layers
-        LAYER_WORLD: 15,
+    export const LAYER_HUD = 0;
+    export const LAYER_GIZMO = 1;
+    export const LAYER_FX = 2;
+    // 3 - 14 are custom user layers
+    export const LAYER_WORLD = 15;
 
-        // New layers
-        LAYERID_WORLD: 0,
-        LAYERID_DEPTH: 1,
-        LAYERID_SKYBOX: 2,
-        LAYERID_IMMEDIATE: 3,
-        LAYERID_UI: 4,
+    // New layers
+    export const LAYERID_WORLD = 0;
+    export const LAYERID_DEPTH = 1;
+    export const LAYERID_SKYBOX = 2;
+    export const LAYERID_IMMEDIATE = 3;
+    export const LAYERID_UI = 4;
 
-        /**
-         * @enum pc.LIGHTTYPE
-         * @name pc.LIGHTTYPE_DIRECTIONAL
-         * @description Directional (global) light source.
-         */
-        LIGHTTYPE_DIRECTIONAL: 0,
-        /**
-         * @enum pc.LIGHTTYPE
-         * @name pc.LIGHTTYPE_POINT
-         * @description Point (local) light source.
-         */
-        LIGHTTYPE_POINT: 1,
-        /**
-         * @enum pc.LIGHTTYPE
-         * @name pc.LIGHTTYPE_SPOT
-         * @description Spot (local) light source.
-         */
-        LIGHTTYPE_SPOT: 2,
+    /**
+     * @enum pc.LIGHTTYPE
+     * @name pc.LIGHTTYPE_DIRECTIONAL
+     * @description Directional (global) light source.
+     */
+    export const LIGHTTYPE_DIRECTIONAL = 0;
+    /**
+     * @enum pc.LIGHTTYPE
+     * @name pc.LIGHTTYPE_POINT
+     * @description Point (local) light source.
+     */
+    export const LIGHTTYPE_POINT = 1;
+    /**
+     * @enum pc.LIGHTTYPE
+     * @name pc.LIGHTTYPE_SPOT
+     * @description Spot (local) light source.
+     */
+    export const LIGHTTYPE_SPOT = 2;
 
-        LIGHTFALLOFF_LINEAR: 0,
-        LIGHTFALLOFF_INVERSESQUARED: 1,
+    export const LIGHTFALLOFF_LINEAR = 0;
+    export const LIGHTFALLOFF_INVERSESQUARED = 1;
 
-        SHADOW_PCF3: 0,
-        SHADOW_DEPTH: 0, // alias for SHADOW_PCF3 for backwards compatibility
-        SHADOW_VSM8: 1,
-        SHADOW_VSM16: 2,
-        SHADOW_VSM32: 3,
-        SHADOW_PCF5: 4,
+    export const SHADOW_PCF3 = 0;
+    export const SHADOW_DEPTH = 0; // alias for SHADOW_PCF3 for backwards compatibility
+    export const SHADOW_VSM8 = 1;
+    export const SHADOW_VSM16 = 2;
+    export const SHADOW_VSM32 = 3;
+    export const SHADOW_PCF5 = 4;
 
-        BLUR_BOX: 0,
-        BLUR_GAUSSIAN: 1,
+    export const BLUR_BOX = 0;
+    export const BLUR_GAUSSIAN = 1;
 
-        PARTICLESORT_NONE: 0,
-        PARTICLESORT_DISTANCE: 1,
-        PARTICLESORT_NEWER_FIRST: 2,
-        PARTICLESORT_OLDER_FIRST: 3,
-        PARTICLEMODE_GPU: 0,
-        PARTICLEMODE_CPU: 1,
-        EMITTERSHAPE_BOX: 0,
-        EMITTERSHAPE_SPHERE: 1,
+    export const PARTICLESORT_NONE = 0;
+    export const PARTICLESORT_DISTANCE = 1;
+    export const PARTICLESORT_NEWER_FIRST = 2;
+    export const PARTICLESORT_OLDER_FIRST = 3;
+    export const PARTICLEMODE_GPU = 0;
+    export const PARTICLEMODE_CPU = 1;
+    export const EMITTERSHAPE_BOX = 0;
+    export const EMITTERSHAPE_SPHERE = 1;
 
-        /**
-         * @enum pc.PROJECTION
-         * @name pc.PROJECTION_PERSPECTIVE
-         * @description A perspective camera projection where the frustum shape is essentially pyramidal.
-         */
-        PROJECTION_PERSPECTIVE: 0,
-        /**
-         * @enum pc.PROJECTION
-         * @name pc.PROJECTION_ORTHOGRAPHIC
-         * @description An orthographic camera projection where the frustum shape is essentially a cuboid.
-         */
-        PROJECTION_ORTHOGRAPHIC: 1,
+    /**
+     * @enum pc.PROJECTION
+     * @name pc.PROJECTION_PERSPECTIVE
+     * @description A perspective camera projection where the frustum shape is essentially pyramidal.
+     */
+    export const PROJECTION_PERSPECTIVE = 0;
+    /**
+     * @enum pc.PROJECTION
+     * @name pc.PROJECTION_ORTHOGRAPHIC
+     * @description An orthographic camera projection where the frustum shape is essentially a cuboid.
+     */
+    export const PROJECTION_ORTHOGRAPHIC = 1;
 
-        RENDERSTYLE_SOLID: 0,
-        RENDERSTYLE_WIREFRAME: 1,
-        RENDERSTYLE_POINTS: 2,
+    export const RENDERSTYLE_SOLID = 0;
+    export const RENDERSTYLE_WIREFRAME = 1;
+    export const RENDERSTYLE_POINTS = 2;
 
-        CUBEPROJ_NONE: 0,
-        CUBEPROJ_BOX: 1,
+    export const CUBEPROJ_NONE = 0;
+    export const CUBEPROJ_BOX = 1;
 
-        SPECULAR_PHONG: 0,
-        SPECULAR_BLINN: 1,
+    export const SPECULAR_PHONG = 0;
+    export const SPECULAR_BLINN = 1;
 
-        GAMMA_NONE: 0,
-        GAMMA_SRGB: 1,
-        GAMMA_SRGBFAST: 2, // deprecated
-        GAMMA_SRGBHDR: 3,
+    export const GAMMA_NONE = 0;
+    export const GAMMA_SRGB = 1;
+    export const GAMMA_SRGBFAST = 2; // deprecated
+    export const GAMMA_SRGBHDR = 3;
 
-        TONEMAP_LINEAR: 0,
-        TONEMAP_FILMIC: 1,
-        TONEMAP_HEJL: 2,
-        TONEMAP_ACES: 3,
-        TONEMAP_ACES2: 4,
+    export const TONEMAP_LINEAR = 0;
+    export const TONEMAP_FILMIC = 1;
+    export const TONEMAP_HEJL = 2;
+    export const TONEMAP_ACES = 3;
+    export const TONEMAP_ACES2 = 4;
 
-        SPECOCC_NONE: 0,
-        SPECOCC_AO: 1,
-        SPECOCC_GLOSSDEPENDENT: 2,
+    export const SPECOCC_NONE = 0;
+    export const SPECOCC_AO = 1;
+    export const SPECOCC_GLOSSDEPENDENT = 2;
 
-        SHADERDEF_NOSHADOW: 1,
-        SHADERDEF_SKIN: 2,
-        SHADERDEF_UV0: 4,
-        SHADERDEF_UV1: 8,
-        SHADERDEF_VCOLOR: 16,
-        SHADERDEF_INSTANCING: 32,
-        SHADERDEF_LM: 64,
-        SHADERDEF_DIRLM: 128,
-        SHADERDEF_SCREENSPACE: 256,
+    export const SHADERDEF_NOSHADOW = 1;
+    export const SHADERDEF_SKIN = 2;
+    export const SHADERDEF_UV0 = 4;
+    export const SHADERDEF_UV1 = 8;
+    export const SHADERDEF_VCOLOR = 16;
+    export const SHADERDEF_INSTANCING = 32;
+    export const SHADERDEF_LM = 64;
+    export const SHADERDEF_DIRLM = 128;
+    export const SHADERDEF_SCREENSPACE = 256;
 
-        LINEBATCH_WORLD: 0,
-        LINEBATCH_OVERLAY: 1,
-        LINEBATCH_GIZMO: 2,
+    export const LINEBATCH_WORLD = 0;
+    export const LINEBATCH_OVERLAY = 1;
+    export const LINEBATCH_GIZMO = 2;
 
-        SHADOWUPDATE_NONE: 0,
-        SHADOWUPDATE_THISFRAME: 1,
-        SHADOWUPDATE_REALTIME: 2,
+    export const SHADOWUPDATE_NONE = 0;
+    export const SHADOWUPDATE_THISFRAME = 1;
+    export const SHADOWUPDATE_REALTIME = 2;
 
-        SORTKEY_FORWARD: 0,
-        SORTKEY_DEPTH: 1,
+    export const SORTKEY_FORWARD = 0;
+    export const SORTKEY_DEPTH = 1;
 
-        MASK_DYNAMIC: 1,
-        MASK_BAKED: 2,
-        MASK_LIGHTMAP: 4,
+    export const SHADER_FORWARD = 0;
+    export const SHADER_FORWARDHDR = 1;
+    export const SHADER_DEPTH = 2;
+    export const SHADER_SHADOW = 3; // PCF3
+    // 4: VSM8,
+    // 5: VSM16,
+    // 6: VSM32,
+    // 7: PCF5,
+    // 8: PCF3 POINT
+    // 9: VSM8 POINT,
+    // 10: VSM16 POINT,
+    // 11: VSM32 POINT,
+    // 12: PCF5 POINT
+    // 13: PCF3 SPOT
+    // 14: VSM8 SPOT,
+    // 15: VSM16 SPOT,
+    // 16: VSM32 SPOT,
+    // 17: PCF5 SPOT
+    export const SHADER_PICK = 18;
 
-        /**
-         * @enum pc.SHADER
-         * @name pc.SHADER_FORWARD
-         * @description Render shaded materials with gamma correction and tonemapping.
-         */
-        SHADER_FORWARD: 0,
+    export const BAKE_COLOR = 0;
+    export const BAKE_COLORDIR = 1;
 
-        /**
-         * @enum pc.SHADER
-         * @name pc.SHADER_FORWARD
-         * @description Render shaded materials without gamma correction and tonemapping.
-         */
-        SHADER_FORWARDHDR: 1,
+    export const VIEW_CENTER = 0;
+    export const VIEW_LEFT = 1;
+    export const VIEW_RIGHT = 2
 
-        /**
-         * @enum pc.SHADER
-         * @name pc.SHADER_FORWARD
-         * @description Render RGBA-encoded depth value.
-         */
-        SHADER_DEPTH: 2,
 
-        // next are undocumented
-        SHADER_SHADOW: 3, // PCF3
-        // 4: VSM8,
-        // 5: VSM16,
-        // 6: VSM32,
-        // 7: PCF5,
-        // 8: PCF3 POINT
-        // 9: VSM8 POINT,
-        // 10: VSM16 POINT,
-        // 11: VSM32 POINT,
-        // 12: PCF5 POINT
-        // 13: PCF3 SPOT
-        // 14: VSM8 SPOT,
-        // 15: VSM16 SPOT,
-        // 16: VSM32 SPOT,
-        // 17: PCF5 SPOT
-        SHADER_PICK: 18,
 
-        BAKE_COLOR: 0,
-        BAKE_COLORDIR: 1,
-
-        VIEW_CENTER: 0,
-        VIEW_LEFT: 1,
-        VIEW_RIGHT: 2,
-
-        /**
-         * @enum pc.SORTMODE
-         * @name pc.SORTMODE_NONE
-         * @description No sorting is applied. Mesh instances are rendered in the same order they were added to a layer.
-         */
-        SORTMODE_NONE: 0,
-
-        /**
-         * @enum pc.SORTMODE
-         * @name pc.SORTMODE_MANUAL
-         * @description Mesh instances are sorted based on {@link pc.MeshInstance#drawOrder}.
-         */
-        SORTMODE_MANUAL: 1,
-
-        /**
-         * @enum pc.SORTMODE
-         * @name pc.SORTMODE_MATERIALMESH
-         * @description Mesh instances are sorted to minimize switching between materials and meshes to improve rendering performance.
-         */
-        SORTMODE_MATERIALMESH: 2,
-
-        /**
-         * @enum pc.SORTMODE
-         * @name pc.SORTMODE_BACK2FRONT
-         * @description Mesh instances are sorted back to front. This is the way to properly render many semi-transparent objects on different depth, one is blended on top of another.
-         */
-        SORTMODE_BACK2FRONT: 3,
-
-        /**
-         * @enum pc.SORTMODE
-         * @name pc.SORTMODE_FRONT2BACK
-         * @description Mesh instances are sorted front to back. Depending on GPU and the scene, this option may give better performance than pc.SORTMODE_MATERIALMESH due to reduced overdraw.
-         */
-        SORTMODE_FRONT2BACK: 4,
-
-        COMPUPDATED_INSTANCES: 1,
-        COMPUPDATED_LIGHTS: 2,
-        COMPUPDATED_CAMERAS: 4,
-        COMPUPDATED_BLEND: 8,
-
-        ASPECT_AUTO: 0,
-        ASPECT_MANUAL: 1
-    };
-
-    pc.extend(pc, enums);
-
-    // For backwards compatibility
-    pc.scene = {};
-    pc.extend(pc.scene, enums);
-})());
-
-pc.extend(pc, (() => {
     /**
      * @constructor
      * @name pc.Scene
@@ -374,7 +299,37 @@ pc.extend(pc, (() => {
      * pc.BAKE_COLORDIR.
      * @property {pc.LayerComposition} layers A {@link pc.LayerComposition} that defines rendering order of this scene.
      */
-    class Scene {
+    export class Scene {
+        root: any;
+        _gravity: Vec3;
+        _layers: any;
+        _fog: any;
+        fogColor: Color;
+        fogStart: number;
+        fogEnd: number;
+        fogDensity: number;
+        ambientLight: Color;
+        _gammaCorrection: any;
+        _toneMapping: number;
+        exposure: number;
+        _skyboxPrefiltered: any[];
+        _skyboxCubeMap: any;
+        skyboxModel: any;
+        _skyboxIntensity: number;
+        _skyboxMip: number;
+        lightmapSizeMultiplier: number;
+        lightmapMaxResolution: number;
+        lightmapMode: any;
+        _stats: { meshInstances: number; lights: number; dynamicLights: number; bakedLights: number; lastStaticPrepareFullTime: number; lastStaticPrepareSearchTime: number; lastStaticPrepareWriteTime: number; lastStaticPrepareTriAabbTime: number; lastStaticPrepareCombineTime: number; updateShadersTime: number; };
+        updateShaders: boolean;
+        updateSkybox: boolean;
+        _shaderVersion: number;
+        _statsUpdated: boolean;
+        _models: any[];
+        fire(arg0: any, arg1: any, arg2: any): any {
+            throw new Error("Method not implemented.");
+        }
+        skyLayer: any;
         constructor() {
             this.root = null;
 
@@ -394,7 +349,7 @@ pc.extend(pc, (() => {
             this._toneMapping = 0;
             this.exposure = 1.0;
 
-            this._skyboxPrefiltered = [ null, null, null, null, null, null ];
+            this._skyboxPrefiltered = [null, null, null, null, null, null];
 
             this._skyboxCubeMap = null;
             this.skyboxModel = null;
@@ -591,7 +546,7 @@ pc.extend(pc, (() => {
             this.fire("set:layers", prev, layers);
         }
 
-        applySettings({physics, render}) {
+        applySettings({ physics, render }) {
             // settings
             this._gravity.set(physics.gravity[0], physics.gravity[1], physics.gravity[2]);
             this.ambientLight.set(render.global_ambient[0], render.global_ambient[1], render.global_ambient[2]);
@@ -620,15 +575,17 @@ pc.extend(pc, (() => {
             if (this._skyboxCubeMap && !this.skyboxModel) {
                 const material = new pc.Material();
                 const scene = this;
-                material.updateShader = function(dev, sc, defs, staticLightList, pass) {
+                material.updateShader = function (dev, sc, defs, staticLightList, pass) {
                     const library = device.getProgramLibrary();
-                    const shader = library.getProgram('skybox', {rgbm: scene._skyboxCubeMap.rgbm,
-                        hdr: (scene._skyboxCubeMap.rgbm || scene._skyboxCubeMap.format===pc.PIXELFORMAT_RGBA32F),
-                        useIntensity: scene.skyboxIntensity!==1,
-                        mip: scene._skyboxCubeMap.fixCubemapSeams? scene.skyboxMip : 0,
+                    const shader = library.getProgram('skybox', {
+                        rgbm: scene._skyboxCubeMap.rgbm,
+                        hdr: (scene._skyboxCubeMap.rgbm || scene._skyboxCubeMap.format === pc.PIXELFORMAT_RGBA32F),
+                        useIntensity: scene.skyboxIntensity !== 1,
+                        mip: scene._skyboxCubeMap.fixCubemapSeams ? scene.skyboxMip : 0,
                         fixSeams: scene._skyboxCubeMap.fixCubemapSeams,
-                        gamma: (pass === pc.SHADER_FORWARDHDR ? (scene.gammaCorrection? pc.GAMMA_SRGBHDR : pc.GAMMA_NONE) : scene.gammaCorrection),
-                        toneMapping: (pass === pc.SHADER_FORWARDHDR ? pc.TONEMAP_LINEAR : scene.toneMapping)});
+                        gamma: (pass === pc.SHADER_FORWARDHDR ? (scene.gammaCorrection ? pc.GAMMA_SRGBHDR : pc.GAMMA_NONE) : scene.gammaCorrection),
+                        toneMapping: (pass === pc.SHADER_FORWARDHDR ? pc.TONEMAP_LINEAR : scene.toneMapping)
+                    });
                     this.setShader(shader);
                 };
 
@@ -655,7 +612,7 @@ pc.extend(pc, (() => {
 
                     const model = new pc.Model();
                     model.graph = node;
-                    model.meshInstances = [ meshInstance ];
+                    model.meshInstances = [meshInstance];
                     this.skyboxModel = model;
 
                     skyLayer.addMeshInstances(model.meshInstances);
@@ -678,8 +635,8 @@ pc.extend(pc, (() => {
 
         setSkybox(cubemaps) {
             let i;
-            if (! cubemaps)
-                cubemaps = [ null, null, null, null, null, null, null ];
+            if (!cubemaps)
+                cubemaps = [null, null, null, null, null, null, null];
 
             // check if any values actually changed
             // to prevent unnecessary recompilations
@@ -720,7 +677,7 @@ pc.extend(pc, (() => {
             this._models.push(model);
         }
 
-        addShadowCaster({meshInstances}) {
+        addShadowCaster({ meshInstances }) {
             const layer = this.layers.getLayerById(pc.LAYERID_WORLD);
             if (!layer) return;
             layer.addShadowCasters(meshInstances);
@@ -736,7 +693,7 @@ pc.extend(pc, (() => {
             }
         }
 
-        removeShadowCasters({meshInstances}) {
+        removeShadowCasters({ meshInstances }) {
             const layer = this.layers.getLayerById(pc.LAYERID_WORLD);
             if (!layer) return;
             layer.removeShadowCasters(meshInstances);
@@ -751,10 +708,7 @@ pc.extend(pc, (() => {
         }
     }
 
-    return {
-        Scene
-    };
-})());
+}
 
 /**
 * @event

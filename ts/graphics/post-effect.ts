@@ -1,7 +1,7 @@
 namespace pc {
     // Primitive for drawFullscreenQuad
     const primitive = {
-        type: pc.GraphicsConfig.PRIMITIVE_TRISTRIP,
+        type: pc.PRIMITIVE_TRISTRIP,
         base: 0,
         count: 4,
         indexed: false
@@ -46,7 +46,7 @@ namespace pc {
     export function createFullscreenQuad (device) {
         // Create the vertex format
         const vertexFormat = new pc.VertexFormat(device, [
-            { semantic: pc.GraphicsConfig.SEMANTIC_POSITION, components: 2, type: pc.GraphicsConfig.TYPE_FLOAT32 }
+            { semantic: pc.SEMANTIC_POSITION, components: 2, type: pc.TYPE_FLOAT32 }
         ]);
 
         // Create a vertex buffer
@@ -54,13 +54,13 @@ namespace pc {
 
         // Fill the vertex buffer
         const iterator = new pc.VertexIterator(vertexBuffer);
-        iterator.element[pc.GraphicsConfig.SEMANTIC_POSITION].set(-1.0, -1.0);
+        iterator.element[pc.SEMANTIC_POSITION].set(-1.0, -1.0);
         iterator.next();
-        iterator.element[pc.GraphicsConfig.SEMANTIC_POSITION].set(1.0, -1.0);
+        iterator.element[pc.SEMANTIC_POSITION].set(1.0, -1.0);
         iterator.next();
-        iterator.element[pc.GraphicsConfig.SEMANTIC_POSITION].set(-1.0, 1.0);
+        iterator.element[pc.SEMANTIC_POSITION].set(-1.0, 1.0);
         iterator.next();
-        iterator.element[pc.GraphicsConfig.SEMANTIC_POSITION].set(1.0, 1.0);
+        iterator.element[pc.SEMANTIC_POSITION].set(1.0, 1.0);
         iterator.end();
 
         return vertexBuffer;
@@ -95,7 +95,7 @@ namespace pc {
         device.setBlending(false);
         device.setDepthTest(false);
         device.setDepthWrite(false);
-        device.setCullMode(pc.GraphicsConfig.CULLFACE_BACK);
+        device.setCullMode(pc.CULLFACE_BACK);
         device.setColorWrite(true, true, true, true);
         device.setVertexBuffer(vertexBuffer, 0);
         device.setShader(shader);

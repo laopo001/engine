@@ -132,7 +132,7 @@ namespace pc {
             this._depth = 1;
             this._pot = true;
 
-            this._format = pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8_A8;
+            this._format = pc.PIXELFORMAT_R8_G8_B8_A8;
             this.rgbm = false;
 
             this._cubemap = false;
@@ -142,15 +142,15 @@ namespace pc {
 
             this._mipmaps = true;
 
-            this._minFilter = pc.GraphicsConfig.FILTER_LINEAR_MIPMAP_LINEAR;
-            this._magFilter = pc.GraphicsConfig.FILTER_LINEAR;
+            this._minFilter = pc.FILTER_LINEAR_MIPMAP_LINEAR;
+            this._magFilter = pc.FILTER_LINEAR;
             this._anisotropy = 1;
-            this._addressU = pc.GraphicsConfig.ADDRESS_REPEAT;
-            this._addressV = pc.GraphicsConfig.ADDRESS_REPEAT;
-            this._addressW = pc.GraphicsConfig.ADDRESS_REPEAT;
+            this._addressU = pc.ADDRESS_REPEAT;
+            this._addressV = pc.ADDRESS_REPEAT;
+            this._addressW = pc.ADDRESS_REPEAT;
 
             this._compareOnRead = false;
-            this._compareFunc = pc.GraphicsConfig.FUNC_LESS;
+            this._compareFunc = pc.FUNC_LESS;
 
             // #ifdef PROFILER
             this.profilerHint = 0;
@@ -195,10 +195,10 @@ namespace pc {
                 // #endif
             }
 
-            this._compressed = (this._format === pc.GraphicsConfig.PIXELFORMAT_DXT1 ||
-                this._format === pc.GraphicsConfig.PIXELFORMAT_DXT3 ||
-                this._format === pc.GraphicsConfig.PIXELFORMAT_DXT5 ||
-                this._format >= pc.GraphicsConfig.PIXELFORMAT_ETC1);
+            this._compressed = (this._format === pc.PIXELFORMAT_DXT1 ||
+                this._format === pc.PIXELFORMAT_DXT3 ||
+                this._format === pc.PIXELFORMAT_DXT5 ||
+                this._format >= pc.PIXELFORMAT_ETC1);
 
             // Mip levels
             this._invalid = false;
@@ -536,11 +536,11 @@ namespace pc {
 
                 this.device._vram.tex -= this._gpuSize;
                 // #ifdef PROFILER
-                if (this.profilerHint === pc.GraphicsConfig.TEXHINT_SHADOWMAP) {
+                if (this.profilerHint === pc.TEXHINT_SHADOWMAP) {
                     this.device._vram.texShadow -= this._gpuSize;
-                } else if (this.profilerHint === pc.GraphicsConfig.TEXHINT_ASSET) {
+                } else if (this.profilerHint === pc.TEXHINT_ASSET) {
                     this.device._vram.texAsset -= this._gpuSize;
-                } else if (this.profilerHint === pc.GraphicsConfig.TEXHINT_LIGHTMAP) {
+                } else if (this.profilerHint === pc.TEXHINT_LIGHTMAP) {
                     this.device._vram.texLightmap -= this._gpuSize;
                 }
                 // #endif
@@ -578,7 +578,7 @@ namespace pc {
          */
         lock(options) {
             // Initialize options to some sensible defaults
-            options = options || { level: 0, face: 0, mode: pc.GraphicsConfig.TEXTURELOCK_WRITE };
+            options = options || { level: 0, face: 0, mode: pc.TEXTURELOCK_WRITE };
             if (options.level === undefined) {
                 options.level = 0;
             }
@@ -586,48 +586,48 @@ namespace pc {
                 options.face = 0;
             }
             if (options.mode === undefined) {
-                options.mode = pc.GraphicsConfig.TEXTURELOCK_WRITE;
+                options.mode = pc.TEXTURELOCK_WRITE;
             }
 
             this._lockedLevel = options.level;
 
             if (this._levels[options.level] === null) {
                 switch (this._format) {
-                    case pc.GraphicsConfig.PIXELFORMAT_A8:
-                    case pc.GraphicsConfig.PIXELFORMAT_L8:
+                    case pc.PIXELFORMAT_A8:
+                    case pc.PIXELFORMAT_L8:
                         this._levels[options.level] = new Uint8Array(this._width * this._height * this._depth);
                         break;
-                    case pc.GraphicsConfig.PIXELFORMAT_L8_A8:
+                    case pc.PIXELFORMAT_L8_A8:
                         this._levels[options.level] = new Uint8Array(this._width * this._height * this._depth * 2);
                         break;
-                    case pc.GraphicsConfig.PIXELFORMAT_R5_G6_B5:
-                    case pc.GraphicsConfig.PIXELFORMAT_R5_G5_B5_A1:
-                    case pc.GraphicsConfig.PIXELFORMAT_R4_G4_B4_A4:
+                    case pc.PIXELFORMAT_R5_G6_B5:
+                    case pc.PIXELFORMAT_R5_G5_B5_A1:
+                    case pc.PIXELFORMAT_R4_G4_B4_A4:
                         this._levels[options.level] = new Uint16Array(this._width * this._height * this._depth);
                         break;
-                    case pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8:
+                    case pc.PIXELFORMAT_R8_G8_B8:
                         this._levels[options.level] = new Uint8Array(this._width * this._height * this._depth * 3);
                         break;
-                    case pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8_A8:
+                    case pc.PIXELFORMAT_R8_G8_B8_A8:
                         this._levels[options.level] = new Uint8Array(this._width * this._height * this._depth * 4);
                         break;
-                    case pc.GraphicsConfig.PIXELFORMAT_DXT1:
+                    case pc.PIXELFORMAT_DXT1:
                         this._levels[options.level] = new Uint8Array(Math.floor((this._width + 3) / 4) * Math.floor((this._height + 3) / 4) * 8 * this._depth);
                         break;
-                    case pc.GraphicsConfig.PIXELFORMAT_DXT3:
-                    case pc.GraphicsConfig.PIXELFORMAT_DXT5:
+                    case pc.PIXELFORMAT_DXT3:
+                    case pc.PIXELFORMAT_DXT5:
                         this._levels[options.level] = new Uint8Array(Math.floor((this._width + 3) / 4) * Math.floor((this._height + 3) / 4) * 16 * this._depth);
                         break;
-                    case pc.GraphicsConfig.PIXELFORMAT_RGB16F:
+                    case pc.PIXELFORMAT_RGB16F:
                         this._levels[options.level] = new Uint16Array(this._width * this._height * this._depth * 3);
                         break;
-                    case pc.GraphicsConfig.PIXELFORMAT_RGB32F:
+                    case pc.PIXELFORMAT_RGB32F:
                         this._levels[options.level] = new Float32Array(this._width * this._height * this._depth * 3);
                         break;
-                    case pc.GraphicsConfig.PIXELFORMAT_RGBA16F:
+                    case pc.PIXELFORMAT_RGBA16F:
                         this._levels[options.level] = new Uint16Array(this._width * this._height * this._depth * 4);
                         break;
-                    case pc.GraphicsConfig.PIXELFORMAT_RGBA32F:
+                    case pc.PIXELFORMAT_RGBA32F:
                         this._levels[options.level] = new Float32Array(this._width * this._height * this._depth * 4);
                         break;
                 }
@@ -769,7 +769,7 @@ namespace pc {
         }
 
         getDds() {
-            if (this.format !== pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8_A8)
+            if (this.format !== pc.PIXELFORMAT_R8_G8_B8_A8)
                 console.error("This format is not implemented yet");
 
             let fsize = 128;

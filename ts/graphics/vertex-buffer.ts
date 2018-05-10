@@ -22,7 +22,7 @@ namespace pc {
         constructor(graphicsDevice, format, numVertices, usage?, initialData?) {
             // Initialize optional parameters
             // By default, vertex buffers are static (better for performance since buffer data can be cached in VRAM)
-            this.usage = usage || pc.GraphicsConfig.BUFFER_STATIC;
+            this.usage = usage || pc.BUFFER_STATIC;
 
             // Store the vertex format
             this.format = format;
@@ -136,16 +136,16 @@ namespace pc {
 
             let glUsage;
             switch (this.usage) {
-                case pc.GraphicsConfig.BUFFER_STATIC:
+                case pc.BUFFER_STATIC:
                     glUsage = gl.STATIC_DRAW;
                     break;
-                case pc.GraphicsConfig.BUFFER_DYNAMIC:
+                case pc.BUFFER_DYNAMIC:
                     glUsage = gl.DYNAMIC_DRAW;
                     break;
-                case pc.GraphicsConfig.BUFFER_STREAM:
+                case pc.BUFFER_STREAM:
                     glUsage = gl.STREAM_DRAW;
                     break;
-                case pc.GraphicsConfig.BUFFER_GPUDYNAMIC:
+                case pc.BUFFER_GPUDYNAMIC:
                     if (this.device.webgl2) {
                         glUsage = gl.DYNAMIC_COPY;
                     } else {

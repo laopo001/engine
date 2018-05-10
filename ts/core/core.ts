@@ -20,6 +20,7 @@ namespace pc {
     export const common = {}
     export const apps = {} // Storage for the applications using the PlayCanvas Engine
     export const data = {} // Storage for exported entity data
+    export const _matTex2D = undefined;
 
     export let _benchmarked: boolean;
 

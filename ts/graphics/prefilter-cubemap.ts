@@ -8,7 +8,7 @@ namespace pc {
 
     function syncToCpu(device, { _colorBuffer, _glFrameBuffer }, face) {
         const tex = _colorBuffer;
-        if (tex.format != pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8_A8) return;
+        if (tex.format != pc.PIXELFORMAT_R8_G8_B8_A8) return;
         const pixels = new Uint8Array(tex.width * tex.height * 4);
         const gl = device.gl;
         device.setFramebuffer(_glFrameBuffer);
@@ -53,7 +53,7 @@ namespace pc {
         let targ;
         let i, face, pass;
 
-        const rgbFormat = format === pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8;
+        const rgbFormat = format === pc.PIXELFORMAT_R8_G8_B8;
         let isImg = false;
         let nextCubemap, cubemap;
         if (cpuSync) {
@@ -61,7 +61,7 @@ namespace pc {
         }
         if ((rgbFormat || isImg) && cpuSync) {
             // WebGL can't read non-RGBA pixels
-            format = pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8_A8;
+            format = pc.PIXELFORMAT_R8_G8_B8_A8;
             nextCubemap = new pc.Texture(device, {
                 cubemap: true,
                 rgbm: rgbmSource,
@@ -131,7 +131,7 @@ namespace pc {
             nextCubemap = new pc.Texture(device, {
                 cubemap: true,
                 rgbm: true,
-                format: pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8_A8,
+                format: pc.PIXELFORMAT_R8_G8_B8_A8,
                 width: size,
                 height: size,
                 mipmaps: false
@@ -164,7 +164,7 @@ namespace pc {
                     cmapsList[pass][i] = new pc.Texture(device, {
                         cubemap: true,
                         rgbm: pass < 2 ? rgbmSource : true,
-                        format: pass < 2 ? format : pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8_A8,
+                        format: pass < 2 ? format : pc.PIXELFORMAT_R8_G8_B8_A8,
                         fixCubemapSeams: pass === 1 || pass === 3,
                         width: mipSize[i],
                         height: mipSize[i],
@@ -229,8 +229,8 @@ namespace pc {
                 format,
                 width: 128,
                 height: 128,
-                addressU: pc.GraphicsConfig.ADDRESS_CLAMP_TO_EDGE,
-                addressV: pc.GraphicsConfig.ADDRESS_CLAMP_TO_EDGE
+                addressU: pc.ADDRESS_CLAMP_TO_EDGE,
+                addressV: pc.ADDRESS_CLAMP_TO_EDGE
             });
             for (i = 0; i < 6; i++)
                 cubemap._levels[i] = mips[i]._levels[0];
@@ -254,11 +254,11 @@ namespace pc {
                 cubemap: true,
                 rgbm: true,
                 fixCubemapSeams: true,
-                format: pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8_A8,
+                format: pc.PIXELFORMAT_R8_G8_B8_A8,
                 width: 128,
                 height: 128,
-                addressU: pc.GraphicsConfig.ADDRESS_CLAMP_TO_EDGE,
-                addressV: pc.GraphicsConfig.ADDRESS_CLAMP_TO_EDGE
+                addressU: pc.ADDRESS_CLAMP_TO_EDGE,
+                addressV: pc.ADDRESS_CLAMP_TO_EDGE
             });
             for (i = 0; i < 6; i++) {
                 cubemap._levels[i] = mips[i]._levels[0];
@@ -307,7 +307,7 @@ namespace pc {
         const cubeSize = width;
         let x, y;
 
-        if (format != pc.GraphicsConfig.PIXELFORMAT_R8_G8_B8_A8) {
+        if (format != pc.PIXELFORMAT_R8_G8_B8_A8) {
             console.error("ERROR: SH: cubemap must be RGBA8");
             return;
         }

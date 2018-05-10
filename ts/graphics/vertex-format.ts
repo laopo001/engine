@@ -1,12 +1,12 @@
 namespace pc {
     const _typeSize = [];
-    _typeSize[pc.GraphicsConfig.TYPE_INT8] = 1;
-    _typeSize[pc.GraphicsConfig.TYPE_UINT8] = 1;
-    _typeSize[pc.GraphicsConfig.TYPE_INT16] = 2;
-    _typeSize[pc.GraphicsConfig.TYPE_UINT16] = 2;
-    _typeSize[pc.GraphicsConfig.TYPE_INT32] = 4;
-    _typeSize[pc.GraphicsConfig.TYPE_UINT32] = 4;
-    _typeSize[pc.GraphicsConfig.TYPE_FLOAT32] = 4;
+    _typeSize[pc.TYPE_INT8] = 1;
+    _typeSize[pc.TYPE_UINT8] = 1;
+    _typeSize[pc.TYPE_INT16] = 2;
+    _typeSize[pc.TYPE_UINT16] = 2;
+    _typeSize[pc.TYPE_INT32] = 4;
+    _typeSize[pc.TYPE_UINT32] = 4;
+    _typeSize[pc.TYPE_FLOAT32] = 4;
 
     /**
      * @constructor
@@ -89,11 +89,11 @@ namespace pc {
             this.elements.push(element);
             // This buffer will be accessed by a Float32Array and so must be 4 byte aligned
             this.size += Math.ceil(element.size / 4) * 4;
-            if (elementDesc.semantic === pc.GraphicsConfig.SEMANTIC_TEXCOORD0) {
+            if (elementDesc.semantic === pc.SEMANTIC_TEXCOORD0) {
                 this.hasUv0 = true;
-            } else if (elementDesc.semantic === pc.GraphicsConfig.SEMANTIC_TEXCOORD1) {
+            } else if (elementDesc.semantic === pc.SEMANTIC_TEXCOORD1) {
                 this.hasUv1 = true;
-            } else if (elementDesc.semantic === pc.GraphicsConfig.SEMANTIC_COLOR) {
+            } else if (elementDesc.semantic === pc.SEMANTIC_COLOR) {
                 this.hasColor = true;
             }
         }
