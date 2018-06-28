@@ -1,0 +1,181 @@
+pc.extend(pc, (function () {
+    /**
+     * @private
+     * @function
+     * @name pc.SoundManager.hasAudio
+     * @description Reports whether this device supports the HTML5 Audio tag API
+     * @returns {Boolean} true if HTML5 Audio tag API is supported and false otherwise
+     */
+    function hasAudio() {
+        return (typeof Audio !== 'undefined');
+    }
+    /**
+     * @private
+     * @function
+     * @name pc.SoundManager.hasAudioContext
+     * @description Reports whether this device supports the Web Audio API
+     * @returns {Boolean} true if Web Audio is supported and false otherwise
+     */
+    function hasAudioContext() {
+        return !!(typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined');
+    }
+    /**
+     * @constructor
+     * @name pc.SoundManager
+     * @classdesc The SoundManager is used to load and play audio. As well as apply system-wide settings
+     * like global volume, suspend and resume.
+     * @description Creates a new sound manager.
+     * @param {Object} [options] Options options object.
+     * @param {Boolean} [options.forceWebAudioApi] Always use the Web Audio API even check indicates that it if not available
+     * @property {Number} volume Global volume for the manager. All {@link pc.SoundInstance}s will scale their volume with this volume. Valid between [0, 1].
+     */
+    var SoundManager = /** @class */ (function () {
+        function SoundManager(_a) {
+            var forceWebAudioApi = _a.forceWebAudioApi;
+            if (hasAudioContext() || forceWebAudioApi) {
+                if (typeof AudioContext !== 'undefined') {
+                    this.context = new AudioContext();
+                }
+                else if (typeof webkitAudioContext !== 'undefined') {
+                    this.context = new webkitAudioContext();
+                }
+                if (this.context) {
+                    var context_1 = this.context;
+                    // iOS only starts sound as a response to user interaction
+                    if (pc.platform.ios) {
+                        // Play an inaudible sound when the user touches the screen
+                        // This only happens once
+                        var unlock_1 = function () {
+                            var buffer = context_1.createBuffer(1, 1, 44100);
+                            var source = context_1.createBufferSource();
+                            source.buffer = buffer;
+                            source.connect(context_1.destination);
+                            source.start(0);
+                            source.disconnect();
+                            // no further need for this so remove the listener
+                            window.removeEventListener('touchend', unlock_1);
+                        };
+                        window.addEventListener('touchend', unlock_1);
+                    }
+                }
+            }
+            else {
+                console.warn('No support for 3D audio found');
+            }
+            if (!hasAudio())
+                console.warn('No support for 2D audio found');
+            this.listener = new pc.Listener(this);
+            this._volume = 1;
+            this.suspended = false;
+            pc.events.attach(this);
+        }
+        SoundManager.prototype.suspend = function () {
+            this.suspended = true;
+            this.fire('suspend');
+        };
+        SoundManager.prototype.resume = function () {
+            this.suspended = false;
+            this.fire('resume');
+        };
+        SoundManager.prototype.destroy = function () {
+            this.fire('destroy');
+            if (this.context && this.context.close) {
+                this.context.close();
+                this.context = null;
+            }
+        };
+        SoundManager.prototype.getListener = function () {
+            console.warn('DEPRECATED: getListener is deprecated. Get the "listener" field instead.');
+            return this.listener;
+        };
+        SoundManager.prototype.getVolume = function () {
+            console.warn('DEPRECATED: getVolume is deprecated. Get the "volume" property instead.');
+            return this.volume;
+        };
+        SoundManager.prototype.setVolume = function (volume) {
+            console.warn('DEPRECATED: setVolume is deprecated. Set the "volume" property instead.');
+            this.volume = volume;
+        };
+        /**
+        * @private
+        * @function
+        * @name pc.SoundManager#playSound
+        * @description Create a new pc.Channel and begin playback of the sound.
+        * @param {pc.Sound} sound The Sound object to play.
+        * @param {Object} options Optional options object.
+        * @param {Number} [options.volume] The volume to playback at, between 0 and 1.
+        * @param {Boolean} [options.loop] Whether to loop the sound when it reaches the end.
+        * @returns {pc.Channel} The channel playing the sound.
+        */
+        SoundManager.prototype.playSound = function (sound, options) {
+            options = options || {};
+            var channel = null;
+            if (pc.Channel) {
+                channel = new pc.Channel(this, sound, options);
+                channel.play();
+            }
+            return channel;
+        };
+        /**
+        * @private
+        * @function
+        * @name pc.SoundManager#playSound3d
+        * @description Create a new pc.Channel3d and begin playback of the sound at the position specified
+        * @param {pc.Sound} sound The Sound object to play.
+        * @param {pc.Vec3} position The position of the sound in 3D space.
+        * @param {Object} options Optional options object.
+        * @param {Number} [options.volume] The volume to playback at, between 0 and 1.
+        * @param {Boolean} [options.loop] Whether to loop the sound when it reaches the end.
+        * @returns {pc.Channel3d} The 3D channel playing the sound.
+        */
+        SoundManager.prototype.playSound3d = function (sound, position, options) {
+            options = options || {};
+            var channel = null;
+            if (pc.Channel3d) {
+                channel = new pc.Channel3d(this, sound, options);
+                channel.setPosition(position);
+                if (options.volume) {
+                    channel.setVolume(options.volume);
+                }
+                if (options.loop) {
+                    channel.setLoop(options.loop);
+                }
+                if (options.maxDistance) {
+                    channel.setMaxDistance(options.maxDistance);
+                }
+                if (options.minDistance) {
+                    channel.setMinDistance(options.minDistance);
+                }
+                if (options.rollOffFactor) {
+                    channel.setRollOffFactor(options.rollOffFactor);
+                }
+                if (options.distanceModel) {
+                    channel.setDistanceModel(options.distanceModel);
+                }
+                channel.play();
+            }
+            return channel;
+        };
+        Object.defineProperty(SoundManager.prototype, "volume", {
+            get: function () {
+                return this._volume;
+            },
+            set: function (volume) {
+                volume = pc.math.clamp(volume, 0, 1);
+                this._volume = volume;
+                this.fire('volumechange', volume);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return SoundManager;
+    }());
+    SoundManager.hasAudio = hasAudio;
+    SoundManager.hasAudioContext = hasAudioContext;
+    // backwards compatibility
+    pc.AudioManager = SoundManager;
+    return {
+        SoundManager: SoundManager
+    };
+})());
+//# sourceMappingURL=manager.js.map

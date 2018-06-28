@@ -1,0 +1,48 @@
+pc.extend(pc, (function () {
+    var _schema = ['enabled'];
+    /**
+     * @name pc.ZoneComponentSystem
+     * @description Create a new ZoneComponentSystem
+     * @class Defines zone in world.
+     * @param {pc.Application} app The application
+     * @extends pc.ComponentSystem
+     */
+    var ZoneComponentSystem = function ZoneComponentSystem(app) {
+        this.id = 'zone';
+        this.app = app;
+        app.systems.add(this.id, this);
+        this.ComponentType = pc.ZoneComponent;
+        this.DataType = pc.ZoneComponentData;
+        this.schema = _schema;
+        this.on('beforeremove', this._onBeforeRemove, this);
+    };
+    ZoneComponentSystem = pc.inherits(ZoneComponentSystem, pc.ComponentSystem);
+    pc.Component._buildAccessors(pc.ZoneComponent.prototype, _schema);
+    pc.extend(ZoneComponentSystem.prototype, {
+        initializeComponentData: function (component, data, properties) {
+            component.enabled = data.hasOwnProperty('enabled') ? !!data.enabled : true;
+            if (data.size) {
+                if (data.size instanceof pc.Vec3) {
+                    component.size.copy(data.size);
+                }
+                else if (data.size instanceof Array && data.size.length >= 3) {
+                    component.size.set(data.size[0], data.size[1], data.size[2]);
+                }
+            }
+        },
+        cloneComponent: function (_a, clone) {
+            var zone = _a.zone;
+            var data = {
+                size: zone.size
+            };
+            return this.addComponent(clone, data);
+        },
+        _onBeforeRemove: function (entity, component) {
+            component._onBeforeRemove();
+        }
+    });
+    return {
+        ZoneComponentSystem: ZoneComponentSystem
+    };
+})());
+//# sourceMappingURL=system.js.map
